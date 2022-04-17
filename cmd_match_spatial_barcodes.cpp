@@ -23,7 +23,7 @@ void open_tiles(dataframe_t& df, std::vector<std::string>& tiles, std::vector<ts
   for(int32_t i=0; i < df.nrows; ++i) {
     bcdfs.push_back(new tsv_reader(df.get_str_elem(i, icol).c_str()));
     if ( bcdfs.back()->read_line() == 0 ) {
-      error("ERROR: Observed an empty barcode file %s", df.get_str_elem(i,icol));      
+      error("ERROR: Observed an empty barcode file %s", df.get_str_elem(i,icol).c_str());      
     }    
   }
 
