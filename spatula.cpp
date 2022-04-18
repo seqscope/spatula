@@ -5,6 +5,7 @@
 int32_t cmdMakeSpatialDGE(int32_t argc, char** argv);
 int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv);
 int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv);
+int32_t cmdReformatFASTQs(int32_t argc, char** argv);
  
 int32_t main(int32_t argc, char** argv) {
   commandList cl;
@@ -13,8 +14,8 @@ int32_t main(int32_t argc, char** argv) {
     LONG_COMMAND_GROUP("Spatial Transcriptomics Analysis Tools", NULL)
     LONG_COMMAND("make-sdge", &cmdMakeSpatialDGE, "Make spatial DGE files from STARsolo output")
     LONG_COMMAND("build-sbcds", &cmdBuildSpatialBarcodeDict, "Create spatial barcode dictionary based from HDMI FASTQ arrays")
-    LONG_COMMAND("match-sbcds", &cmdMatchSpatialBarcodes, "Match the FASTQ file containing spatial barcodes with the spatial barcode dictionary")          
-  //LONG_COMMAND("match-sbcds", &cmdMatchSpatialBarcodes, "Compute summary statistics between FASTQ and spatial barcodes")  
+    LONG_COMMAND("match-sbcds", &cmdMatchSpatialBarcodes, "Match the FASTQ file containing spatial barcodes with the spatial barcode dictionary")
+    LONG_COMMAND("reformat-fastqs", &cmdReformatFASTQs, "Reformat FASTQs to be ready for STARsolo alignment")              
   END_LONG_COMMANDS();
 
   cl.Add(new longCommands("Available Commands", longCommandlines));

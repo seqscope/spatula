@@ -128,7 +128,7 @@ uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vecto
     delete bcdfs[i];
   }
 
-  return nmiss;
+  return nmiss + ndups;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   paramList pl;
   BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input options", NULL)
-    LONG_STRING_PARAM("fastq", &fastqf, "FASTQ file read 1 containing 2nd-seq spatial barcode")
+    LONG_STRING_PARAM("fq", &fastqf, "FASTQ file read 1 containing 2nd-seq spatial barcode")
     LONG_STRING_PARAM("bcd", &bcddir, "Spatial barcode dictionary generated from 'build-sbcds' command")
     LONG_INT_PARAM("batch", &batch_size, "Size of a single batch")
     LONG_INT_PARAM("match-len", &match_len, "Length of HDMI spatial barcodes to require perfect matches")
@@ -189,7 +189,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   std::vector<uint64_t> counts;
   kstring_t str; str.l = str.m = 0; str.s = NULL;
   uint64_t nrecs = 0, ibatch = 0;
-  uint64_t nmiss = 0;
+  uint64_t nmissdups = 0;
   int32_t lstr, lseq, ldummy, lqual;
   while( (lstr = hts_getline(hp, KS_SEP_LINE, &str)) > 0 ) {
     if ( nrecs % 10000000 == 0 ) 
@@ -209,14 +209,14 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
     if ( ++nrecs % batch_size == 0 ) {
       notice("Processing batch %d of %d sequences", ++ibatch, batch_size);
       //nmiss += count_matches(bseqs, bcddir, counts);
-      nmiss += count_matches(bseqs, df, counts, match_len, wmatch);
+      nmissdups += count_matches(bseqs, df, counts, match_len, wmatch);
       bseqs.clear();
     }
   }
   if ( bseqs.size() > 0 ) {
     notice("Processing the last batch %d containing %zu sequences", ++ibatch, bseqs.size());
     //nmiss += count_matches(bseqs, bcddir, counts);
-    nmiss += count_matches(bseqs, df, counts, match_len, wmatch);
+    nmissdups += count_matches(bseqs, df, counts, match_len, wmatch);
     bseqs.clear();
   }
   hts_close(wmatch);  
@@ -232,8 +232,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   }
   hts_close(wf);
   
-  notice("Total = %llu, Missed = %llu (%.5f)", nrecs, nmiss, (double)nmiss/(double)nrecs);  
-
+  notice("Total = %llu, Missed + Dups = %llu (%.5f)", nrecs, nmissdups, (double)nmissdups/(double)nrecs);
   notice("Analysis finished");
   
   return 0;
