@@ -146,7 +146,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input options", NULL)
     LONG_STRING_PARAM("fq", &fastqf, "FASTQ file read 1 containing 2nd-seq spatial barcode")
-    LONG_STRING_PARAM("bcd", &bcddir, "Spatial barcode dictionary generated from 'build-sbcds' command")
+    LONG_STRING_PARAM("sbcd", &bcddir, "Spatial barcode dictionary generated from 'build-sbcds' command")
     LONG_INT_PARAM("batch", &batch_size, "Size of a single batch")
     LONG_INT_PARAM("match-len", &match_len, "Length of HDMI spatial barcodes to require perfect matches")
     
