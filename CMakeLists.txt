@@ -41,22 +41,54 @@ set(SOURCE_FILES
     cmd_build_spatial_barcodes.cpp
     cmd_match_spatial_barcodes.cpp
     cmd_reformat_fastqs.cpp
+    cmd_reformat_fastqs_mt.cpp
+    cmd_dge2sdge.cpp
     seq_utils.cpp
     seq_utils.h
+    file_utils.cpp
+    file_utils.h
     spatula.cpp
     spatula.h
     )
 
 SET(APP_EXE spatula)
 
-ADD_EXECUTABLE(${APP_EXE} ${SOURCE_FILES}) 
-
-#TARGET_LINK_LIBRARIES(${APP_EXE} ${HTS_LIBRARIES} ${QGEN_LIBRARIES} ${ZLIB} -lhts)
-TARGET_LINK_LIBRARIES(${APP_EXE} ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} -lcurl -llzma -lssl -lcrypto -lbz2)
+find_package(OpenMP REQUIRED)
+ADD_EXECUTABLE(${APP_EXE} ${SOURCE_FILES})
 
 find_library(ZLIB z HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
 if(NOT ZLIB)
     message(FATAL_ERROR "libz library not found")
 endif()
+
+find_library(CURLLIB curl HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
+if(NOT CURLLIB)
+    message(FATAL_ERROR "libcurl library not found")
+endif()
+
+find_package (BZip2)
+if (NOT BZIP2_FOUND)
+    message(FATAL_ERROR "libbz2 library not found")
+else()
+    include_directories(${BZIP2_INCLUDE_DIRS})
+    set(BZIP2 ${BZIP2_LIBRARIES})
+endif()
+
+find_library(LZMA lzma HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
+if(NOT LZMA)
+    message(WARNING "liblzma library not found, if you specified --disable-lzma when compiling libhts, please ignore this warning")
+    set(LZMA "")
+else()
+    set(LZMA ${LZMA_LIBRARIES})
+endif()
+
+find_library(CRYPTOLIB crypto HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
+if(NOT CRYPTOLIB)
+    message(FATAL_ERROR "libcrypto library not found")
+endif()
+
+TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} "${OpenMP_CXX_FLAGS}")
+target_compile_options(${APP_EXE} PRIVATE "${OpenMP_CXX_FLAGS}")
+
 
 install(TARGETS ${APP_EXE} RUNTIME DESTINATION bin)

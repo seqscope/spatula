@@ -43,7 +43,7 @@ void open_tiles(dataframe_t& df, std::vector<std::string>& tiles, std::vector<ts
   idxf.close();*/
 }
 
-uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& counts, int32_t match_len, htsFile* wmatch) {
+uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& ucounts, std::vector<uint64_t>& dcounts, int32_t match_len, htsFile* wmatch) {
 //uint64_t count_matches(std::vector<std::string>& bseqs, std::string& bcddir, std::vector<uint64_t>& counts) {
   std::vector<std::string> tiles;
   std::vector<tsv_reader*> bcdfs;
@@ -51,8 +51,10 @@ uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vecto
   open_tiles(df, tiles, bcdfs);
 
   int32_t ntiles = (int32_t)tiles.size();
-  if ( counts.empty() ) 
-    counts.resize(ntiles, 0);
+  if ( ucounts.empty() ) {
+    ucounts.resize(ntiles, 0);
+    dcounts.resize(ntiles, 0);
+  }
   int32_t len = strlen(bcdfs[0]->str_field_at(0));
   //if ( len != (int32_t) bseqs[0].size() )
   //  error("HDMI length %d does not match to the parameters %zu", len, bseqs[0].size());  
@@ -85,17 +87,18 @@ uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vecto
 
   uint64_t nmiss = 0;
   uint64_t ndups = 0;
-  bool has_match;
+  bool has_match, is_dup;
   int32_t cmp;
   // count the sequences that matches
   for(uint64_t i=0; i < nseqs; ++i) {
     if (i % (batch_size / 20) == 0)
       notice("Processing %d records, nmiss = %llu, ndups = %llu, bseqs[i]=%032llu, tseqs[0]=%032llu", i, nmiss, ndups, bseqs[i], tseqs[0]);
-    if ( ( i > 0 ) && ( bseqs[i] == bseqs[i-1] ) ) { // avoid double-counting duplicate spatial barcodes
-      ++ndups;
-      continue;
-    }
+    //if ( ( i > 0 ) && ( bseqs[i] == bseqs[i-1] ) ) { // avoid double-counting duplicate spatial barcodes
+    //   ++ndups;
+    //continue;
+    //}
     has_match = false;
+    is_dup = false;
     //const std::string& s = bseqs[i];
     uint64_t s = bseqs[i];
     for(int32_t j=0; j < ntiles; ++j) {
@@ -116,10 +119,19 @@ uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vecto
         for(int32_t k=1; k < bcdfs[j]->nfields; ++k) 
           hprintf(wmatch,"\t%s", bcdfs[j]->str_field_at(k));
         hprintf(wmatch,"\n");
-        ++counts[j];
+        ++dcounts[j];        
+        if ( ( i > 0 ) && ( bseqs[i] == bseqs[i-1] ) ) {
+          is_dup = true;
+        }
+        else {
+          ++ucounts[j];
+        }
       }
     }
-    if ( !has_match ) {
+    if ( is_dup ) {
+      ++ndups;
+    }
+    else if ( !has_match ) {
       ++nmiss;
     }
   }
@@ -141,6 +153,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   int32_t batch_size = 300000000; // number of records to be searched for at once
   //int32_t hdmi_len = 32;
   int32_t match_len = 27;
+  int32_t nthreads = 1;
 
   paramList pl;
   BEGIN_LONG_PARAMS(longParameters)
@@ -149,6 +162,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
     LONG_STRING_PARAM("sbcd", &bcddir, "Spatial barcode dictionary generated from 'build-sbcds' command")
     LONG_INT_PARAM("batch", &batch_size, "Size of a single batch")
     LONG_INT_PARAM("match-len", &match_len, "Length of HDMI spatial barcodes to require perfect matches")
+    LONG_INT_PARAM("threads", &nthreads, "Number of threads")    
     
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out",&outprefix,"Output prefix (index.tsv, matches.tsv.gz)")
@@ -161,7 +175,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   notice("Analysis started");
 
   if ( fastqf.empty() || bcddir.empty() || outprefix.empty() ) {
-    error("Missing required options --fq, --bcd, --out");
+    error("Missing required options --fq, --sbcd, --out");
   }
 
   // make spatial barcode directory end with '/'
@@ -177,7 +191,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
     df.set_str_elem((bcddir + df.get_str_elem(i, jcol)).c_str(), i, icol);
   }
 
-  htsFile* wmatch = hts_open((outprefix + ".matched.tsv.gz").c_str(), "wz");
+  htsFile* wmatch = hts_open((outprefix + ".match.tsv.gz").c_str(), "wz");
   if ( wmatch == NULL )
     error("Cannot open %s.matches.tsv.gz for writing", outprefix.c_str());
 
@@ -186,22 +200,24 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   notice("Reading FASTQ file %s", fastqf.c_str());  
   std::vector<uint64_t> bseqs;      // store the 2nd-sequence into an array after conveting to 64bit integer
   //std::vector<std::string> bseqs; // an exact thing to do is to store actual strings
-  std::vector<uint64_t> counts;
-  kstring_t str; str.l = str.m = 0; str.s = NULL;
+  std::vector<uint64_t> ucounts, dcounts;
   uint64_t nrecs = 0, ibatch = 0;
   uint64_t nmissdups = 0;
-  int32_t lstr, lseq, ldummy, lqual;
-  while( (lstr = hts_getline(hp, KS_SEP_LINE, &str)) > 0 ) {
+  //kstring_t str; str.l = str.m = 0; str.s = NULL;  
+  //int32_t lstr, lseq, ldummy, lqual;
+  int32_t lstr, lseq, ldummy, lqual;  
+  kstring_t str; str.l = str.m = 0; str.s = NULL;
+  lstr = hts_getline(hp, KS_SEP_LINE, &str);
+  while( lstr > 0 ) {
     if ( nrecs % 10000000 == 0 ) 
-      notice("Processing %d records from the FASTQ file %s", nrecs, fastqf.c_str());      
-    
+      notice("Processing %d records from the FASTQ file %s", nrecs, fastqf.c_str());
+
     // read the sequence reads for line 4N+1
     lseq = hts_getline(hp, KS_SEP_LINE, &str);
     if ( lseq < match_len )
       error("Cannot parse Readname in FASTQ file %s at record=%llu. Read length is too short (%d)", fastqf.c_str(), nrecs, lseq);
     
     bseqs.push_back(seq2nt5(str.s,match_len));
-    //bseqs.push_back(seq2bits(str.s,match_len));    
     //bseqs.push_back(str.s);
     ldummy = hts_getline(hp, KS_SEP_LINE, &str);
     lqual  = hts_getline(hp, KS_SEP_LINE, &str);
@@ -209,26 +225,27 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
     if ( ++nrecs % batch_size == 0 ) {
       notice("Processing batch %d of %d sequences", ++ibatch, batch_size);
       //nmiss += count_matches(bseqs, bcddir, counts);
-      nmissdups += count_matches(bseqs, df, counts, match_len, wmatch);
+      nmissdups += count_matches(bseqs, df, ucounts, dcounts, match_len, wmatch);
       bseqs.clear();
     }
+    lstr = hts_getline(hp, KS_SEP_LINE, &str);    
   }
   if ( bseqs.size() > 0 ) {
     notice("Processing the last batch %d containing %zu sequences", ++ibatch, bseqs.size());
     //nmiss += count_matches(bseqs, bcddir, counts);
-    nmissdups += count_matches(bseqs, df, counts, match_len, wmatch);
+    nmissdups += count_matches(bseqs, df, ucounts, dcounts, match_len, wmatch);
     bseqs.clear();
   }
   hts_close(wmatch);  
 
   // read manifest files
   htsFile* wf = hts_open((outprefix + ".counts.tsv").c_str(), "w");
-  hprintf(wf, "id\tfilepath\tbarcodes\tcounts\n");
+  hprintf(wf, "id\tfilepath\tbarcodes\tmatches\tmatches_uniq_per_batch\n");
   for( int32_t i=0; i < df.nrows; ++i) {
     hprintf(wf, "%s", df.get_str_elem(i, "id").c_str());
     hprintf(wf, "\t%s", df.get_str_elem(i, "filepath").c_str());
     hprintf(wf, "\t%llu", df.get_uint64_elem(i, "barcodes"));
-    hprintf(wf, "\t%llu\n", counts[i]);
+    hprintf(wf, "\t%llu\t%llu\n", dcounts[i], ucounts[i]);
   }
   hts_close(wf);
   

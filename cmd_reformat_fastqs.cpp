@@ -14,7 +14,8 @@
 int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
   std::string fq1f;
   std::string fq2f;
-  std::string outprefix;
+  std::string out1f;
+  std::string out2f;  
   int32_t lenSBCD = 30;  // length of spatial barcode
   int32_t lenUMI = 9;  // length of UMI barcode in R2 (copied into R1)
   int32_t lenR2 = 101; // length of Read 2 after trimming.
@@ -34,9 +35,8 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     LONG_INT_PARAM("len-match", &lenMatch, "Length of perfect match required with 2nd-seq FASTQ (27 or less)")    
     
     LONG_PARAM_GROUP("Output Options", NULL)
-    LONG_STRING_PARAM("out", &outprefix, "Output prefix")
-    LONG_STRING_PARAM("suffix-r1", &suffixR1, "Suffix for Read 1")
-    LONG_STRING_PARAM("suffix-r2", &suffixR2, "Suffix for Read 2")     
+    LONG_STRING_PARAM("out1", &out1f, "Output FASTQ file for read1")
+    LONG_STRING_PARAM("out2", &out2f, "Output FASTQ file for read2")
     LONG_INT_PARAM("len-sbcd", &lenSBCD, "Length of spatial barcode (Read 1)")
     LONG_INT_PARAM("len-umi", &lenUMI, "Length of UMI or randomer (Read 2)")
     LONG_INT_PARAM("len-r2", &lenR2, "Length of Read 2 to trim (including randomers)")    
@@ -48,8 +48,8 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
 
   notice("Analysis started");
 
-  if ( fq1f.empty() || fq2f.empty() || outprefix.empty() ) {
-    error("Missing required options --fq1, --fq2, --out");
+  if ( fq1f.empty() || fq2f.empty() || out1f.empty() || out2f.empty() ) {
+    error("Missing required options --fq1, --fq2, --out1, --out2");
   }
 
   if ( lenMatch > 27 )
@@ -63,12 +63,12 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
   if ( hf2 == NULL ) error("Cannot read %s", fq2f.c_str());
 
   notice("Reading FASTQ file pairs %s and %s", fq1f.c_str(), fq2f.c_str());  
-  
-  htsFile* wf1 = hts_open((outprefix + suffixR1).c_str(), "wz");
-  if ( wf1 == NULL ) error("Cannot write to %s%s", outprefix.c_str(), suffixR1.c_str());
-  
-  htsFile* wf2 = hts_open((outprefix + suffixR2).c_str(), "wz");
-  if ( wf2 == NULL ) error("Cannot write to %s%s", outprefix.c_str(), suffixR2.c_str());
+
+  htsFile* wf1 = hts_open(out1f.c_str(), out1f.substr(out1f.size()-3).compare(".gz") == 0 ? "wz" : "w");
+  if ( wf1 == NULL ) error("Cannot write to %s", out1f.c_str(), suffixR1.c_str());
+
+  htsFile* wf2 = hts_open(out2f.c_str(), out1f.substr(out2f.size()-3).compare(".gz") == 0 ? "wz" : "w");  
+  if ( wf2 == NULL ) error("Cannot write to %s", out2f.c_str(), suffixR2.c_str());
 
   std::set<uint64_t> matchSet;
   if ( !matchTsv.empty() ) {
@@ -84,7 +84,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     notice("Loaded a total of %llu barcodes, with %zu after removing redundant records", nmatch, matchSet.size());
   }
   
-  notice("Writing to FASTQ file pairs %s%s and %s%s", outprefix.c_str(), suffixR1.c_str(), outprefix.c_str(), suffixR2.c_str());
+  notice("Writing to FASTQ file pairs %s and %s", out1f.c_str(), out2f.c_str());
   
   kstring_t str1; str1.l = str1.m = 0; str1.s = NULL;
   kstring_t str2; str2.l = str2.m = 0; str2.s = NULL;
@@ -101,13 +101,13 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
 
     // parse the readname
     lname2 = hts_getline(hf2, KS_SEP_LINE, &name2);
-    if ( lname2 == 0 ) error("Unexpected EOF in FASTQ file %s%s", outprefix.c_str(), suffixR2.c_str());
+    if ( lname2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
 
     // read the sequence reads
     lstr1 = hts_getline(hf1, KS_SEP_LINE, &str1);
-    if ( lstr1 == 0 ) error("Unexpected EOF in FASTQ file %s%s", outprefix.c_str(), suffixR1.c_str());    
+    if ( lstr1 == 0 ) error("Unexpected EOF in FASTQ file %s", out1f.c_str());    
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
-    if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s%s", outprefix.c_str(), suffixR2.c_str());
+    if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
 
     if ( !matchTsv.empty() && matchSet.find(seq2nt5(str1.s, lenMatch)) != matchSet.end() ) {
       skip = true;
@@ -131,11 +131,11 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
 
     // read the dummy lines
     lstr1 = hts_getline(hf1, KS_SEP_LINE, &str1);
-    if ( lstr1 == 0 ) error("Unexpected EOF in FASTQ file %s%s", outprefix.c_str(), suffixR1.c_str());    
+    if ( lstr1 == 0 ) error("Unexpected EOF in FASTQ file %s", out1f.c_str());    
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
-    if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s%s", outprefix.c_str(), suffixR2.c_str());
-    if ( str1.s[0] != '+' ) error("Unexpected line in FASTQ file %s%s", outprefix.c_str(), suffixR1.c_str());
-    if ( str2.s[0] != '+' ) error("Unexpected line in FASTQ file %s%s", outprefix.c_str(), suffixR2.c_str());
+    if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
+    if ( str1.s[0] != '+' ) error("Unexpected line in FASTQ file %s", out1f.c_str());
+    if ( str2.s[0] != '+' ) error("Unexpected line in FASTQ file %s", out2f.c_str());
     if ( !skip ) {
       hprintf(wf1, "%s\n", str1.s);
       hprintf(wf2, "%s\n", str2.s);
@@ -143,9 +143,9 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     
     // read the quality strings
     lstr1 = hts_getline(hf1, KS_SEP_LINE, &str1);
-    if ( lstr1 == 0 ) error("Unexpected EOF in FASTQ file %s%s", outprefix.c_str(), suffixR1.c_str());    
+    if ( lstr1 == 0 ) error("Unexpected EOF in FASTQ file %s", out1f.c_str());    
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
-    if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s%s", outprefix.c_str(), suffixR2.c_str());
+    if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
     if ( !skip ) {
       strncpy(buf1, str1.s, lenSBCD);
       strncpy(buf1 + lenSBCD, str2.s, lenUMI);
