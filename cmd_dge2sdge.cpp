@@ -12,7 +12,8 @@
 class tile_writer {
 public:
   std::map<int32_t, std::map<int32_t, htsFile*> > tile_fhs;
-  //std::map<int32_t, std::map<int32_t, uint64_t> > tile_cnts;
+  std::map<int32_t, htsFile*> lane_fhs;  
+  std::map<int32_t, std::string> lane_filenames;   
   std::map<int32_t, std::map<int32_t, std::string> > tile_filenames;    
   htsFile* all_fh;
   uint64_t all_cnt;
@@ -35,6 +36,11 @@ public:
       hts_close(all_fh);
       all_fh = NULL;
     }
+    for(std::map<int32_t, htsFile*>::iterator it = lane_fhs.begin(); it != lane_fhs.end(); ++it) {
+      hts_close(it->second);
+    }
+    lane_fhs.clear();
+    
     for(std::map<int32_t, std::map<int32_t, htsFile*> >::iterator it = tile_fhs.begin(); it != tile_fhs.end(); ++it) {
       for(std::map<int32_t, htsFile*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
         hts_close(it2->second);
@@ -43,7 +49,8 @@ public:
     tile_fhs.clear();
   }
 
-  bool write_both(int32_t lane, int32_t tile, const std::string& s) {
+  /*
+  bool write_each(int32_t lane, int32_t tile, const std::string& s) {
     std::map<int32_t, htsFile*>::iterator it = tile_fhs[lane].find(tile);
     bool ret = false;
     htsFile* wf = NULL;
@@ -66,11 +73,31 @@ public:
     hprint_str(all_fh, s);
     return ret;
   }
+  */
 
   void write_all(const std::string& s) {
     //++all_cnt;
     // write the string twice
     hprint_str(all_fh, s);
+  }
+
+  bool write_lane(int32_t lane, const std::string& s) {
+    std::map<int32_t, htsFile*>::iterator it = lane_fhs.find(lane);
+    bool ret = false;
+    htsFile* wf = NULL;
+    if ( it == lane_fhs.end() ) {
+      std::string name;
+      catprintf(name, "%s%d", rootdir.c_str(), lane);
+      ret = makePath(name); // make directory if it does not exist
+      catprintf(name, "/%s", filename.c_str());
+      wf = hts_open(name.c_str(), gzip ? "wz" : "w");      
+      lane_fhs[lane] = wf;
+      lane_filenames[lane] = name;      
+    } else {
+      wf = it->second;
+    }
+    hprint_str(wf, s);
+    return ret;    
   }
 
   bool write_tile(int32_t lane, int32_t tile, const std::string& s) {
@@ -88,8 +115,6 @@ public:
     } else {
       wf = it->second;
     }
-    //++tile_cnts[lane][tile];
-    // write the string twice
     hprint_str(wf, s);
     return ret;
   }  
@@ -98,6 +123,7 @@ public:
 class tile_counter {
 public:
   std::map<int32_t, std::map<int32_t, std::vector<uint64_t> > > tile_cnts;
+  std::map<int32_t, std::vector<uint64_t> > lane_cnts;
   std::vector<uint64_t> all_cnts;
   int32_t ncols;
   
@@ -113,17 +139,34 @@ public:
     return cnts[icol];
   }
 
-  bool add_count(int32_t lane, int32_t tile, int32_t icol, int32_t cnt) {
-    all_cnts[icol] += cnt;          
-    
-    std::vector<uint64_t>& cnts = tile_cnts[lane][tile];
+  inline uint64_t get_lane_count(int32_t lane, int32_t icol) {
+    std::vector<uint64_t>& cnts = lane_cnts[lane];
     if ( cnts.empty() ) {
       cnts.resize(ncols,0);
-      cnts[icol] = cnt;
+    }
+    return cnts[icol];    
+  }
+
+  bool add_count(int32_t lane, int32_t tile, int32_t icol, int32_t cnt) {
+    all_cnts[icol] += cnt;
+
+    std::vector<uint64_t>& lcnts = lane_cnts[lane];
+    if ( lcnts.empty() ) {
+      lcnts.resize(ncols,0);
+      lcnts[icol] = cnt;
+    }
+    else {
+      lcnts[icol] += cnt;
+    }    
+    
+    std::vector<uint64_t>& tcnts = tile_cnts[lane][tile];
+    if ( tcnts.empty() ) {
+      tcnts.resize(ncols,0);
+      tcnts[icol] = cnt;
       return true;
     }
     else {
-      cnts[icol] += cnt;
+      tcnts[icol] += cnt;
       return false;
     }
   }
@@ -131,20 +174,31 @@ public:
   bool add_counts(int32_t lane, int32_t tile, std::vector<int32_t>& v) {
     for(int32_t i=0; i < ncols; ++i)
       all_cnts[i] += v[i];
-            
-    std::vector<uint64_t>& cnts = tile_cnts[lane][tile];
-    if ( cnts.empty() ) {
-      cnts.resize(ncols,0);
+
+    std::vector<uint64_t>& lcnts = lane_cnts[lane];
+    if ( lcnts.empty() ) {
+      lcnts.resize(ncols,0);
       for(int32_t i=0; i < ncols; ++i)
-        cnts[i] = v[i];
+        lcnts[i] = v[i];
+    }
+    else {
+      for(int32_t i=0; i < ncols; ++i)
+        lcnts[i] += v[i];      
+    }    
+            
+    std::vector<uint64_t>& tcnts = tile_cnts[lane][tile];
+    if ( tcnts.empty() ) {
+      tcnts.resize(ncols,0);
+      for(int32_t i=0; i < ncols; ++i)
+        tcnts[i] = v[i];
       return true;
     }
     else {
       for(int32_t i=0; i < ncols; ++i)
-        cnts[i] += v[i];      
+        tcnts[i] += v[i];      
       return false;
     }
-  }  
+  }   
 };
 
 class sbcd_sync_reader {
@@ -208,6 +262,7 @@ public:
   }
 };
 
+// once a single barcode finishes reading, flush the barcode out to all, lane, tile
 void write_sbcd(sbcd_sync_reader& ssr, uint64_t cur_ibcd, std::vector<int32_t>& cur_bcd_cnts, tile_writer& bcd_tw, tile_counter& sbcds_counter, int32_t n_mtx) {
   // print the current barcode
   tsv_reader* p = ssr.move_to_ibcd(cur_ibcd);
@@ -215,24 +270,32 @@ void write_sbcd(sbcd_sync_reader& ssr, uint64_t cur_ibcd, std::vector<int32_t>& 
   int32_t tile = p == NULL ? 0 : p->int_field_at(2);
   int32_t x    = p == NULL ? 0 : p->int_field_at(3);
   int32_t y    = p == NULL ? 0 : p->int_field_at(4);
-  //int32_t sum  = cur_bcd_cnts[0];
-  //for(int32_t k=1; k < n_mtx; ++k) sum += cur_bcd_cnts[k];
+
   std::string outstr;
-  //catprintf(outstr, "%s\t%llu\t%llu\t%d\t%d\t%d\t%d\t%d\t", ssr.bcd, sbcds_counter.all_cnts[0] + 1, cur_ibcd, lane, tile, x, y, sum);
+
+  // write all
   catprintf(outstr, "%s\t%llu\t%llu\t%d\t%d\t%d\t%d\t", ssr.bcd, sbcds_counter.all_cnts[0] + 1, cur_ibcd, lane, tile, x, y);  
   cat_join_int32(outstr, cur_bcd_cnts, ",");
   outstr += "\n";
   bcd_tw.write_all(outstr);
 
   outstr.clear();
-  //catprintf(outstr, "%s\t%llu\t%llu\t%d\t%d\t%d\t%d\t%d\t", ssr.bcd, sbcds_counter.tile_cnts[lane][tile][0] + 1, cur_ibcd, lane, tile, x, y, sum);
+
+  // write lane
+  catprintf(outstr, "%s\t%llu\t%llu\t%d\t%d\t%d\t%d\t", ssr.bcd, sbcds_counter.get_lane_count(lane, 0) + 1, cur_ibcd, lane, tile, x, y);
+  cat_join_int32(outstr, cur_bcd_cnts, ",");
+  outstr += "\n";
+  bcd_tw.write_lane(lane, outstr);
+
+  outstr.clear();
+
+  // write tile
   catprintf(outstr, "%s\t%llu\t%llu\t%d\t%d\t%d\t%d\t", ssr.bcd, sbcds_counter.get_tile_count(lane, tile, 0) + 1, cur_ibcd, lane, tile, x, y);  
   cat_join_int32(outstr, cur_bcd_cnts, ",");
   outstr += "\n";
   bcd_tw.write_tile(lane, tile, outstr);
 
   sbcds_counter.add_count(lane, tile, 0, 1); // add # barcodes
-  //++sbcds_written;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -457,7 +520,12 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
       mtx_tw.write_all(outstr);
       outstr.clear();
 
-      //notice("foo4");          
+      // write matrix.mtx contents for for specific lane
+      catprintf(outstr, "%llu %llu ", iftr, sbcds_counter.get_lane_count(lane,0) + 1);
+      cat_join_int32(outstr, vals, " ");
+      outstr += "\n";
+      mtx_tw.write_lane(lane, outstr);
+      outstr.clear();      
 
       // write matrix.mtx contents for specific tile
       catprintf(outstr, "%llu %llu ", iftr, sbcds_counter.get_tile_count(lane,tile,0) + 1);
@@ -498,24 +566,31 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   notice("Finished wriing spatial barcodes and uncompressed .tmp.matrix.mtx files");
 
   notice("Started wriing compressed features.tsv.gz files");
-  // write feature.tsv.gz file for each file
-  // create files
+  // write feature.tsv.gz file for each tile
   tile_writer ftr_tw( mtx_tw.rootdir.c_str(), "features.tsv.gz", true);
   for(int32_t i=0; i < (int32_t)ftr_ids.size(); ++i) {
     std::string buf1, buf2;
     tile_counter* pcnt = ftr_cnts[i];
+    // buf1 contains basic gene info
     catprintf(buf1, "%s\t%s\t%d", ftr_ids[i].c_str(), ftr_names[i].c_str(), i+1);
 
-    /*
-    uint64_t sum = 0;    
-    for(int32_t j=0; j < (int32_t)pcnt->all_cnts.size(); ++j) {
-      sum += pcnt->all_cnts[j];
-    }
-    catprintf(buf2, "%s\t%llu\t", buf1.c_str(), sum);*/
+    // buf2 contains actual counts
     catprintf(buf2, "%s\t", buf1.c_str());    
     cat_join_uint64(buf2, pcnt->all_cnts, ",");
     buf2 += "\n";
-    ftr_tw.write_all(buf2);
+    ftr_tw.write_all(buf2); // write all file
+
+    // write to each lane
+    for(std::map<int32_t, std::vector<uint64_t> >::iterator it = pcnt->lane_cnts.begin(); it != pcnt->lane_cnts.end(); ++it) {
+      buf2.clear();
+      std::vector<uint64_t>& v = it->second;        
+      catprintf(buf2, "%s\t", buf1.c_str());        
+      cat_join_uint64(buf2, v, ",");
+      buf2 += "\n";
+      ftr_tw.write_lane(it->first, buf2);              
+    }
+
+    // write to each tile
     for(std::map<int32_t, std::map<int32_t, std::vector<uint64_t> > >::iterator it1 = pcnt->tile_cnts.begin(); it1 != pcnt->tile_cnts.end(); ++it1) {
       for(std::map<int32_t, std::vector<uint64_t> >::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
         buf2.clear();
@@ -539,9 +614,17 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   // write header files
   tile_writer hdr_tw(outdir.c_str(), ".tmp.matrix.hdr", false);
   std::string hdr_str("%%MatrixMarket matrix coordinate integer general\n%\n");
+  // write combined file
   outstr.clear();
   catprintf(outstr,"%s%d %llu %llu\n", hdr_str.c_str(), nftrs, sbcds_counter.all_cnts[0], sbcds_counter.all_cnts[1]);
   hdr_tw.write_all(outstr);
+  // write each lane
+  for(std::map<int32_t, std::vector<uint64_t> >::iterator it = sbcds_counter.lane_cnts.begin(); it != sbcds_counter.lane_cnts.end(); ++it) {
+    outstr.clear();
+    catprintf(outstr,"%s%d %llu %llu\n", hdr_str.c_str(), nftrs, sbcds_counter.get_lane_count(it->first, 0), sbcds_counter.get_lane_count(it->first, 1)); 
+    hdr_tw.write_lane(it->first, outstr);      
+  }  
+  // write each tile
   for(std::map<int32_t, std::map<int32_t, std::vector<uint64_t> > >::iterator it1 = sbcds_counter.tile_cnts.begin(); it1 != sbcds_counter.tile_cnts.end(); ++it1) {
     for(std::map<int32_t, std::vector<uint64_t> >::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
       outstr.clear();
@@ -561,9 +644,24 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   if ( remove(hdr_tw.all_filename.c_str()) != 0 )
     error("Cannot remove %s", hdr_tw.all_filename.c_str());
   if ( remove(mtx_tw.all_filename.c_str()) != 0 )
-    error("Cannot remove %s", mtx_tw.all_filename.c_str());  
+    error("Cannot remove %s", mtx_tw.all_filename.c_str());
+
+  notice("Generating the merged matrix.mtx.gz files for individual lanes");
+  for(std::map<int32_t, std::vector<uint64_t> >::iterator it = sbcds_counter.lane_cnts.begin(); it != sbcds_counter.lane_cnts.end(); ++it) {
+    cmd.clear();
+    catprintf(cmd, "cat %s %s | gzip -c > %s%d/%s", hdr_tw.lane_filenames[it->first].c_str(), mtx_tw.lane_filenames[it->first].c_str(), mtx_tw.rootdir.c_str(), it->first, "matrix.mtx.gz");
+    //notice("Lane %d, tile %d - %s", it1->first, it2->first, cmd.c_str());      
+    ret = system(cmd.c_str());
+    if ( (ret == -1) || (WEXITSTATUS(ret) == 127) ) {      
+      error("Error in running %s", cmd.c_str());
+    }
+    if ( remove(hdr_tw.lane_filenames[it->first].c_str()) != 0 )
+      error("Cannot remove %s", hdr_tw.lane_filenames[it->first].c_str());
+    if ( remove(mtx_tw.lane_filenames[it->first].c_str()) != 0 )
+      error("Cannot remove %s", mtx_tw.lane_filenames[it->first].c_str());        
+  }    
   
-  notice("Generating the merged matrix.mtx.gz files for inidividual files");
+  notice("Generating the merged matrix.mtx.gz files for individual tiles");
   for(std::map<int32_t, std::map<int32_t, std::vector<uint64_t> > >::iterator it1 = sbcds_counter.tile_cnts.begin(); it1 != sbcds_counter.tile_cnts.end(); ++it1) {
     for(std::map<int32_t, std::vector<uint64_t> >::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
       cmd.clear();
