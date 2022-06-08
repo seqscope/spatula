@@ -79,6 +79,11 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
     hdmi_patterns.push_back("NNNBNNBNNBNNBNNBNNBNNBNNBNNBNNBN");
     hdmi_patterns.push_back("NNNNBNNBNNBNNBNNBNNBNNBNNBNNBNNB");
   }
+  else if ( format.compare("XGMix32") == 0 ) {
+    hdmi_length = 32;
+    hdmi_patterns.push_back("NNHHNNHHNNHHNNHHNNHHNNHHNNHHNNHH");
+    hdmi_patterns.push_back("DDNNDDNNDDNNDDNNDDNNDDNNDDNNDDNN");
+  }
   else {
     error("Cannot recognize the HDMI format %s. Acceptable values are DraI32, DMix32, DraI20, HDMI20", format.c_str());
   }
