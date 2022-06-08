@@ -147,7 +147,7 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
     // calculate mismatches from the expected pattern
     mismatches = seq_iupac_mismatch(str.s, hdmi_patterns[0].c_str(), hdmi_length);
     for(i=1; i < (int32_t)hdmi_patterns.size(); ++i) {
-      error("foo");
+      //error("foo");
       tmp = seq_iupac_mismatch(str.s, hdmi_patterns[i].c_str(), hdmi_length);
       if ( tmp < mismatches )
         mismatches = tmp;
