@@ -42,7 +42,7 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
   BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input options", NULL)
     LONG_STRING_PARAM("fq", &fastqf, "FASTQ file that contains spatial barcode")
-    LONG_STRING_PARAM("format", &format, "Format of the HDMI array (DraI32, DMix32, DraI20, HDMI20)")
+    LONG_STRING_PARAM("format", &format, "Format of the HDMI array (DraI32, DMix32, DraI20, DPAGE32, HDMI20)")
 
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out",&outf,"Output directory name")
@@ -83,6 +83,16 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
     hdmi_length = 32;
     hdmi_patterns.push_back("NNHHNNHHNNHHNNHHNNHHNNHHNNHHNNHH");
     hdmi_patterns.push_back("DDNNDDNNDDNNDDNNDDNNDDNNDDNNDDNN");
+  }
+  else if ( format.compare("DPAGE32") == 0 ) {
+    hdmi_length = 32;
+    hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBVNBNN");
+    hdmi_patterns.push_back("NNNNBNNBNNBNNBNNBNNBNNBNNBNNBNNB");
+  }
+  else if ( format.compare("XG3") == 0 ) {
+    hdmi_length = 32;
+    hdmi_patterns.push_back("DDNNDDNNDDNNDDNNDDNNDDNNDDNNDDNN");
+    hdmi_patterns.push_back("NNHHNNHHNNHHNNHHNNHHNNHHNNHHNNHH");
   }
   else {
     error("Cannot recognize the HDMI format %s. Acceptable values are DraI32, DMix32, DraI20, HDMI20", format.c_str());
