@@ -68,7 +68,11 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
   else if ( format.compare("Gen32") == 0 ) {
     hdmi_length = 32;
     hdmi_patterns.push_back("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
-  }  
+  }
+  else if ( format.compare("Gen31") == 0 ) {
+    hdmi_length = 31;
+    hdmi_patterns.push_back("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+  }    
   else if ( format.compare("DraI20") == 0 ) {
     hdmi_length = 20;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNN");
@@ -155,7 +159,7 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
     // read the sequence reads for line 4N+1
     lseq = hts_getline(hp, KS_SEP_LINE, &str);
     if ( lseq < hdmi_length )
-      error("Cannot parse Readname in FASTQ file %s at record=%llu. Read length is too short (%d)", fastqf.c_str(), nrecs, lseq);
+      error("Cannot parse sequence reads in FASTQ file %s at record=%llu. Read length is too short (%d)", fastqf.c_str(), nrecs, lseq);
     str.s[hdmi_length] = '\0'; // trim the sequence file
 
     // calculate mismatches from the expected pattern
