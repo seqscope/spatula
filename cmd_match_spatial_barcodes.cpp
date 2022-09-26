@@ -108,7 +108,7 @@ std::pair<uint64_t,uint64_t> count_matches(std::vector<uint64_t>& bseqs, datafra
   }
 
   //return nmiss + ndups;
-  std::make_pair(nmiss, ndups);
+  return std::make_pair(nmiss, ndups);
 }
 
 /////////////////////////////////////////////////////////////////////////
