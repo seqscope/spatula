@@ -29,7 +29,7 @@ void open_tiles(dataframe_t& df, std::vector<std::string>& tiles, std::vector<ts
   }
 }
 
-uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& dcounts, int32_t match_len, htsFile* wmatch) {
+std::pair<uint64_t,uint64_t> count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& dcounts, int32_t match_len, htsFile* wmatch) {
   //uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& ucounts, std::vector<uint64_t>& dcounts, int32_t match_len, htsFile* wmatch) {  
 //uint64_t count_matches(std::vector<std::string>& bseqs, std::string& bcddir, std::vector<uint64_t>& counts) {
   std::vector<std::string> tiles;
@@ -107,7 +107,8 @@ uint64_t count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vecto
     delete bcdfs[i];
   }
 
-  return nmiss + ndups;
+  //return nmiss + ndups;
+  std::make_pair(nmiss, ndups);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -177,7 +178,8 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   //std::vector<uint64_t> ucounts, dcounts;
   std::vector<uint64_t> dcounts;  
   uint64_t nrecs = 0, ibatch = 0;
-  uint64_t nmissdups = 0;
+  //uint64_t nmissdups = 0;
+  uint64_t nmiss = 0, ndups_approx = 0;
   int32_t lstr, lseq, ldummy, lqual;  
   kstring_t str; str.l = str.m = 0; str.s = NULL;
   lstr = hts_getline(hp, KS_SEP_LINE, &str);
@@ -198,7 +200,10 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
       notice("Processing batch %d of %d sequences", ++ibatch, batch_size);
       //nmiss += count_matches(bseqs, bcddir, counts);
       //nmissdups += count_matches(bseqs, df, ucounts, dcounts, match_len, wmatch);
-      nmissdups += count_matches(bseqs, df, dcounts, match_len, wmatch);      
+      std::pair<uint64_t,uint64_t> nmissdups = count_matches(bseqs, df, dcounts, match_len, wmatch);
+      nmiss += nmissdups.first;
+      ndups_approx += nmissdups.second;
+      //nmissdups += count_matches(bseqs, df, dcounts, match_len, wmatch);      
       bseqs.clear();
 
       // open a new file
@@ -215,7 +220,10 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   if ( bseqs.size() > 0 ) {
     notice("Processing the last batch %d containing %zu sequences", ++ibatch, bseqs.size());
     //nmissdups += count_matches(bseqs, df, ucounts, dcounts, match_len, wmatch);
-    nmissdups += count_matches(bseqs, df, dcounts, match_len, wmatch);    
+    std::pair<uint64_t,uint64_t> nmissdups = count_matches(bseqs, df, dcounts, match_len, wmatch);
+    nmiss += nmissdups.first;
+    ndups_approx += nmissdups.second;    
+    //nmissdups += count_matches(bseqs, df, dcounts, match_len, wmatch);    
     bseqs.clear();
   }
   hts_close(wmatch);
@@ -310,8 +318,18 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
     nuniq += uniq_cnts[pair.first][pair.second];
   }
   hts_close(wf);
+
+  wf = hts_open((outprefix + ".summary.tsv").c_str(), "w");
+  hprintf(wf, "Type\tReads\tFraction\n");
+  hprintf(wf, "Total\t%llu\t%.5lf\n", nrecs, 1.0);
+  hprintf(wf, "Miss\t%llu\t%.5lf\n",  nmiss, (double)nmiss/(double)nrecs);
+  hprintf(wf, "Match\t%llu\t%.5lf\n",  nrecs-nmiss, 1.0-(double)nmiss/(double)nrecs);
+  hprintf(wf, "Dup(Approx)\t%llu\t%.5lf\n",  ndups_approx, (double)ndups_approx/(double)nrecs);
+  hprintf(wf, "Unique\t%llu\t%.5lf\n",  nuniq, (double)nuniq/(double)nrecs);
+  hprintf(wf, "Dup(Exact)\t%llu\t%.5lf\n",  nrecs-nmiss-nuniq, (double)(nrecs-nmiss-nuniq)/(double)nrecs);  
+  hts_close(wf);
   
-  notice("Total = %llu, Missed + Dups (approx) = %llu (%.5f), Unique = %llu (%.5lf)", nrecs, nmissdups, (double)nmissdups/(double)nrecs, nuniq, (double)nuniq/(double)nrecs);
+  notice("Total = %llu, Missed = %llu (%.5f), Dups(approx) = %llu (%.5f), Unique = %llu (%.5lf)", nrecs, nmiss, (double)nmiss/(double)nrecs,  ndups_approx, (double)ndups_approx/(double)nrecs, nuniq, (double)nuniq/(double)nrecs);
 
   for(i=0; i < nbatches; ++i) {
     batch_trs[i]->close();
