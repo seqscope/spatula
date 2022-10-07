@@ -60,18 +60,16 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
 
   int32_t hdmi_length;
   std::vector<std::string> hdmi_patterns;
+  bool rev_comp = true;
 
   if ( format.compare("DraI32") == 0 ) {
     hdmi_length = 32;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBVNBNN");
   }
-  else if ( format.compare("Gen32") == 0 ) {
-    hdmi_length = 32;
-    hdmi_patterns.push_back("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
-  }
-  else if ( format.compare("Gen30") == 0 ) {
+  else if ( format.compare("T7-30") == 0 ) {
     hdmi_length = 30;
     hdmi_patterns.push_back("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+    rev_comp = false;
   }    
   else if ( format.compare("DraI20") == 0 ) {
     hdmi_length = 20;
@@ -180,7 +178,8 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
     if ( ltval->ymin > y ) ltval->ymin = y;
     if ( ltval->ymax < y ) ltval->ymax = y;        
     
-    seq_revcomp(str.s, hdmi_length); // take reverse complement of the sequence
+    if ( rev_comp )
+      seq_revcomp(str.s, hdmi_length); // take reverse complement of the sequence
     hprintf(ltval->hp, "%s\t%d\t%d\t%d\t%d\t%d\n", str.s, lane, tile, x, y, mismatches);
     //notice("%s\t%d\t%d\t%d\t%d\t%d", str.s, lane, tile, x, y, mismatches);
     free(fields);    
