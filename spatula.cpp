@@ -2,6 +2,7 @@
 #include "qgenlib/commands.h"
 #include "qgenlib/qgen_utils.h"
 
+int32_t cmdMatchTag(int32_t argc, char** argv);
 int32_t cmdMakeSpatialDGE(int32_t argc, char** argv);
 int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv);
 int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv);
@@ -19,7 +20,8 @@ int32_t main(int32_t argc, char** argv) {
     LONG_COMMAND("match-sbcds", &cmdMatchSpatialBarcodes, "Match the FASTQ file containing spatial barcodes with the spatial barcode dictionary")
     LONG_COMMAND("reformat-fastqs", &cmdReformatFASTQs, "Reformat FASTQs to be ready for STARsolo alignment")
     LONG_COMMAND("reformat-fastqs-mt", &cmdReformatFASTQsMT, "Reformat FASTQs to be ready for STARsolo alignment (multithreaded)")
-    LONG_COMMAND("dge2sdge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SDGE format")     
+    LONG_COMMAND("dge2sdge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SDGE format")
+    LONG_COMMAND("match-tag", &cmdMatchTag, "Match tags from FASTQ")    
   END_LONG_COMMANDS();
 
   cl.Add(new longCommands("Available Commands", longCommandlines));

@@ -204,6 +204,7 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
   for(ltitr = ltdict.begin(); ltitr != ltdict.end(); ++ltitr) {
     lane_tile_t* p = ltitr->second;
     const char* key = ltitr->first.c_str();
+    // we write as .sbcds.sorted.tsv.gz because we expect that the pipeline will sort the tsv file later on
     hprintf(wf, "%s\t%s.sbcds.sorted.tsv.gz\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", key, key, p->nrecords, p->nmatches, p->nrecords - p->nmatches, p->xmin, p->xmax, p->ymin, p->ymax); 
   }
   hts_close(wf);
