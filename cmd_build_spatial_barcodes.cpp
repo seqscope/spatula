@@ -71,6 +71,10 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
     hdmi_patterns.push_back("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
     rev_comp = false;
   }    
+  else if ( format.compare("HDMI30") == 0 ) {
+    hdmi_length = 30;
+    hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBNNB");
+  }    
   else if ( format.compare("DraI20") == 0 ) {
     hdmi_length = 20;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNN");
