@@ -219,7 +219,7 @@ int32_t cmdMatchTag(int32_t argc, char** argv) {
         umi_seq[0] = '.';
         umi_seq[1] = '\0';
       }
-      hprintf(wbatch, "%s\t%s\t%d\n", bcd_seq, umi_seq, tag_it->second);
+      hprintf(wbatch, "%s\t%06d\t%s\n", bcd_seq, tag_it->second, umi_seq);
       ++n_written;
     }
     

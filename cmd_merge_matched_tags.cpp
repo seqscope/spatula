@@ -9,37 +9,117 @@
 #include <algorithm>
 
 #define MAX_NT5_LEN 27
+#define UINT64_MAX ULLLONG_MAX
+#define INT32_MAX INT_MAX
+
+class bcd_tag_umi_sync {
+public:
+  int32_t nbatches;
+  std::vector<uint64_t> nt5_bcds;
+  std::vector<int32_t>  int_tags;
+  std::vector<uint64_t> nt5_umis;
+
+  uint64_t min_bcd;
+  int32_t  min_tag;
+  uint64_t min_umi;
+  std::vector<int32_t> imin_bcds;
+  std::vector<int32_t> imin_tags;
+  std::vector<int32_t> imin_umis;
+
+  int32_t bcd_len, umi_len;
+  int32_t nt5_bcd_len, nt5_umi_len;
+
+  bcd_tag_umi_sync(int32_t _nbatches) : nbatches(_nbatches), min_bcd(0), min_tag(0), min_umi(0), bcd_len(0), umi_len(0), nt5_bcd_len(0), nt5_umi_len(0) {
+    nt5_bcds.resize(nbatches);
+    int_tags.resize(nbatches);
+    nt5_umis.resize(nbatches);
+  }  
+
+  void set_entry(int32_t ibatch, const char* bcd_seq, int32_t int_tag, const char* umi_seq) {
+    if ( bcd_len == 0 ) { // first time setting up
+      bcd_len = strlen(bcd_seq);
+      umi_len = strlen(umi_seq);
+      nt5_bcd_len = bcd_len ? MAX_NT5_LEN ? MAX_NT5_LEN : bcd_len;
+      nt5_umi_len = umi_len ? MAX_NT5_LEN ? MAX_NT5_LEN : umi_len;
+    }
+    nt5_bcds[ibatch] = bcd_seq ? seq2nt5(bcd_seq, nt5_bcd_len) : UINT64_MAX;
+    int_tags[ibatch] = int_tag;
+    nt5_umis[ibatch] = umi_seq ? seq2nt5(umi_seq, nt5_umi_len) : UINT64_MAX;
+  }
+
+  void update_imin_bcds() {
+    // find the minimum bcds first
+    min_bcd = nt5_bcds[0];
+    imin_bcds.clear();
+    imin_bcds.push_back(0);
+    for(int32_t i=1; i < nbatches; ++i)  {
+      if ( nt5_bcds[i] < min_bcd ) { // update min_bcd
+        min_bcd = nt5_bcds[i];
+        imin_bcds.clear();
+        imin_bcds.push_back(i);
+      }
+      else if ( nt5_bcds[i] == min_bcd ) { // ties
+        imin_bcds.push_back(i);
+      }
+    }
+  }
+
+  void update_imin_tags() {
+    // assuming imin_bcds were identified, identy minimum tags
+    min_tag = int_tags[imin_bcds[0]];
+    imin_tags.clear();
+    imin_tags.push_back(imin_bcds[0]);
+    for(int32_t i=1; i < (int32_t)imin_bcds.size(); ++i) {
+      if ( int_tags[imin_bcds[i]] < min_tag ) { // update min_tag
+        min_tag = int_tags[imin_bcds[i]];
+        imin_tags.clear();
+        imin_tags.push_back(imin_bcds[i]);
+      }
+      else if ( int_tags[imin_bcds[i]] < min_tag ) {
+        imin_tags.push_back(imin_bcds[i]);        
+      }
+    }
+  }
+
+  void update_imin_umis() {
+    // assuming imin_bcds were identified, identy minimum umis
+    min_umi = nt5_umis[imin_tags[0]];
+    imin_umis.clear();
+    imin_umis.push_back(imin_tags[0]);
+    for(int32_t i=1; i < (int32_t)imin_tags.size(); ++i) {
+      if ( nt5_umis[imin_tags[i]] < min_umi ) { // update min_tag
+        min_umi = nt5_umis[imin_tags[i]];
+        imin_umis.clear();
+        imin_umis.push_back(imin_tags[i]);
+      }
+      else if ( nt5_umis[imin_tags[i]] < min_umi ) {
+        imin_umis.push_back(imin_tags[i]);  
+      }
+    }
+  }
+
+  void update_imins() {
+    update_imin_bcds();
+    update_imin_tags();
+    update_imin_umis();
+  }
+};
+
+void update_imins(std::vector<uint64_t>& bcds, std::vector<
 
 int32_t cmdMergeMatchTags(int32_t argc, char** argv) {
-  std::string fq1f;
-  std::string fq2f;
-  std::string tagf;
-  std::string smatchf;
-  std::string bcddir;
-  std::string outprefix;
-  std::string umipos;
-  std::string bcdpos = "1-32";
-  std::string tagpos = "1-15";
-  int32_t batch_size = 10000000;
+  std::string listf;      // file containing the list of batches to merge
+  std::string tagf;       // dictionary of tags
+  std::string outdir;     // output directory
 
   paramList pl;
   BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input files", NULL)
-    LONG_STRING_PARAM("fq1", &fq1f, "FASTQ file read 1 containing 2nd-seq spatial barcode")
-    LONG_STRING_PARAM("fq2", &fq2f, "FASTQ file read 2 containing 2nd-seq spatial barcode")
+    LONG_STRING_PARAM("list", &list, "List of output files from match-tag")
     LONG_STRING_PARAM("tag", &tagf, "Dictionary file containing tag sequences")
-    LONG_STRING_PARAM("smatch", &smatchf, "Output from smatch step that contains spatial barcodes to be used for whitelist")
-
-    LONG_PARAM_GROUP("Positions in reads", NULL)
-    LONG_STRING_PARAM("bcd-pos", &bcdpos, "String in format of [beg1]-[end1],[beg2]-[end2],... to represent (1-based) positions of Spatial barcode sequences (in Read 1)")        
-    LONG_STRING_PARAM("umi-pos", &umipos, "String in format of [beg1]-[end1],[beg2]-[end2],... to represent (1-based) positions of UMI sequences (in Read 2)")
-    LONG_STRING_PARAM("tag-pos", &tagpos, "String in format of [beg1]-[end1],[beg2]-[end2],... to represent (1-based) positions of tag sequences (in Read 2)")
-
-    LONG_PARAM_GROUP("Batch options", NULL)
-    LONG_INT_PARAM("batch", &batch_size, "Size of single batch to store stored files")
     
     LONG_PARAM_GROUP("Output Options", NULL)
-    LONG_STRING_PARAM("out",&outprefix,"Output prefix to store the tags")
+    LONG_STRING_PARAM("out",&outdir,"Output directory to store DGE file")
   END_LONG_PARAMS();
 
   pl.Add(new longParams("Available Options", longParameters));
@@ -48,10 +128,65 @@ int32_t cmdMergeMatchTags(int32_t argc, char** argv) {
 
   notice("Analysis started");
 
-  if ( fq1f.empty() || fq2f.empty() || tagf.empty() || outprefix.empty() ) {
-    error("Missing required options --fq1, --fq2, --tag, or --out");
+  if ( listf.empty() || tagf.empty() || outdir.empty() ) {
+    error("Missing required options --list, --tag, or --out");
   }
 
+  // process the file list
+  tsv_reader tr_list(listf.c_str());
+  std::vector<std::string> filenames;
+  while( tr_list.read_line() ) {
+    filenames.push_back(tr_list.str_field_at(0));
+  }
+  tr_list.close();
+
+  // process the tags
+  tsv_reader tr_tags(tagf.c_str());
+  std::vector<std::string> tag_ids;
+  std::vector<std::string> tag_names;
+  while( tr_tags.read_line() ) {
+    tag_ids.push_back(tr_tags.str_field_at(0));
+    tag_names.push_back(tr_tags.str_field_at(1));    
+  }
+  tr_tags.close();
+
+  std::vector<tsv_reader*> batch_trs;
+  int32_t nbatches = (int32_t)filenames.size();
+
+  bcd_tag_umi_sync btus(nbatches);
+  for(int32_t i=0; i < nbatches; ++i) {
+    batch_trs.push_back(new tsv_reader(filenames[i].c_str()));
+    batch_trs[i]->read_line(); // peek one line for each
+    btus.set_entry(i, batch_trs[i].str_field_at(0), batch_trs[i].int_field_at(1), batch_trs[i].str_field_at(2)); 
+  }
+  btus.update_imins(); // update imins
+
+  htsFile* wbcd = hts_open((outdir + "/barcodes.tsv.gz").c_str(), "wz");
+  htsFile* wftr = hts_open((outdir + "/features.tsv.gz").c_str(), "wz");
+  htsFile* wmtx = hts_open((outdir + "/.tmp.matrix.mtx.gz").c_str(), "wz");
+
+  hprintf(wftr, "%s\t%s\tAntibody_Tag\n", tag_ids.c_str(), tag_names.c_str());
+
+  bool has_open = true;
+  while( has_open ) {
+    // did barcode change? did tag change? did UMI change?
+    
+    
+    // read more lines
+    for(int32_t i=0; i < (int32_t)btus.imin_umis.size(); ++i) {
+      int32_t j = btus.imin_umis[i];
+      if ( batch_trs[j].read_line() ) {
+        btus.set_entry(j, batch_trs[j].str_field_at(0), batch_trs[j].int_field_at(1), batch_trs[j].str_field_at(2));
+      }
+      else {
+        btus.set_entry(j, NULL, INT32_MAX, NULL);
+      }
+    }
+    has_open = btus.min_bcd < UINT64_MAX;
+  }
+
+  
+    
   // parse the positions of spatial barcodes, UMIs, and tags
   std::vector<uint64_t> bcd_begs, bcd_ends, umi_begs, umi_ends, tag_begs, tag_ends;
   int32_t bcd_len = 0, umi_len = 0, tag_len = 0;
