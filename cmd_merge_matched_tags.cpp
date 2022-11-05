@@ -37,7 +37,7 @@ public:
   int32_t nt5_bcd_len, nt5_umi_len; // length of barcodes and UMIs used to uint64_t encoding
 
   // initialize with # batches
-  bcd_tag_umi_sync(int32_t _nbatches) : nbatches(_nbatches), min_bcd(0), min_tag(0), min_umi(0), bcd_updated(false), tag_updated(false), umi_updated(false), bcd_len(0), umi_len(0), nt5_bcd_len(0), nt5_umi_len(0) {
+  bcd_tag_umi_sync(int32_t _nbatches) : nbatches(_nbatches), min_bcd(UINT64_MAX-1), min_tag(INT32_MAX-1), min_umi(UINT64_MAX-1), bcd_updated(false), tag_updated(false), umi_updated(false), bcd_len(0), umi_len(0), nt5_bcd_len(0), nt5_umi_len(0) {
     nt5_bcds.resize(nbatches);
     int_tags.resize(nbatches);
     nt5_umis.resize(nbatches);
