@@ -8,6 +8,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv);
 int32_t cmdMergeMatchedTags(int32_t argc, char** argv);
 int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv);
 int32_t cmdReformatFASTQs(int32_t argc, char** argv);
+int32_t cmdFilterFASTQs(int32_t argc, char** argv);
 int32_t cmdReformatFASTQsMT(int32_t argc, char** argv);
 int32_t cmdDGE2SDGE(int32_t argc, char** argv);
  
@@ -19,6 +20,7 @@ int32_t main(int32_t argc, char** argv) {
     LONG_COMMAND("make-sdge", &cmdMakeSpatialDGE, "Make spatial DGE files from STARsolo output")
     LONG_COMMAND("build-sbcds", &cmdBuildSpatialBarcodeDict, "Create spatial barcode dictionary based from HDMI FASTQ arrays")
     LONG_COMMAND("match-sbcds", &cmdMatchSpatialBarcodes, "Match the FASTQ file containing spatial barcodes with the spatial barcode dictionary")
+    LONG_COMMAND("filter-fastqs", &cmdFilterFASTQs, "Filter FASTQs based on a pattern")    
     LONG_COMMAND("reformat-fastqs", &cmdReformatFASTQs, "Reformat FASTQs to be ready for STARsolo alignment")
     LONG_COMMAND("reformat-fastqs-mt", &cmdReformatFASTQsMT, "Reformat FASTQs to be ready for STARsolo alignment (multithreaded)")
     LONG_COMMAND("dge2sdge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SDGE format")

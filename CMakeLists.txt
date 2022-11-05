@@ -42,6 +42,7 @@ set(SOURCE_FILES
     cmd_match_tag.cpp
     cmd_match_spatial_barcodes.cpp
     cmd_merge_matched_tags.cpp
+    cmd_filter_fastqs.cpp
     cmd_reformat_fastqs.cpp
     cmd_reformat_fastqs_mt.cpp
     cmd_dge2sdge.cpp
