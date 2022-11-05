@@ -82,7 +82,7 @@ int32_t cmdFilterFASTQs(int32_t argc, char** argv) {
     lpat2s.push_back((int32_t)pat2s[i].size());
   }
   while( (lname1 = hts_getline(hf1, KS_SEP_LINE, &name1)) > 0 ) {
-    if ( ++nrecs % 10000000 == 0 )
+    if ( ++nrecs % 1000000 == 0 )
       notice("Processing %llu records (%.5lf passed)", nrecs, (double)npass/(double)nrecs);
 
     // parse the readname
