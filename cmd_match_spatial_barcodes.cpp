@@ -232,27 +232,31 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   // merge across batches and identify unique sequences
   std::vector<tsv_reader*> batch_trs;
   int32_t nbatches = (int32_t)batch_filenames.size();
+  std::vector<int32_t> cmps(nbatches, 0);
+  int32_t ndups = 0, nEOFs = 0;
   for(int32_t i=0; i < nbatches; ++i) {
     batch_trs.push_back(new tsv_reader(batch_filenames[i].c_str()));
-    batch_trs.back()->read_line();
+    if ( batch_trs.back()->read_line() == 0 ) {
+        cmps[i] = 999;
+        ++nEOFs;
+    }
   }
 
   htsFile* wmerged = hts_open((outprefix+".match.sorted.uniq.tsv.gz").c_str(), "wz");
-  int32_t ndups = 0, nEOFs = 0;
-  std::vector<int32_t> cmps(nbatches, 0);
   std::vector<int32_t> vals(5);
   std::map< int32_t, std::map<int32_t, uint64_t> > uniq_cnts;
   int32_t i, j, k;
   // find the new minimum
-  strcpy(buf, batch_trs[0]->str_field_at(0));
-  cmps[0] = 0;
-  for(k=0; k < 5; ++k) vals[k] = batch_trs[0]->int_field_at(k+1);
-  
-  for(i=1; i < nbatches; ++i) {
+  strcpy(buf, "zzz"); // fill in dummy max
+
+  for(i=0; i < nbatches; ++i) {
+    if ( cmps[i] == 999 ) // if EOF was reached, skip
+        continue;
     cmps[i] = strcmp(batch_trs[i]->str_field_at(0), buf);
     if ( cmps[i] < 0 ) { // new minimum found
       for(j=0; j < i; ++j)
-        cmps[j] = 1;
+        if ( cmps[j] == 0 )
+          cmps[j] = 1;
       cmps[i] = 0;
       strcpy(buf, batch_trs[i]->str_field_at(0));
       for(k=0; k < 5; ++k) vals[k] = batch_trs[i]->int_field_at(k+1);      
