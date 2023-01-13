@@ -40,6 +40,7 @@ set(SOURCE_FILES
     cmd_make_spatial_dge.cpp
     cmd_build_spatial_barcodes.cpp
     cmd_match_tag.cpp
+    cmd_search_tag.cpp    
     cmd_match_spatial_barcodes.cpp
     cmd_merge_matched_tags.cpp
     cmd_filter_fastqs.cpp

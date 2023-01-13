@@ -102,6 +102,7 @@ std::pair<uint64_t,uint64_t> count_matches(std::vector<uint64_t>& bseqs, datafra
       ++nmiss;
     }
   }
+  notice("Finished processing a batch of %d records, nmiss = %llu, ndups = %llu", nseqs, nmiss, ndups);  
   
   for(int32_t i=0; i < ntiles; ++i) {
     delete bcdfs[i];
