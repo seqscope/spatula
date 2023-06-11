@@ -153,6 +153,10 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
 
   // read the manifest file
   dataframe_t df((bcddir + "manifest.tsv").c_str());
+  if ( df.nrows == 0 )
+    error("Empty dataframe %smanifest.tsv", bcddir.c_str());
+
+  notice("Successfully read the manifest file, containing %d rows and %d columns", df.nrows, df.ncols);
   
   // add a column to indicate the full path
   int32_t icol = df.add_empty_column("fullpath");

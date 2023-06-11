@@ -19,6 +19,7 @@ int32_t cmdFilterFASTQs(int32_t argc, char** argv) {
   std::vector<std::string> pat1s;
   std::vector<std::string> pat2s;
   int32_t min_mismatch = 0;
+  bool remove = false;
 
   paramList pl;
   BEGIN_LONG_PARAMS(longParameters)
@@ -30,6 +31,7 @@ int32_t cmdFilterFASTQs(int32_t argc, char** argv) {
     LONG_MULTI_STRING_PARAM("pat1", &pat1s, "IUPAC pattern to match for Read 1 (1+ match required)")
     LONG_MULTI_STRING_PARAM("pat2", &pat2s, "IUPAC pattern to match for Read 2 (1+ match required)")
     LONG_INT_PARAM("min-mismatch", &min_mismatch, "Minimum number of mismatches allowed per pattern")
+    LONG_PARAM("remove", &remove, "Remove the matching sequence from the FASTQ file instead of keeping it")
     
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out1", &out1f, "Output FASTQ file for read1")
@@ -113,6 +115,7 @@ int32_t cmdFilterFASTQs(int32_t argc, char** argv) {
     }
 
     skip = !(pass1 && pass2);
+    if ( remove ) { skip = !skip; } // flip the filter if --remove was set
     if ( !skip ) {
       // write both read names without modifications
       hprintf(wf1, "%s\n", name1.s);
