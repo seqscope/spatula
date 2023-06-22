@@ -37,6 +37,8 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_combine_sge.cpp
+    cmd_subset_sge.cpp
     cmd_make_spatial_dge.cpp
     cmd_build_spatial_barcodes.cpp
     cmd_match_tag.cpp
@@ -47,6 +49,8 @@ set(SOURCE_FILES
     cmd_reformat_fastqs.cpp
     cmd_reformat_fastqs_mt.cpp
     cmd_dge2sdge.cpp
+    sge.cpp
+    sge.h
     seq_utils.cpp
     seq_utils.h
     file_utils.cpp
@@ -86,12 +90,17 @@ else()
     set(LZMA ${LZMA_LIBRARIES})
 endif()
 
+find_library(DEFLATELIB deflate HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
+if(NOT DEFLATELIB)
+    message(FATAL_ERROR "libdeflate library not found")
+endif()
+
 find_library(CRYPTOLIB crypto HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
 if(NOT CRYPTOLIB)
     message(FATAL_ERROR "libcrypto library not found")
 endif()
 
-TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} "${OpenMP_CXX_FLAGS}")
+TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${DEFLATELIB} ${CRYPTOLIB} "${OpenMP_CXX_FLAGS}")
 target_compile_options(${APP_EXE} PRIVATE "${OpenMP_CXX_FLAGS}")
 
 
