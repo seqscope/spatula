@@ -219,9 +219,15 @@ void sge_stream_reader::open(const char *bcdf, const char *ftrf, const char *mtx
 
 void sge_stream_reader::close()
 {
-    bcd_tr.close();
-    ftr_tr.close();
-    mtx_tr.close();
+    if ( !bcd_tr.close() )
+        error("Error in closing the barcode file");
+    if ( !ftr_tr.close() )
+        error("Error in closing the feature file");
+    if ( !mtx_tr.close() )
+        error("Error in closing the matrix file");
+    for(int32_t i=0; i < (int32_t)ftrs.size(); ++i)
+        delete ftrs[i];
+    ftrs.clear();
 }
 
 bool sge_stream_reader::read_mtx()
@@ -229,22 +235,23 @@ bool sge_stream_reader::read_mtx()
     // read a line from mtx file
     if (mtx_tr.read_line() == 0)
     { // EOF reached
+        notice("EOF reached: cur_line = %llu, cur_iftr = %llu, cur_sbcd.nid = %llu", cur_line, cur_iftr, cur_sbcd.nid);
         return false;
     }
     is_bcd_new = false;
     // parse barcodes until the right barcode was found
-    while (cur_sbcd.nid < mtx_tr.int_field_at(1))
+    while (cur_sbcd.nid < mtx_tr.uint64_field_at(1))
     {
         if (bcd_tr.read_line() == 0)
         {
-            error("EOF reached while finding the barcode %lu in the barcode file", mtx_tr.int_field_at(0));
+            error("EOF reached while finding the barcode %d in the barcode file", mtx_tr.int_field_at(0));
         }
         is_bcd_new = true;
         cur_sbcd.assign_fields(bcd_tr);
     }
-    if (cur_sbcd.nid > mtx_tr.int_field_at(1))
+    if (cur_sbcd.nid > mtx_tr.uint64_field_at(1))
     {
-        error("Cannot find the barcode %lu in the barcode file - cur_sbcd = %s:%d", mtx_tr.int_field_at(1), cur_sbcd.strid.c_str(), cur_sbcd.nid);
+        error("Cannot find the barcode %llu in the barcode file - cur_sbcd = %s:%d", mtx_tr.uint64_field_at(1), cur_sbcd.strid.c_str(), cur_sbcd.nid);
     }
     if ( nfields == 0 ) {
         nfields = mtx_tr.nfields - 2;
@@ -254,9 +261,10 @@ bool sge_stream_reader::read_mtx()
     }
 
     // read the contents of the mtx file
-    cur_iftr = mtx_tr.int_field_at(0);
-    cur_cnts.resize(mtx_tr.nfields - 2);
-    for (int32_t i = 0; i < cur_cnts.size(); ++i)
+    cur_iftr = mtx_tr.uint64_field_at(0);
+    if ( cur_cnts.empty() )
+        cur_cnts.resize(mtx_tr.nfields - 2);
+    for (int32_t i = 0; i < mtx_tr.nfields - 2; ++i)
     {
         cur_cnts[i] = mtx_tr.uint64_field_at(i + 2);
     }
@@ -267,21 +275,28 @@ bool sge_stream_reader::read_mtx()
 // load the features and fill in the vectors
 int32_t sge_stream_reader::load_features()
 {
+    char buf[65535];
     while (ftr_tr.read_line())
     {
-        sge_ftr_t ftr;
-        ftr.id.assign(ftr_tr.str_field_at(0));
-        ftr.name.assign(ftr_tr.str_field_at(1));
-        ftr.nid = ftr_tr.int_field_at(2);
-        std::vector<std::string> v;
-        split(v, ",", ftr_tr.str_field_at(3));
-        ftr.cnts.resize(v.size());
-        for (int32_t i = 0; i < (int32_t)v.size(); ++i)
-        {
-            ftr.cnts[i] = atoi(v[i].c_str());
-        }
-        ftrs.push_back(ftr);
-        if ( ftr.nid != (int32_t)ftrs.size() ) {
+        sge_ftr_t* pftr = new sge_ftr_t(ftr_tr.str_field_at(0),
+                                        ftr_tr.str_field_at(1),
+                                        ftr_tr.uint64_field_at(2),
+                                        ftr_tr.str_field_at(3));
+        // ftr.id.assign(ftr_tr.str_field_at(0));
+        // ftr.name.assign(ftr_tr.str_field_at(1));
+        // ftr.nid = (uint32_t)ftr_tr.int_field_at(2);
+        // ftr.cnts.clear();
+        // strcpy(buf, ftr_tr.str_field_at(3));
+        // const char* pch = buf;
+        // while(pch != NULL) {
+        //     uint64_t x = (uint64_t)strtoull(pch, NULL, 10);
+        //     ftr.cnts.push_back(x);
+        //     pch = strchr(pch, ',');
+        //     if ( pch != NULL ) ++pch;
+        // }
+        //ftrs.push_back(ftr);
+        ftrs.push_back(pftr);
+        if ( pftr->nid != (int32_t)ftrs.size() ) {
             error("Feature nid should be 1-based sequential number");
         }
     }
@@ -401,13 +416,17 @@ bool sge_stream_writer::add_mtx(uint64_t iftr, std::vector<uint64_t> &cnts)
     hprintf(wh_tmp, "%llu %llu %s\n", iftr, cur_sbcd.nid, strcnt.c_str());
 
     // update ftr_cnts
-    if ( iftr > ftr_cnts.size() )
-        ftr_cnts.resize(iftr+1);
-    ftr_cnts[iftr].resize(nfields);
-    for (int32_t i = 0; i < nfields; ++i )
-        ftr_cnts[iftr][i] += cnts[i];
+    if ( iftr > ftr_cnts.size() + 1 )
+        ftr_cnts.resize(iftr);
+    if ( ftr_cnts[iftr-1].empty() )
+        ftr_cnts[iftr-1].resize(nfields, 0);
+    if ( (ftr_cnts[iftr-1].size() != nfields) || (cnts.size() != nfields) )
+        error("The number of fields in the mtx file is not consistent: %d vs %d vs %d", nfields, (int32_t)cnts.size(), (int32_t)ftr_cnts[iftr-1].size());
+    for (int32_t i = 0; i < nfields; ++i)
+        ftr_cnts[iftr-1][i] += cnts[i];
 
     // update sbcd_cnts
+    //assert(cur_sbcd.cnts.size() == nfields);
     for (int32_t i = 0; i < nfields; ++i )
         cur_sbcd.cnts[i] += cnts[i];
     

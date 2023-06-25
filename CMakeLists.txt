@@ -57,6 +57,7 @@ set(SOURCE_FILES
     file_utils.h
     spatula.cpp
     spatula.h
+    nlohmann/json.hpp
     )
 
 SET(APP_EXE spatula)

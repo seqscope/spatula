@@ -153,16 +153,17 @@ struct _sge_sbcd_t
   std::vector<uint64_t> cnts;
 
   _sge_sbcd_t() : nid(0), gid(0), lane(0), tile(0), px(0), py(0) {}
-  
-  void assign_fields(tsv_reader& tr) {
+
+  void assign_fields(tsv_reader &tr)
+  {
     strid.assign(tr.str_field_at(0));
-    nid = tr.int_field_at(1);
-    gid = tr.int_field_at(2);
+    nid = tr.uint64_field_at(1);
+    gid = tr.uint64_field_at(2);
     lane = (uint32_t)tr.int_field_at(3);
     tile = (uint32_t)tr.int_field_at(4);
     px = tr.uint64_field_at(5);
     py = tr.uint64_field_at(6);
-    if ( rand() % 5000000 == 0 )
+    if (rand() % 5000000 == 0)
       notice("strid = %s, nid = %llu, px = %llu, py = %llu", strid.c_str(), nid, px, py);
   }
 };
@@ -173,10 +174,22 @@ struct _sge_ftr_t
 {
   std::string id;
   std::string name;
-  uint32_t nid;
+  uint64_t nid;
   std::vector<uint64_t> cnts;
 
   _sge_ftr_t() : nid(0) {}
+  _sge_ftr_t(const char *_id, const char *_name, uint64_t _nid, const char *_cnts) : id(_id), name(_name), nid(_nid)
+  {
+    const char *pch = _cnts;
+    while (pch != NULL)
+    {
+      uint64_t x = (uint64_t)strtoull(pch, NULL, 10);
+      cnts.push_back(x);
+      pch = strchr(pch, ',');
+      if (pch != NULL)
+        ++pch;
+    }
+  }
 };
 
 typedef struct _sge_ftr_t sge_ftr_t;
@@ -200,7 +213,7 @@ public:
   uint64_t cur_line;   // current line number in mtx file
   bool is_bcd_new;
   std::vector<uint64_t> cur_cnts; // current counts in the mtx file
-  std::vector<sge_ftr_t> ftrs;   // list of features
+  std::vector<sge_ftr_t *> ftrs;  // list of features
 
   void open(const char *bcdf, const char *ftrf, const char *mtxf);
   void close();
@@ -226,7 +239,7 @@ public:
   int32_t nfields;
   sge_sbcd_t cur_sbcd;
   uint64_t nlines;
-  std::vector<std::vector<uint64_t> > ftr_cnts;
+  std::vector<std::vector<uint64_t>> ftr_cnts;
 
   void open(const char *bcdf, const char *ftrf, const char *mtxf);
   void close();
@@ -239,7 +252,7 @@ public:
   bool add_mtx(uint64_t iftr, std::vector<uint64_t> &cnts);
   bool flush_cur_sbcd();
 
-  bool write_ftr(const char *id, const char *name, uint64_t nid, std::vector<uint64_t>& cnts);
+  bool write_ftr(const char *id, const char *name, uint64_t nid, std::vector<uint64_t> &cnts);
   bool flush_mtx();
 };
 

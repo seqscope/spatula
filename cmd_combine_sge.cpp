@@ -181,12 +181,16 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
   char buf[65535];
   for(int32_t i=0; i < df.nrows; ++i) {
     notice("Processing SGE directory %s ...", sgedirs[i].c_str());
-    sge_stream_reader ssr((sgedirs[i] + "/" + bcdf).c_str(), (sgedirs[i] + "/" + ftrf).c_str(), (sgedirs[i] + "/" + mtxf).c_str());
+    //sge_stream_reader ssr((sgedirs[i] + "/" + bcdf).c_str(), (sgedirs[i] + "/" + ftrf).c_str(), (sgedirs[i] + "/" + mtxf).c_str());
+    sge_stream_reader* pssr = new sge_stream_reader((sgedirs[i] + "/" + bcdf).c_str(), (sgedirs[i] + "/" + ftrf).c_str(), (sgedirs[i] + "/" + mtxf).c_str());
+    sge_stream_reader& ssr = *pssr;
     while( ssr.read_mtx() ) {
       // remove lane and tile info and create global coordinates
       if ( ssr.is_bcd_new ) {
-        uint64_t gx = ssr.cur_sbcd.px + x_offsets[i] - xmins[i];
-        uint64_t gy = ssr.cur_sbcd.py + y_offsets[i] - ymins[i];
+        uint64_t gx = ssr.cur_sbcd.px + x_offsets[i];
+        uint64_t gy = ssr.cur_sbcd.py + y_offsets[i];
+        gx = gx < xmins[i] ? 0 : gx - xmins[i];
+        gy = gx < ymins[i] ? 0 : gy - ymins[i];
         sprintf(buf, "%d_%s", i+1, ssr.cur_sbcd.strid.c_str()); // create unique spatial barcode id
         ssw.add_sbcd(buf, ssr.cur_sbcd.nid, 1, 1, gx, gy);
         if ( gx < out_xmin ) out_xmin = gx;
@@ -199,24 +203,21 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
     if ( nftrs == 0 ) {
       nftrs = ssr.load_features();
       ssw.ftr_cnts.resize(nftrs);
-      // for (int32_t i = 0; i < nftrs; ++i)
-      // {
-      //   ssw.write_ftr(ssr.ftrs[i].id.c_str(), ssr.ftrs[i].name.c_str(), (uint32_t)i + 1, ssw.ftr_cnts[i]);
-      // }
     }
     else {
       int32_t nftrs2 = ssr.load_features();
       if ( nftrs != nftrs2 ) {
         error("The number of features in %s is different from the previous tiles", (sgedirs[i] + "/" + ftrf).c_str());
       }
-      if ( i == df.nrows - 1 ) {
-        for (int32_t j = 0; j < nftrs; ++j)
-        {
-          ssw.write_ftr(ssr.ftrs[j].id.c_str(), ssr.ftrs[j].name.c_str(), (uint64_t)(j + 1), ssw.ftr_cnts[j]);
-        }
+    }
+    if ( i == df.nrows - 1 ) {
+      for (int32_t j = 0; j < nftrs; ++j)
+      {
+        ssw.write_ftr(ssr.ftrs[j]->id.c_str(), ssr.ftrs[j]->name.c_str(), (uint64_t)(j + 1), ssw.ftr_cnts[j]);
       }
     }
-    ssr.close();
+    delete pssr;  
+    //ssr.close();
   }
   ssw.close();
 
