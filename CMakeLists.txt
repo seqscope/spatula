@@ -37,6 +37,7 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_eval_dups_sbcd.cpp
     cmd_combine_sge.cpp
     cmd_subset_sge.cpp
     cmd_make_spatial_dge.cpp

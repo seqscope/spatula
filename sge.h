@@ -3,6 +3,7 @@
 
 #include "spatula.h"
 #include "qgenlib/tsv_reader.h"
+#include "qgenlib/dataframe.h"
 #include "seq_utils.h"
 #include "file_utils.h"
 #include "sge.h"
@@ -259,5 +260,9 @@ public:
 void write_sbcd(sbcd_sync_reader &ssr, uint64_t cur_ibcd, std::vector<int32_t> &cur_bcd_cnts, tile_writer &bcd_tw, tile_counter &sbcds_counter, int32_t n_mtx);
 
 bool read_minmax(const char *fn, uint64_t &xmin, uint64_t &xmax, uint64_t &ymin, uint64_t &ymax);
+
+std::pair<uint64_t,uint64_t> count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& dcounts, int32_t match_len, htsFile* wmatch);
+
+void open_tiles(dataframe_t& df, std::vector<std::string>& tiles, std::vector<tsv_reader*>& bcdfs);
 
 #endif

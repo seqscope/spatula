@@ -534,3 +534,103 @@ bool read_minmax(const char *fn, uint64_t &xmin, uint64_t &xmax, uint64_t &ymin,
     ymax = tr.uint64_field_at(3);
     return true;
 }
+
+// open all tiles
+void open_tiles(dataframe_t& df, std::vector<std::string>& tiles, std::vector<tsv_reader*>& bcdfs) {
+  // read manifest files
+  if ( bcdfs.size() > 0 ) {
+    for(int32_t i=0; i < (int32_t) bcdfs.size(); ++i) {
+      delete bcdfs[i];
+    }
+    bcdfs.clear();
+  }
+  
+  tiles = df.get_column("id");
+  int32_t icol = df.get_colidx("fullpath");
+  for(int32_t i=0; i < df.nrows; ++i) {
+    bcdfs.push_back(new tsv_reader(df.get_str_elem(i, icol).c_str()));
+    if ( bcdfs.back()->read_line() == 0 ) {
+      error("ERROR: Observed an empty barcode file %s", df.get_str_elem(i,icol).c_str());      
+    }    
+  }
+}
+
+std::pair<uint64_t,uint64_t> count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& dcounts, int32_t match_len, htsFile* wmatch) {
+  std::vector<std::string> tiles;
+  std::vector<tsv_reader*> bcdfs;
+
+  open_tiles(df, tiles, bcdfs);
+
+  int32_t ntiles = (int32_t)tiles.size();
+  if ( dcounts.empty() ) {
+    dcounts.resize(ntiles, 0);
+  }
+  int32_t len = strlen(bcdfs[0]->str_field_at(0));
+  if ( len < match_len )
+    error("HDMI length %d does not match to the parameters %d", len, match_len);
+
+  std::vector<uint64_t> tseqs(ntiles);
+  for(int32_t i=0; i < ntiles; ++i) {
+    tseqs[i] = seq2nt5(bcdfs[i]->str_field_at(0),match_len);    
+  }
+
+  // sort the batch of sequences
+  uint64_t batch_size = (uint64_t)bseqs.size();
+  notice("Started sorting of %llu records", batch_size);
+  std::sort(bseqs.begin(), bseqs.end());
+  notice("Finished sorting of %llu records", batch_size);  
+  uint64_t nseqs = (uint64_t)bseqs.size();
+
+  uint64_t nmiss = 0;
+  uint64_t ndups = 0;
+  bool has_match, is_dup;
+  int32_t cmp;
+  // count the sequences that matches
+  for(uint64_t i=0; i < nseqs; ++i) {
+    if (i % (batch_size / 20) == 0)
+      
+      notice("Processing %d records, nmiss = %llu, ndups = %llu, bseqs[i]=%032llu, tseqs[0]=%032llu", i, nmiss, ndups, bseqs[i], tseqs[0]);
+    
+    has_match = false;
+    is_dup = false;
+    uint64_t s = bseqs[i];
+    for(int32_t j=0; j < ntiles; ++j) {
+      cmp = s < tseqs[j] ? -1 : ( s == tseqs[j] ? 0 : 1 );
+      while( cmp > 0 ) {
+        if ( bcdfs[j]->read_line() == 0 ) tseqs[j] = UINT64_MAX;
+        else tseqs[j] = seq2nt5(bcdfs[j]->str_field_at(0),match_len);
+        cmp = s < tseqs[j] ? -1 : ( s == tseqs[j] ? 0 : 1 );        
+      }
+      if ( cmp == 0 ) {
+        has_match = true;
+        hprintf(wmatch,"%s", bcdfs[j]->str_field_at(0));
+        for(int32_t k=1; k < bcdfs[j]->nfields; ++k) 
+          hprintf(wmatch,"\t%s", bcdfs[j]->str_field_at(k));
+        hprintf(wmatch,"\n");
+        ++dcounts[j];        
+        if ( ( i > 0 ) && ( bseqs[i] == bseqs[i-1] ) ) {
+          is_dup = true;
+        }
+        /*
+        else {
+          ++ucounts[j];
+        }
+        */
+      }
+    }
+    if ( is_dup ) {
+      ++ndups;
+    }
+    else if ( !has_match ) {
+      ++nmiss;
+    }
+  }
+  notice("Finished processing a batch of %d records, nmiss = %llu, ndups = %llu", nseqs, nmiss, ndups);  
+  
+  for(int32_t i=0; i < ntiles; ++i) {
+    delete bcdfs[i];
+  }
+
+  //return nmiss + ndups;
+  return std::make_pair(nmiss, ndups);
+}
