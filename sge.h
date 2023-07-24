@@ -263,6 +263,9 @@ bool read_minmax(const char *fn, uint64_t &xmin, uint64_t &xmax, uint64_t &ymin,
 
 std::pair<uint64_t,uint64_t> count_matches(std::vector<uint64_t>& bseqs, dataframe_t& df, std::vector<uint64_t>& dcounts, int32_t match_len, htsFile* wmatch);
 
+uint64_t read_bcdf(tsv_reader* bcdf, int32_t match_len, uint64_t& cnt);
+std::pair<uint64_t, uint64_t> count_matches_skip_dups(std::vector<uint64_t> &bseqs, dataframe_t &df, std::vector<uint64_t> &dcounts, int32_t match_len, htsFile *wmatch);
+
 void open_tiles(dataframe_t& df, std::vector<std::string>& tiles, std::vector<tsv_reader*>& bcdfs);
 
 #endif

@@ -11,14 +11,6 @@
 #include <algorithm>
 
 
-uint64_t read_bcdf(tsv_reader* bcdf, int32_t match_len, uint64_t& cnt) {
-    if ( bcdf->read_line() == 0 ) return UINT64_MAX;
-    else {
-        ++cnt;
-        return seq2nt5(bcdf->str_field_at(0), match_len);
-    }
-}
-
 /////////////////////////////////////////////////////////////////////////
 // eval-dups-sbcds : Evaluate duplicates in spatial barcodes
 ////////////////////////////////////////////////////////////////////////
@@ -104,24 +96,29 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
     htsFile *wdups = hts_open(buf, "wz");
     hprintf(wdups, "#barcode\tntiles\tdupcount\n");
 
-    uint64_t nuniq = 0, ndups = 0, ndups_uniq = 0, dup_count = 0;
-    bool is_dup = false;
+    uint64_t nuniq = 0, ndups = 0, ndups_within = 0, ndups_between = 0, ndups_uniq = 0, dup_count = 0;
+    bool is_dup = false, is_dup_within = false, is_dup_between = false;
     int32_t j = -1;
     std::vector<uint64_t> nuniq_tiles(ntiles, 0);
     std::vector<uint64_t> ndup_tiles(ntiles, 0);
+    std::vector<uint64_t> ndup_tiles_within(ntiles, 0);
+    std::vector<uint64_t> ndup_tiles_between(ntiles, 0);
     std::map<uint64_t, uint64_t> dup_hist;
     while( nt5min != UINT64_MAX ) {
         // process the current nt5min
         if ( (nuniq + ndups) % 10000000 == 0 )
             notice("Processing nuniq = %llu, ndups = %llu, ndups_uniq = %llu", nuniq, ndups, ndups_uniq);
 
+        is_dup_within = false;
         if ( imins.size() == 1 ) { // the barcode is probably unique, unless duplicate found in the same tile
             is_dup = false;
+            is_dup_between = false;
             dup_count = 1;
             j = imins[0];
             uint64_t next_nt5 = read_bcdf(bcdfs[j], match_len, ntotal_tiles[j]);
             while( next_nt5 == nt5min ) {
                 is_dup = true;
+                is_dup_within = true;
                 ++dup_count;
                 next_nt5 = read_bcdf(bcdfs[j], match_len, ntotal_tiles[j]);
             }
@@ -129,11 +126,13 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
         }
         else { // the barcode is definitely duplicate, across multiple tiles
             is_dup = true;
+            is_dup_between = true;
             dup_count = (uint64_t)imins.size();
             for (int32_t i = 0; i < (int32_t)imins.size(); ++i) {
                 j = imins[i];
                 uint64_t next_nt5 = read_bcdf(bcdfs[j], match_len, ntotal_tiles[j]);
                 while( next_nt5 == nt5min ) {
+                    is_dup_within = true;
                     ++dup_count;
                     next_nt5 = read_bcdf(bcdfs[j], match_len, ntotal_tiles[j]);
                 }
@@ -152,6 +151,18 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
             ndups += dup_count;
             for (int32_t i = 0; i < (int32_t)imins.size(); ++i) {
                 ++ndup_tiles[imins[i]];
+            }
+            if ( is_dup_within ) {
+                ++ndups_within;
+                for (int32_t i = 0; i < (int32_t)imins.size(); ++i) {
+                    ++ndup_tiles_within[imins[i]];
+                }
+            }
+            if ( is_dup_between ) {
+                ++ndups_between;
+                for (int32_t i = 0; i < (int32_t)imins.size(); ++i) {
+                    ++ndup_tiles_between[imins[i]];
+                }
             }
         } else {
             ++nuniq;
@@ -178,7 +189,7 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
     }
     hts_close(wdups);
 
-    notice("Finished processing nuniq = %llu, ndups = %llu, ndups_uniq = %llu", nuniq, ndups, ndups_uniq);
+    notice("Finished processing nuniq = %llu, ndups = %llu, ndups_uniq = %llu, ndups_uniq_within = %llu, ndups_uniq_between = %llu", nuniq, ndups, ndups_uniq, ndups_within, ndups_between);
 
     for (int32_t i = 0; i < ntiles; ++i)
     {
@@ -202,10 +213,10 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
     htsFile *wtile = hts_open(buf, "w");
     if (wtile == NULL)
         error("Cannot open %s for writing", buf);
-    hprintf(wtile, "#tile\ttotal\tuniq\tdups_uniq\n");
+    hprintf(wtile, "#tile\ttotal\tuniq\tdups_uniq\tdups_uniq_within\tdups_uniq_between\n");
     for (int32_t i = 0; i < df.nrows; ++i)
     {
-        hprintf(wtile, "%s\t%llu\t%llu\t%llu\n", df.get_str_elem(i, "id").c_str(), ntotal_tiles[i], nuniq_tiles[i], ndup_tiles[i]);
+        hprintf(wtile, "%s\t%llu\t%llu\t%llu\t%llu\t%llu\n", df.get_str_elem(i, "id").c_str(), ntotal_tiles[i], nuniq_tiles[i], ndup_tiles[i], ndup_tiles_within[i], ndup_tiles_between[i]);
     }
     hts_close(wtile);
 

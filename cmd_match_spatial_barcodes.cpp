@@ -18,6 +18,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   std::string bcddir;
   std::string outprefix;
   int32_t batch_size = 300000000; // number of records to be searched for at once
+  bool skip_duplicates = false;
   //int32_t hdmi_len = 32;
   int32_t match_len = 27;
   int32_t nthreads = 1;
@@ -29,6 +30,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
     LONG_STRING_PARAM("sbcd", &bcddir, "Spatial barcode dictionary generated from 'build-sbcds' command")
     LONG_INT_PARAM("batch", &batch_size, "Size of a single batch")
     LONG_INT_PARAM("match-len", &match_len, "Length of HDMI spatial barcodes to require perfect matches")
+    LONG_PARAM("skip-duplicates", &skip_duplicates, "Skip duplicate barcodes that occurs multiple times")
     LONG_INT_PARAM("threads", &nthreads, "Number of threads")    
     
     LONG_PARAM_GROUP("Output Options", NULL)
@@ -101,12 +103,15 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
 
     if ( ++nrecs % batch_size == 0 ) {
       notice("Processing batch %d of %d sequences", ++ibatch, batch_size);
-      //nmiss += count_matches(bseqs, bcddir, counts);
-      //nmissdups += count_matches(bseqs, df, ucounts, dcounts, match_len, wmatch);
-      std::pair<uint64_t,uint64_t> nmissdups = count_matches(bseqs, df, dcounts, match_len, wmatch);
+      std::pair<uint64_t,uint64_t> nmissdups;
+      if ( skip_duplicates ) {
+        nmissdups = count_matches_skip_dups(bseqs, df, dcounts, match_len, wmatch);
+      }
+      else {
+        nmissdups = count_matches(bseqs, df, dcounts, match_len, wmatch);
+      }
       nmiss += nmissdups.first;
       ndups_approx += nmissdups.second;
-      //nmissdups += count_matches(bseqs, df, dcounts, match_len, wmatch);      
       bseqs.clear();
 
       // open a new file
@@ -122,11 +127,15 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   }
   if ( bseqs.size() > 0 ) {
     notice("Processing the last batch %d containing %zu sequences", ++ibatch, bseqs.size());
-    //nmissdups += count_matches(bseqs, df, ucounts, dcounts, match_len, wmatch);
-    std::pair<uint64_t,uint64_t> nmissdups = count_matches(bseqs, df, dcounts, match_len, wmatch);
+    std::pair<uint64_t,uint64_t> nmissdups;
+    if ( skip_duplicates ) {
+      nmissdups = count_matches_skip_dups(bseqs, df, dcounts, match_len, wmatch);
+    }
+    else {
+      nmissdups = count_matches(bseqs, df, dcounts, match_len, wmatch);
+    }
     nmiss += nmissdups.first;
     ndups_approx += nmissdups.second;    
-    //nmissdups += count_matches(bseqs, df, dcounts, match_len, wmatch);    
     bseqs.clear();
   }
   hts_close(wmatch);
@@ -231,7 +240,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   hprintf(wf, "Total\t%llu\t%.5lf\n", nrecs, 1.0);
   hprintf(wf, "Miss\t%llu\t%.5lf\n",  nmiss, (double)nmiss/(double)nrecs);
   hprintf(wf, "Match\t%llu\t%.5lf\n",  nrecs-nmiss, 1.0-(double)nmiss/(double)nrecs);
-  hprintf(wf, "Dup(Approx)\t%llu\t%.5lf\n",  ndups_approx, (double)ndups_approx/(double)nrecs);
+//  hprintf(wf, "Dup(Approx)\t%llu\t%.5lf\n",  ndups_approx, (double)ndups_approx/(double)nrecs);
   hprintf(wf, "Unique\t%llu\t%.5lf\n",  nuniq, (double)nuniq/(double)nrecs);
   hprintf(wf, "Dup(Exact)\t%llu\t%.5lf\n",  nrecs-nmiss-nuniq, (double)(nrecs-nmiss-nuniq)/(double)nrecs);  
   hts_close(wf);
