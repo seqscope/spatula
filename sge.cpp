@@ -858,5 +858,5 @@ std::pair<uint64_t, uint64_t> count_matches_skip_dups(std::vector<uint64_t> &bse
     }
 
     // return nmiss + ndups;
-    return std::make_pair(nskip_2nd, nmatch_dups_2nd);
+    return std::make_pair(nskip_2nd + nmatch_dups_2nd, nmatch_dups_2nd);
 }
