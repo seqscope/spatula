@@ -28,6 +28,8 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   int32_t xmax = INT_MAX;                     // maximum x coordinate
   int32_t ymin = 0;                           // minimum y coordinate
   int32_t ymax = INT_MAX;                     // maximum y coordinate
+  double json_x_offset = 0.0;                 // x-offset to add to the geojson boundary
+  double json_y_offset = 0.0;                 // y-offset to add to the geojson boundary
   double px_per_um = 26.67;                   // pixels per um
   // TODO: later, we can add a whitelist option to subset based on barcode whitelist
   // TODO: later, we can add a boundarie polygon option to subset based on polygon
@@ -46,6 +48,8 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   LONG_INT_PARAM("ymin", &ymin, "Minimum y coordinate")
   LONG_INT_PARAM("ymax", &ymax, "Maximum y coordinate")
   LONG_STRING_PARAM("json", &jsonf, "Geojson file containing multiple polygons")
+  LONG_DOUBLE_PARAM("json-x-offset", &json_x_offset, "X-offset to add to the geojson boundary")
+  LONG_DOUBLE_PARAM("json-y-offset", &json_y_offset, "Y-offset to add to the geojson boundary")
   LONG_STRING_PARAM("whitelist", &bcdwhtf, "Barcode whitelist file path")
   LONG_DOUBLE_PARAM("px-per-um", &px_per_um, "Pixels/um scale (default: 26.67)")
 
@@ -83,6 +87,9 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   {
     notice("Loading polygons from %s", jsonf.c_str());
     int32_t npolygons = load_polygons_from_geojson(jsonf.c_str(), polygons);
+    for(int32_t i=0; i < npolygons; ++i) {    
+      polygons[i].add_offset(json_x_offset, json_y_offset);
+    }
     notice("Finished loading %zu polygons", polygons.size());
   }
 

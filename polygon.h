@@ -19,6 +19,12 @@ class Polygon
 {
 public:
     std::vector<point_t> vertices;
+    void add_offset(double x, double y) {
+        for(size_t i=0; i < vertices.size(); ++i) {
+            vertices[i].x += x;
+            vertices[i].y += y;
+        }
+    }
     bool contains_point(double x, double y) {
         size_t i, j;
         bool result = false;
