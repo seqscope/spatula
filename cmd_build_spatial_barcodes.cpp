@@ -29,20 +29,74 @@ public:
   }
 };
 
+void parse_illumina_readname(kstring_t* str, int32_t* lane, int32_t* tile, int32_t* x, int32_t* y) {
+  int32_t* fields = NULL;
+  int32_t nfields;
+  fields = ksplit(str, ':', &nfields);
+  if ( nfields < 7 )
+    error("Cannot parse Readname '%s'. Observed only %d fields when separating by colon", str->s, nfields);
+  *lane = atoi(str->s + fields[3]);
+  *tile = atoi(str->s + fields[4]);
+  *x = atoi(str->s + fields[5]);
+  *y = atoi(str->s + fields[6]);
+  free(fields);
+}
+
+void parse_salus_readname(kstring_t* str, int32_t* tile, int32_t* x, int32_t* y) {
+  int32_t* fields = NULL;
+  int32_t nfields;
+  fields = ksplit(str, '_', &nfields);
+
+  if ( nfields < 6 ) {
+    error("Cannot parse Readname '%s'. Observed only %d fields when separating by underscore", str->s, nfields);
+  }
+
+  const char* tilestr = str->s + fields[nfields-6];
+  if ( ( tilestr[0] == 'R' ) && ( tilestr[3] == 'C' ) ) { // conforms to the expected format
+    *tile = 1000000 + (atoi(tilestr+1) * 1000) + atoi(tilestr+4);
+  }
+  else {
+    error("Cannot parse Readname '%s'. Cannot find the tile information", str->s);
+  }
+
+  *x = (int)(atof(str->s + fields[nfields-2])*1000);
+  *y = (int)(atof(str->s + fields[nfields-1])*1000);
+  free(fields);
+}
+
+void parse_salus_global_readname(kstring_t* str, int32_t* tile, int32_t* x, int32_t* y) {
+  int32_t* fields = NULL;
+  int32_t nfields;
+  fields = ksplit(str, '_', &nfields);
+
+  if ( nfields < 6 ) {
+    error("Cannot parse Readname '%s'. Observed only %d fields when separating by underscore", str->s, nfields);
+  }
+
+  *tile = 1;
+  *x = (int)(atof(str->s + fields[nfields-2])*1000);
+  *y = (int)(atof(str->s + fields[nfields-1])*1000);
+  free(fields);
+}
+
 /////////////////////////////////////////////////////////////////////////
 // dge-barcode-match : Match a pair of barcode libraries
 ////////////////////////////////////////////////////////////////////////
 int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
   std::string fastqf;
   std::string format;
+  std::string platform("Illumina");
   std::string outf;
+  int32_t force_lane = 0;
 
   paramList pl;
 
   BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input options", NULL)
     LONG_STRING_PARAM("fq", &fastqf, "FASTQ file that contains spatial barcode")
-    LONG_STRING_PARAM("format", &format, "Format of the HDMI array (DraI32, DMix32, DraI20, DPAGE32, HDMI20)")
+    LONG_STRING_PARAM("format", &format, "Format of the HDMI array (DraI32, DMix32, DraI20, DPAGE32, HDMI20, HDMI30, DraI31)")
+    LONG_STRING_PARAM("platform", &platform, "Platform of the sequencing data to determine the rule to parse the readnames (accepting Illumina, Salus, SalusGlobal)")
+    LONG_INT_PARAM("force-lane", &force_lane, "Force a lane number. Required a positive value for Salus/SalusGlobal platforms")
 
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out",&outf,"Output directory name")
@@ -65,6 +119,10 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
   if ( format.compare("DraI32") == 0 ) {
     hdmi_length = 32;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBVNBNN");
+  }
+  else if ( format.compare("DraI31") == 0 ) {
+    hdmi_length = 31;
+    hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBVNBN");
   }
   else if ( format.compare("T7-30") == 0 ) {
     hdmi_length = 30;
@@ -126,11 +184,43 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
   if ( outf[outf.size()-1] != '/' ) 
     outf += "/";
 
+  enum platform_t { ILLUMINA, SALUS, SALUS_GLOBAL };
+  platform_t platform_type = ILLUMINA;
+  if ( platform.compare("Illumina") == 0 ) {
+    platform_type = ILLUMINA;
+  }
+  else if ( platform.compare("Salus") == 0 ) {
+    platform_type = SALUS;
+    if ( force_lane <= 0 )
+      error("For Salus platform, you must specify a lane number using --force-lane option");
+  }
+  else if ( platform.compare("SalusGlobal") == 0 ) {
+    platform_type = SALUS_GLOBAL;
+    if ( force_lane <= 0 )
+      error("For Salus platform, you must specify a lane number using --force-lane option");
+  }
+  else {
+    error("Cannot recognize the platform %s. Acceptable values are Illumina, Salus, SalusGlobal", platform.c_str());
+  }
+
   while( (lstr = hts_getline(hp, KS_SEP_LINE, &str)) > 0 ) { 
     if ( ++nrecs % 1000000 == 0 )
       notice("Reading %llu records from %s, %zu tiles observed so far", nrecs, fastqf.c_str(), ltdict.size());
 
     // separate the Readname by ':'
+    switch(platform_type) {
+    case ILLUMINA:
+      parse_illumina_readname(&str, &lane, &tile, &x, &y);
+      break;
+    case SALUS:
+      lane = force_lane;
+      parse_salus_readname(&str, &tile, &x, &y);
+      break;
+    case SALUS_GLOBAL:
+      lane = force_lane;
+      parse_salus_global_readname(&str, &tile, &x, &y);
+      break;
+    };
     fields = ksplit(&str, ':', &nfields);
     if ( nfields < 7 )
       error("Cannot parse Readname '%s' in FASTQ file %s at record=%llu. Observed only %d fields when separating by colon", str.s, fastqf.c_str(), nrecs, nfields);
@@ -141,7 +231,7 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
     y = atoi(str.s + fields[6]);
 
     // tmpbuf is the key
-    sprintf(tmpbuf,"%d_%d", lane, tile);
+    snprintf(tmpbuf, 65535, "%d_%d", lane, tile);
     ltitr = ltdict.find(tmpbuf);
 
     if ( ltitr == ltdict.end() ) { // need to create a new filehandle
