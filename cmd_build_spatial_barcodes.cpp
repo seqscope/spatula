@@ -52,11 +52,11 @@ void parse_salus_readname(kstring_t* str, int32_t* tile, int32_t* x, int32_t* y)
   }
 
   const char* tilestr = str->s + fields[nfields-6];
-  if ( ( tilestr[0] == 'R' ) && ( tilestr[3] == 'C' ) ) { // conforms to the expected format
-    *tile = 1000000 + (atoi(tilestr+1) * 1000) + atoi(tilestr+4);
+  if ( ( tilestr[0] == 'R' ) && ( tilestr[4] == 'C' ) ) { // conforms to the expected format
+    *tile = 1000000 + (atoi(tilestr+1) * 1000) + atoi(tilestr+5);
   }
   else {
-    error("Cannot parse Readname '%s'. Cannot find the tile information", str->s);
+    error("Cannot parse tile string '%s'. Cannot find the tile information", tilestr);
   }
 
   *x = (int)(atof(str->s + fields[nfields-2])*1000);
@@ -221,14 +221,13 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
       parse_salus_global_readname(&str, &tile, &x, &y);
       break;
     };
-    fields = ksplit(&str, ':', &nfields);
-    if ( nfields < 7 )
-      error("Cannot parse Readname '%s' in FASTQ file %s at record=%llu. Observed only %d fields when separating by colon", str.s, fastqf.c_str(), nrecs, nfields);
-
-    lane = atoi(str.s + fields[3]);
-    tile = atoi(str.s + fields[4]);
-    x = atoi(str.s + fields[5]);
-    y = atoi(str.s + fields[6]);
+//    fields = ksplit(&str, ':', &nfields);
+//    if ( nfields < 7 )
+//      error("Cannot parse Readname '%s' in FASTQ file %s at record=%llu. Observed only %d fields when separating by colon", str.s, fastqf.c_str(), nrecs, nfields);
+//    lane = atoi(str.s + fields[3]);
+//    tile = atoi(str.s + fields[4]);
+//    x = atoi(str.s + fields[5]);
+//    y = atoi(str.s + fields[6]);
 
     // tmpbuf is the key
     snprintf(tmpbuf, 65535, "%d_%d", lane, tile);
