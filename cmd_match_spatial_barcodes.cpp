@@ -96,10 +96,10 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
 
     // read the sequence reads for line 4N+1
     lseq = hts_getline(hp, KS_SEP_LINE, &str);
-    if ( lseq < match_len )
+    if ( lseq < skip_sbcd + match_len )
       error("Cannot parse Readname in FASTQ file %s at record=%llu. Read length is too short (%d)", fastqf.c_str(), nrecs, lseq);
     
-    bseqs.push_back(seq2nt5(str.s,match_len));
+    bseqs.push_back(seq2nt5(str.s + skip_sbcd, match_len));
     ldummy = hts_getline(hp, KS_SEP_LINE, &str);
     lqual  = hts_getline(hp, KS_SEP_LINE, &str);
 
