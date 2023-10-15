@@ -16,6 +16,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
   std::string fq2f;
   std::string out1f;
   std::string out2f;  
+  int32_t skipSBCD = 0;  // base to skip the first reads in Read 1
   int32_t lenSBCD = 30;  // length of spatial barcode
   int32_t lenUMI = 9;  // length of UMI barcode in R2 (copied into R1)
   int32_t lenR2 = 101; // length of Read 2 after trimming.
@@ -37,6 +38,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out1", &out1f, "Output FASTQ file for read1")
     LONG_STRING_PARAM("out2", &out2f, "Output FASTQ file for read2")
+    LONG_INT_PARAM("skip-sbcd", &skipSBCD, "Skip first bases of spatial barcode (Read 1)")
     LONG_INT_PARAM("len-sbcd", &lenSBCD, "Length of spatial barcode (Read 1)")
     LONG_INT_PARAM("len-umi", &lenUMI, "Length of UMI or randomer (Read 2)")
     LONG_INT_PARAM("len-r2", &lenR2, "Length of Read 2 to trim (including randomers)")    
@@ -121,7 +123,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
       hprintf(wf2, "%s\n", name2.s);
 
       // write modified sequence reads
-      strncpy(buf1, str1.s, lenSBCD);
+      strncpy(buf1, str1.s + skipSBCD, lenSBCD);
       strncpy(buf1 + lenSBCD, str2.s, lenUMI);
       buf1[lenSBCD+lenUMI] = '\0';
       str2.s[lenR2] = '\0';
@@ -147,7 +149,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
     if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
     if ( !skip ) {
-      strncpy(buf1, str1.s, lenSBCD);
+      strncpy(buf1, str1.s + skipSBCD, lenSBCD);
       strncpy(buf1 + lenSBCD, str2.s, lenUMI);
       buf1[lenSBCD+lenUMI] = '\0';
       str2.s[lenR2] = '\0';

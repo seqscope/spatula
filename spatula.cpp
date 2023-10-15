@@ -15,6 +15,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char **argv);
 int32_t cmdSubsetSGE(int32_t argc, char **argv);
 int32_t cmdCombineSGE(int32_t argc, char **argv);
 int32_t cmdEvalDupsSBCD(int32_t argc, char **argv);
+int32_t cmdDrawXY(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -40,6 +41,10 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("filter-fastqs", &cmdFilterFASTQs, "Filter FASTQs based on a pattern")
   LONG_COMMAND("reformat-fastqs", &cmdReformatFASTQs, "Reformat FASTQs to be ready for STARsolo alignment")
   LONG_COMMAND("reformat-fastqs-mt", &cmdReformatFASTQsMT, "Reformat FASTQs to be ready for STARsolo alignment (multithreaded/not working)")
+
+  LONG_COMMAND_GROUP("Tools for Simple image processing", NULL)
+  LONG_COMMAND("draw-xy", &cmdDrawXY, "Draw the image of points in 2D space")
+
   END_LONG_COMMANDS();
 
   cl.Add(new longCommands("Available Commands", longCommandlines));

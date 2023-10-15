@@ -37,6 +37,7 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_draw_xy.cpp
     cmd_eval_dups_sbcd.cpp
     cmd_combine_sge.cpp
     cmd_subset_sge.cpp
@@ -59,6 +60,7 @@ set(SOURCE_FILES
     spatula.cpp
     spatula.h
     nlohmann/json.hpp
+    cimg/CImg.h
     )
 
 SET(APP_EXE spatula)
@@ -106,6 +108,5 @@ endif()
 #target_compile_options(${APP_EXE} PRIVATE "${OpenMP_CXX_FLAGS}")
 TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${DEFLATELIB} ${CRYPTOLIB})
 target_compile_options(${APP_EXE} PRIVATE)
-
 
 install(TARGETS ${APP_EXE} RUNTIME DESTINATION bin)
