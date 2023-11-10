@@ -22,7 +22,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
   int32_t lenR2 = 101; // length of Read 2 after trimming.
   std::string suffixR1(".R1.fasta.gz"); // suffix for read 1
   std::string suffixR2(".R2.fasta.gz"); // suffix for read 2
-  std::string matchTsv;  // restrict to the matched spatial barcode
+  std::vector<std::string> matchTsvs;  // restrict to the matched spatial barcode
   int32_t lenMatch = 27; // length of perfect match requested
 
   paramList pl;
@@ -32,7 +32,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     LONG_STRING_PARAM("fq2", &fq2f, "FASTQ file for read 2")
 
     LONG_PARAM_GROUP("Filtering options", NULL)
-    LONG_STRING_PARAM("match-tsv", &matchTsv, ".matched.tsv.gz file to filter FASTQ file based on spatial barcodes")
+    LONG_MULTI_STRING_PARAM("match-tsv", &matchTsvs, ".matched.tsv.gz file(s) to filter FASTQ file based on spatial barcodes")
     LONG_INT_PARAM("len-match", &lenMatch, "Length of perfect match required with 2nd-seq FASTQ (27 or less)")    
     
     LONG_PARAM_GROUP("Output Options", NULL)
@@ -73,17 +73,18 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
   if ( wf2 == NULL ) error("Cannot write to %s", out2f.c_str(), suffixR2.c_str());
 
   std::set<uint64_t> matchSet;
-  if ( !matchTsv.empty() ) {
-    notice("Loading matched barcodes from %s", matchTsv.c_str() );
+  uint64_t nmatch = 0;  
+  for(int32_t i=0; i < (int32_t)matchTsvs.size(); ++i) {
+    notice("Loading matched barcodes from %s", matchTsvs[i].c_str() );
     uint64_t sbcd;
-    tsv_reader mtr(matchTsv.c_str());
-    uint64_t nmatch = 0;
+    tsv_reader mtr(matchTsvs[i].c_str());
     while( mtr.read_line() > 0 ) {
       sbcd = seq2nt5(mtr.str_field_at(0),lenMatch);
       matchSet.insert(sbcd);
       ++nmatch;
     }
-    notice("Loaded a total of %llu barcodes, with %zu after removing redundant records", nmatch, matchSet.size());
+    notice("Loaded a total of %llu barcodes, %zu after removing redundant records", nmatch, matchSet.size());
+    mtr.close();
   }
   
   notice("Writing to FASTQ file pairs %s and %s", out1f.c_str(), out2f.c_str());
@@ -111,7 +112,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
     if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
 
-    if ( !matchTsv.empty() && matchSet.find(seq2nt5(str1.s, lenMatch)) != matchSet.end() ) {
+    if ( !matchTsvs.empty() && matchSet.find(seq2nt5(str1.s, lenMatch)) != matchSet.end() ) {
       skip = true;
       ++nskip;
     }
