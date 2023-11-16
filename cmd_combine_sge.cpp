@@ -21,6 +21,7 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
   std::string ftrf("features.tsv.gz");        // name of feature file
   std::string mtxf("matrix.mtx.gz");          // name of matrix file
   std::string minmaxf("barcodes.minmax.tsv"); // name of minmax TSV file indicating the boundary
+  bool out_minmax_fixed = false;              // do not update output minmax coordinates based on the observed points
 
   paramList pl;
   BEGIN_LONG_PARAMS(longParameters)
@@ -30,6 +31,7 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
   LONG_STRING_PARAM("ftr", &ftrf, "Shared feature file path (e.g. feature.tsv.gz)")
   LONG_STRING_PARAM("mtx", &mtxf, "Shared matrix file path (e.g. matrix.mtx.gz)")
   LONG_STRING_PARAM("minmax", &minmaxf, "Shared minmax.tsv file path (e.g. barcodes.minmax.tsv) - required in [row]/[col] mode")
+  LONG_STRING_PARAM("out-minmax-fixed", &out_minmax_fixed, "Do not update output minmax coordinates based on the observed points")
 
   LONG_PARAM_GROUP("Output Options", NULL)
   LONG_STRING_PARAM("out", &outdir, "Output directory")
@@ -76,6 +78,7 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
     i_ymin = df.get_colidx("ymin");
     i_ymax = df.get_colidx("ymax");
   }
+
   for(int32_t i=0; i < df.nrows; ++i) {
     uint64_t xmin, xmax, ymin, ymax;
     if ( layout_has_minmax ) {    // if the layout file has xmin, xmax, ymin, ymax, use them as bounding box
@@ -95,6 +98,7 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
   }
 
   // store the offsets for each tile
+  uint64_t out_max_row_x = 0, out_max_col_y = 0;
   if ( mode_rowcol ) {
     // calculate the offsets for each row and column
     std::vector<std::string>& col_row = df.get_column("row");
@@ -148,16 +152,23 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
       notice("row = %d, col = %d, height = %llu, width = %llu, x_offset = %llu, y_offset = %llu", 
               row, col, xmaxs[i] - xmins[i] + 1, ymaxs[i] - ymins[i] + 1, x_offset, y_offset);
     }
+
+    out_max_row_x = row_cumsum[row_cumsum.size()-1];
+    out_max_col_y = col_cumsum[col_cumsum.size()-1];
   }
   else {
     // fill in the offsets
     std::vector<std::string>& col_sgedir = df.get_column("sgedir");
     std::vector<std::string>& col_x_offset = df.get_column("x_offset");
     std::vector<std::string>& col_y_offset = df.get_column("y_offset");
+
     for (int32_t i=0; i < df.nrows; ++i) {
       sgedirs.push_back(col_sgedir[i]);
       x_offsets.push_back(std::stoull(col_x_offset[i].c_str(), NULL, 10));
       y_offsets.push_back(std::stoull(col_y_offset[i].c_str(), NULL, 10));
+    }
+    if ( out_minmax_fixed ) {
+      error("--out-minmax-fixed must be used with input files with row/col");
     }
   }
 
@@ -176,6 +187,12 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
   // read each tile and write to the output
   sge_stream_writer ssw((outdir + "/" + bcdf).c_str(), (outdir + "/" + ftrf).c_str(), (outdir + "/" + mtxf).c_str());
   uint64_t out_xmin = UINT64_MAX, out_xmax = 0, out_ymin = UINT64_MAX, out_ymax = 0;
+  if ( out_minmax_fixed ) { // use the maximum range possible as minmax values
+    out_xmin = 0;
+    out_xmax = out_max_row_x;
+    out_ymin = 0;
+    out_ymax = out_max_col_y;
+  }
   int32_t nftrs = 0;
   // TODO: make sure that feature.tsv.gz are compatible. If not, need to find a way to merge them.
   char buf[65535];
