@@ -104,6 +104,10 @@ int32_t cmdSearchTag(int32_t argc, char** argv) {
   tr.close();
 
   int32_t n_tags = (int32_t)tag_ids.size();
+  notice("Searching for the following tags:");
+  for(int32_t i=0; i < n_tags; ++i) {
+    notice("[%s]\t[%s]\t[%s]", tag_ids[i].c_str(), tag_names[i].c_str(), tag_seqs[i].c_str());
+  }
 
   // load the smatch file if exists
   std::set<uint64_t> bcd_pass; // set of barcodes to be used as pass list
@@ -126,14 +130,14 @@ int32_t cmdSearchTag(int32_t argc, char** argv) {
   htsFile* hp1 = hts_open(fq1f.c_str(), "r");
   htsFile* hp2 = hts_open(fq2f.c_str(), "r");
   
-  notice("Reading FASTQ files %s and %s", fq1f.c_str(), fq1f.c_str());
+  notice("Reading FASTQ files %s and %s", fq1f.c_str(), fq2f.c_str());
   
   int32_t lstr1, lstr2, lseq1, lseq2, ldummy1, ldummy2, lqual1, lqual2;  
   kstring_t str1; str1.l = str1.m = 0; str1.s = NULL;
   lstr1 = hts_getline(hp1, KS_SEP_LINE, &str1);
   kstring_t str2; str2.l = str2.m = 0; str2.s = NULL;
   lstr2 = hts_getline(hp2, KS_SEP_LINE, &str2);
-  uint64_t tag_nt5 = 0, bcd_nt5, nrecs = 0;
+  uint64_t bcd_nt5, nrecs = 0;
   char umi_seq[255], bcd_seq[255];
   int32_t umi_ipos[255], bcd_ipos[255];
 
@@ -179,7 +183,7 @@ int32_t cmdSearchTag(int32_t argc, char** argv) {
     int32_t itag = -1;
     int32_t ipos = -1;
     for(int32_t i=0; i < n_tags; ++i) {
-      const char* ret = strstr(str2.s, tag_ids[i].c_str());
+      const char* ret = strstr(str2.s, tag_seqs[i].c_str());
       if ( ret != NULL ) {
         if ( itag >= 0 ) {
           notice("Ignoring sequence matching to multiple tags : %s", str2.s);
