@@ -31,7 +31,7 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
   LONG_STRING_PARAM("ftr", &ftrf, "Shared feature file path (e.g. feature.tsv.gz)")
   LONG_STRING_PARAM("mtx", &mtxf, "Shared matrix file path (e.g. matrix.mtx.gz)")
   LONG_STRING_PARAM("minmax", &minmaxf, "Shared minmax.tsv file path (e.g. barcodes.minmax.tsv) - required in [row]/[col] mode")
-  LONG_STRING_PARAM("out-minmax-fixed", &out_minmax_fixed, "Do not update output minmax coordinates based on the observed points")
+  LONG_PARAM("out-minmax-fixed", &out_minmax_fixed, "Do not update output minmax coordinates based on the observed points")
 
   LONG_PARAM_GROUP("Output Options", NULL)
   LONG_STRING_PARAM("out", &outdir, "Output directory")
