@@ -28,6 +28,7 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   int32_t xmax = INT_MAX;                     // maximum x coordinate
   int32_t ymin = 0;                           // minimum y coordinate
   int32_t ymax = INT_MAX;                     // maximum y coordinate
+  bool out_minmax_fixed = false;              // do not update output minmax coordinates based on the observed points
   double json_x_offset = 0.0;                 // x-offset to add to the geojson boundary
   double json_y_offset = 0.0;                 // y-offset to add to the geojson boundary
   double px_per_um = 26.67;                   // pixels per um
@@ -41,12 +42,14 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   LONG_STRING_PARAM("bcd", &bcdf, "Shared barcode file path (e.g. barcodes.tsv.gz)")
   LONG_STRING_PARAM("ftr", &ftrf, "Shared feature file path (e.g. feature.tsv.gz)")
   LONG_STRING_PARAM("mtx", &mtxf, "Shared matrix file path (e.g. matrix.mtx.gz)")
+  LONG_STRING_PARAM("minmax", &minmaxf, "Shared minmax.tsv file path (e.g. barcodes.minmax.tsv) - required in [row]/[col] mode")
 
   LONG_PARAM_GROUP("Filter options", NULL)
   LONG_INT_PARAM("xmin", &xmin, "Minimum x coordinate")
   LONG_INT_PARAM("xmax", &xmax, "Maximum x coordinate")
   LONG_INT_PARAM("ymin", &ymin, "Minimum y coordinate")
   LONG_INT_PARAM("ymax", &ymax, "Maximum y coordinate")
+  LONG_PARAM("out-minmax-fixed", &out_minmax_fixed, "Do not update output minmax coordinates based on the observed points")
   LONG_STRING_PARAM("json", &jsonf, "Geojson file containing multiple polygons")
   LONG_DOUBLE_PARAM("json-x-offset", &json_x_offset, "X-offset to add to the geojson boundary")
   LONG_DOUBLE_PARAM("json-y-offset", &json_y_offset, "Y-offset to add to the geojson boundary")
@@ -110,6 +113,10 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   bool bcd_pass = false;
   uint64_t npass = 0, nfail = 0;
   uint64_t out_xmin = UINT64_MAX, out_xmax = 0, out_ymin = UINT64_MAX, out_ymax = 0;
+
+  if ( out_minmax_fixed ) {
+    read_minmax((sgedir + "/" + minmaxf).c_str(), out_xmin, out_xmax, out_ymin, out_ymax);
+  }
   while (ssr.read_mtx())
   {
     if (ssr.is_bcd_new)
@@ -129,14 +136,16 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
         ssw.add_sbcd(ssr.cur_sbcd.strid.c_str(), ssr.cur_sbcd.nid, ssr.cur_sbcd.lane,
                      ssr.cur_sbcd.tile, ssr.cur_sbcd.px - xmin, ssr.cur_sbcd.py - ymin);
         // calculate the new bounding box
-        if (ssr.cur_sbcd.px - (uint64_t)xmin > out_xmax)
-          out_xmax = ssr.cur_sbcd.px - (uint64_t)xmin;
-        if (ssr.cur_sbcd.px - (uint64_t)xmin < out_xmin)
-          out_xmin = ssr.cur_sbcd.px - (uint64_t)xmin;
-        if (ssr.cur_sbcd.py - (uint64_t)ymin > out_ymax)
-          out_ymax = ssr.cur_sbcd.py - (uint64_t)ymin;
-        if (ssr.cur_sbcd.py - (uint64_t)ymin < out_ymin)
-          out_ymin = ssr.cur_sbcd.py - (uint64_t)ymin;
+        if ( !out_minmax_fixed ) {
+          if (ssr.cur_sbcd.px - (uint64_t)xmin > out_xmax)
+            out_xmax = ssr.cur_sbcd.px - (uint64_t)xmin;
+          if (ssr.cur_sbcd.px - (uint64_t)xmin < out_xmin)
+            out_xmin = ssr.cur_sbcd.px - (uint64_t)xmin;
+          if (ssr.cur_sbcd.py - (uint64_t)ymin > out_ymax)
+            out_ymax = ssr.cur_sbcd.py - (uint64_t)ymin;
+          if (ssr.cur_sbcd.py - (uint64_t)ymin < out_ymin)
+            out_ymin = ssr.cur_sbcd.py - (uint64_t)ymin;
+        }
       }
     }
     if (bcd_pass)
