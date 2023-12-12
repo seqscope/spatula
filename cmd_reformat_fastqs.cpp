@@ -112,7 +112,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
     if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
 
-    if ( !matchTsvs.empty() && matchSet.find(seq2nt5(str1.s, lenMatch)) != matchSet.end() ) {
+    if ( !matchTsvs.empty() && matchSet.find(seq2nt5(str1.s, lenMatch)) == matchSet.end() ) {
       skip = true;
       ++nskip;
     }
