@@ -206,7 +206,7 @@ int32_t cmdSearchTag(int32_t argc, char** argv) {
         char filename[65535];
         if ( ibatch > 0 )
           hts_close(wbatch);
-        sprintf(filename, "%s.batch.%llu.unsorted.tsv", outprefix.c_str(), static_cast<unsigned long long>(ibatch));
+        snprintf(filename, 65535, "%s.batch.%llu.unsorted.tsv", outprefix.c_str(), static_cast<unsigned long long>(ibatch));
         wbatch = hts_open(filename, "w");
         ++ibatch;
       }

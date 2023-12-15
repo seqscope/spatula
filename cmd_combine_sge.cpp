@@ -243,7 +243,7 @@ int32_t cmdCombineSGE(int32_t argc, char **argv)
         uint64_t gy = ssr.cur_sbcd.py + y_offsets[i];
         gx = gx < xmins[i] ? 0 : gx - xmins[i];
         gy = gy < ymins[i] ? 0 : gy - ymins[i];
-        sprintf(buf, "%d_%s", i+1, ssr.cur_sbcd.strid.c_str()); // create unique spatial barcode id
+        snprintf(buf, 65535, "%d_%s", i+1, ssr.cur_sbcd.strid.c_str()); // create unique spatial barcode id
         ssw.add_sbcd(buf, ssr.cur_sbcd.nid, 1, 1, gx, gy);
         if ( gx < out_xmin ) out_xmin = gx;
         if ( gx > out_xmax ) out_xmax = gx;

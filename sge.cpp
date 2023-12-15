@@ -313,7 +313,7 @@ void sge_stream_writer::open(const char *bcdf, const char *ftrf, const char *mtx
 {
     char buf[65535];
     fn_mtx.assign(mtxf);
-    sprintf(buf, "%s.tmp", mtxf);
+    snprintf(buf, 65535, "%s.tmp", mtxf);
     wh_bcd = hts_open(bcdf, "wz");
     wh_ftr = hts_open(ftrf, "wz");
     wh_tmp = hts_open(buf, "w"); // write the contents of the matrix file first without the header
@@ -455,7 +455,7 @@ bool sge_stream_writer::flush_mtx()
 
     // write a header file
     char buf[65535];
-    sprintf(buf, "%s.hdr", fn_mtx.c_str());
+    snprintf(buf, 65535, "%s.hdr", fn_mtx.c_str());
     htsFile *wh_hdr = hts_open(buf, "w"); // write the contents of the matrix file first without the header
     hprintf(wh_hdr, "%%MatrixMarket matrix coordinate integer general\n%\n");
     hprintf(wh_hdr, "%d %llu %llu\n", (int32_t)ftr_cnts.size(), cur_sbcd.nid, nlines);
@@ -472,10 +472,10 @@ bool sge_stream_writer::flush_mtx()
     }
 
     // remove the header and tmp file
-    sprintf(buf, "%s.hdr", fn_mtx.c_str());
+    snprintf(buf, 65535, "%s.hdr", fn_mtx.c_str());
     if (remove(buf) != 0)
         error("Cannot remove %s", buf);
-    sprintf(buf, "%s.tmp", fn_mtx.c_str());
+    snprintf(buf, 65535, "%s.tmp", fn_mtx.c_str());
     if (remove(buf) != 0)
         error("Cannot remove %s", buf);
 

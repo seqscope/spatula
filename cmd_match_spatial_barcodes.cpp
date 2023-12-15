@@ -72,7 +72,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   int32_t cur_batch = 0;
 
   char buf[65536];
-  sprintf(buf, "%s.match.batch.%d.tsv", outprefix.c_str(), cur_batch);
+  snprintf(buf, 65536, "%s.match.batch.%d.tsv", outprefix.c_str(), cur_batch);
   htsFile* wmatch = hts_open(buf, "w");
   if ( wmatch == NULL )
     error("Cannot open %s for writing", buf);
@@ -119,7 +119,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
       // open a new file
       hts_close(wmatch);
       cur_batch = nrecs / batch_size;
-      sprintf(buf, "%s.match.batch.%d.tsv", outprefix.c_str(), cur_batch);
+      snprintf(buf, 65536, "%s.match.batch.%d.tsv", outprefix.c_str(), cur_batch);
       wmatch = hts_open(buf, "w");
       batch_filenames.push_back(buf);      
       if ( wmatch == NULL )
@@ -217,7 +217,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   std::map<std::string, std::pair<int32_t,int32_t> > id2lanetile;
   for(std::map<int32_t, std::map<int32_t,uint64_t> >::iterator it1=uniq_cnts.begin(); it1 != uniq_cnts.end(); ++it1) {
     for(std::map<int32_t,uint64_t>::iterator it2=it1->second.begin(); it2 != it1->second.end(); ++it2) {
-      sprintf(buf,"%d_%d", it1->first, it2->first);
+      snprintf(buf,65536, "%d_%d", it1->first, it2->first);
       id2lanetile[buf] = std::make_pair(it1->first, it2->first);
     }
   }

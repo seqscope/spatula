@@ -40,6 +40,7 @@ set(SOURCE_FILES
     cmd_draw_xy.cpp
     cmd_eval_dups_sbcd.cpp
     cmd_combine_sge.cpp
+    cmd_combine_sbcd.cpp
     cmd_subset_sge.cpp
     cmd_make_spatial_dge.cpp
     cmd_build_spatial_barcodes.cpp

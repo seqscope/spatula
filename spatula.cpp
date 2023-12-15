@@ -16,6 +16,7 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv);
 int32_t cmdCombineSGE(int32_t argc, char **argv);
 int32_t cmdEvalDupsSBCD(int32_t argc, char **argv);
 int32_t cmdDrawXY(int32_t argc, char **argv);
+int32_t cmdCombineSBCD(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -30,6 +31,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND_GROUP("Tools for Spatial Gene Expression (SGE) Analysis Tools", NULL)
   LONG_COMMAND("make-sdge", &cmdMakeSpatialDGE, "Make spatial DGE files from STARsolo output")
   LONG_COMMAND("combine-sge", &cmdCombineSGE, "Combine multiple SGE files")
+  LONG_COMMAND("combine-sbcds", &cmdCombineSBCD, "Combine multiple SBCD files")
   LONG_COMMAND("dge2sdge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SDGE format")
   LONG_COMMAND("subset-sge", &cmdSubsetSGE, "Subset Spatial SGE based on bounding box")
   LONG_COMMAND("combine-sge", &cmdCombineSGE, "Combine multiple SGE files")
