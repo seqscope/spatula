@@ -95,7 +95,7 @@ else()
     set(LZMA ${LZMA_LIBRARIES})
 endif()
 
-find_library(DEFLATELIB deflate HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
+find_library(DEFLATELIB deflate libdeflate.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../libdeflate/)
 if(NOT DEFLATELIB)
     message(FATAL_ERROR "libdeflate library not found")
 endif()

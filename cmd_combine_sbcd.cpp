@@ -135,7 +135,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     int32_t icol = manifest_df.add_empty_column("fullpath");
     int32_t jcol = manifest_df.get_colidx("filepath");
     for(int32_t i=0; i < manifest_df.nrows; ++i) {
-        manifest_df.set_str_elem((sbcddir + manifest_df.get_str_elem(i, jcol)).c_str(), i, icol);
+        manifest_df.set_str_elem((sbcddir + "/" + manifest_df.get_str_elem(i, jcol)).c_str(), i, icol);
     }
 
 
@@ -156,7 +156,8 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         int32_t i_rowshift = layout_df.get_colidx("rowshift");
         int32_t i_colshift = layout_df.get_colidx("colshift");
 
-        if ( ( i_row < 0 ) || ( i_col < 0 ) )
+        //if ( !( layout_df.has_column("row") && layout_df.has_column("col") ) ) {
+        if ( i_row < 0 || i_col < 0 ) 
             error("[row] and [col] are required but missing in the layout file %s", layoutf.c_str());
 
         // Read the layout file to determine the offsets for each tile
@@ -166,21 +167,23 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         for (int32_t i = 0; i < layout_df.nrows; ++i)
         {
             tile_info_t* pti = NULL;
+            //if ( layout_df.has_column("id") ) {
             if ( i_id >= 0 ) {
                 it = tile_info_map.find(layout_df.get_str_elem(i, i_id));
                 if ( it == tile_info_map.end() ) {
-                    error("Tile %s does not exist in the manifest file %s", layout_df.get_str_elem(i, i_id).c_str(), manifestf.c_str());
+                    error("Tile %s does not exist in the layout file %s", layout_df.get_str_elem(i, i_id).c_str(), layoutf.c_str());
                 }
                 pti = it->second;
             }
             else {
+                //if ( !( layout_df.has_column("lane") && layout_df.has_column("tile") ) ) {
                 if ( i_lane < 0 || i_tile < 0 ) {
                     error("[id] or [lane]/[tile] column is required in the layout file %s", layoutf.c_str());
                 }
                 snprintf(buf_id, 255, "%d_%d", layout_df.get_int_elem(i, i_lane), layout_df.get_int_elem(i, i_tile));
                 it = tile_info_map.find(buf_id);
                 if ( it == tile_info_map.end() ) {
-                    error("Tile %s does not exist in the manifest file %s", buf_id, manifestf.c_str());
+                    error("Tile %s does not exist in the layout file %s", buf_id, layoutf.c_str());
                 }
                 pti = it->second;
             }
@@ -319,8 +322,8 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
                     error("Tile ID %s does not exist in the manifest file %s", buf_id, manifestf.c_str());
                 }
                 tile_info_t* pti = tile_info_map[buf_id];
-                uint64_t gx = (uint64_t)((rec.px + pti->x_offset) * pixel_to_nm);
-                uint64_t gy = (uint64_t)((rec.py + pti->y_offset) * pixel_to_nm);
+                uint64_t gx = (uint64_t)((rec.px + pti->x_offset - pti->xmin) * pixel_to_nm);
+                uint64_t gy = (uint64_t)((rec.py + pti->y_offset - pti->ymin) * pixel_to_nm);
                 if ( gx < min_gx ) min_gx = gx;
                 if ( gx > max_gx ) max_gx = gx;
                 if ( gy < min_gy ) min_gy = gy;
