@@ -38,6 +38,7 @@ include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
     cmd_draw_xy.cpp
+    cmd_draw_3way.cpp
     cmd_eval_dups_sbcd.cpp
     cmd_combine_sge.cpp
     cmd_combine_sbcd.cpp

@@ -339,7 +339,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
                 }
                 tile_info_t* pti = tile_info_map[buf_id];
                 //uint64_t gx = (uint64_t)((rec.px + pti->x_offset - pti->xmin) * pixel_to_nm);
-                uint64_t gx = (uint64_t)((pti->x_offset - pti->xmax - rec.px) * pixel_to_nm);
+                uint64_t gx = (uint64_t)((pti->x_offset + pti->xmax - rec.px) * pixel_to_nm);
                 uint64_t gy = (uint64_t)((rec.py + pti->y_offset - pti->ymin) * pixel_to_nm);
                 if ( gx < min_gx ) min_gx = gx;
                 if ( gx > max_gx ) max_gx = gx;
