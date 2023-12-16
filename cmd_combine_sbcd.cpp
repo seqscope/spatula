@@ -38,11 +38,12 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     std::string manifestf;           // Manifest file containing the list of spatial barcode files
     std::string outdir;              // output directory containing merged sbcd with global coordinates in nm scale
     int32_t match_len = 27;          // length of HDMI spatial barcodes to be considered for matching
-    double pixel_to_nm = 37.5;       // pixel to nm conversion factor (37.5 for Seq-Scope)
+    double pixel_to_nm = 34.78;      // pixel to nm conversion factor (37.5 for Seq-Scope Hi-Seq, 34.78 for Seq-Scope NovaSeq)
     int32_t max_dup_allowed = 5;     // maximum number of duplicates allowed for each spatial barcode. If this is 1, duplicates are not allowed
     double max_dup_dist_nm = 10000.; // maximum distance allowed for duplicates in nm scale
     double rowgap = 0.0;             // additional gap between rows (proportional to the height of a tile)
     double colgap = 0.0;             // additional gap between columns (proportional to the width of a tile)
+    bool write_all = false;          // write all spatial barcodes to the output file
 
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
@@ -54,6 +55,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
 
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out", &outdir, "Output spatial barcode file after merging")
+    LONG_PARAM("write-all", &write_all, "Write all spatial barcodes to the output file, including duplicated and filtered reads")
 
     LONG_PARAM_GROUP("Options for coordinate conversion", NULL)
     LONG_DOUBLE_PARAM("pixel-to-nm", &pixel_to_nm, "Pixel to nm conversion factor (37.5 for Seq-Scope)")
@@ -253,10 +255,12 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     // write a new sbcd file
     htsFile* wh_sbcd = hts_open( (outdir + "/1_1.sbcds.sorted.tsv.gz").c_str(), "wz" );
     htsFile* wh_manifest = hts_open( (outdir + "/manifest.tsv").c_str(), "w" );
-    htsFile* wh_dups = hts_open( (outdir + "/1_1.dups.sorted.tsv.gz").c_str(), "wz" );
-    htsFile* wh_filt = hts_open( (outdir + "/1_1.filtered.sorted.tsv.gz").c_str(), "wz" );
+    htsFile* wh_dupstat = hts_open( (outdir + "/dupstats.tsv.gz").c_str(), "wz" );
+    htsFile* wh_dups = write_all ? hts_open( (outdir + "/1_1.dups.sorted.tsv.gz").c_str(), "wz" ) : NULL;
+    htsFile* wh_filt = write_all ? hts_open( (outdir + "/1_1.filtered.sorted.tsv.gz").c_str(), "wz" ) : NULL;
 
-    hprintf(wh_manifest, "id\tfilepath\tmatches\tmismatches\txmin\txmax\tymin\tymax\n");
+    hprintf(wh_manifest, "id\tfilepath\tbarcodes\ttmatches\tmismatches\txmin\txmax\tymin\tymax\n");
+    hprintf(wh_dupstat,  "ndups\tmax_dist_nm\n");
 
     // open all tiles
     std::vector<std::string> tiles;
@@ -282,7 +286,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     }
 
     std::vector<sbcd_rec_t> sbcd_recs;
-    uint64_t npass = 0, nfilt = 0, ndups = 0;
+    uint64_t npass = 0, nfilt = 0, ufilt = 0, ndups = 0, udups = 0;
     uint64_t min_gx = UINT64_MAX, max_gx = 0, min_gy = UINT64_MAX, max_gy = 0;
     while( min_tseq < UINT64_MAX ) {
         // collect all ties;
@@ -308,15 +312,20 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         // perform duplicate filtering
         if ( sbcd_recs.size() > max_dup_allowed ) {
             // filter the duplicate reads
-            for(int32_t i=0; i < (int32_t)sbcd_recs.size(); ++i) {
-                sbcd_recs[i].hprint_sbcd(wh_filt);
+            if ( write_all ) {
+                for(int32_t i=0; i < (int32_t)sbcd_recs.size(); ++i) {
+                    sbcd_recs[i].hprint_sbcd(wh_filt);
+                }
             }
+            hprintf(wh_dupstat, "%zu\tNA\n", sbcd_recs.size());
+            nfilt += sbcd_recs.size();
+            ++ufilt;
         }
         else {
             // convert the current coordinates into global coordinates
             for(int32_t i=0; i < sbcd_recs.size(); ++i) {
                 sbcd_rec_t& rec = sbcd_recs[i];
-                snprintf(buf_id, 255, "%d_%d", rec.lane, rec.tile);
+                snprintf(buf_id, 255, "%llu_%llu", rec.lane, rec.tile);
                 it = tile_info_map.find(buf_id);
                 if ( it == tile_info_map.end() ) {
                     error("Tile ID %s does not exist in the manifest file %s", buf_id, manifestf.c_str());
@@ -338,33 +347,44 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
             double max_dist_nm = 0;
             for(int32_t i=0; i < sbcd_recs.size(); ++i) {
                 for(int32_t j=0; j < i; ++j) {
-                    double xdiff = (double)(sbcd_recs[i].px - sbcd_recs[j].px);
-                    double ydiff = (double)(sbcd_recs[i].py - sbcd_recs[j].py);
+                    double xdiff = (double)sbcd_recs[i].px - (double)sbcd_recs[j].px;
+                    double ydiff = (double)sbcd_recs[i].py - (double)sbcd_recs[j].py;
                     double dist_nm = sqrt( xdiff*xdiff + ydiff*ydiff );
                     if ( dist_nm > max_dist_nm ) max_dist_nm = dist_nm;
                 }
             }
 
+            if ( sbcd_recs.size() > 1 )
+                hprintf(wh_dupstat, "%zu\t%llu\n", sbcd_recs.size(), (uint64_t)max_dist_nm);
+
             // decide whether to keep the reads or not
             if ( max_dist_nm > max_dup_dist_nm ) {
                 // duplicate reads are too far away
-                for(int32_t i=0; i < (int32_t)sbcd_recs.size(); ++i) {
-                    sbcd_recs[i].lane = sbcd_recs.size();
-                    sbcd_recs[i].tile = (uint64_t) max_dist_nm;
-                    sbcd_recs[i].hprint_sbcd(wh_filt);
-                    ++nfilt;
+                if ( write_all ) {
+                    for(int32_t i=0; i < (int32_t)sbcd_recs.size(); ++i) {
+                        sbcd_recs[i].lane = (uint64_t) sbcd_recs.size();
+                        sbcd_recs[i].tile = (uint64_t) max_dist_nm;
+                        sbcd_recs[i].hprint_sbcd(wh_filt);
+                    }
                 }
+                nfilt += sbcd_recs.size();
+                ++ufilt;
             }
             else {  // the reads are close enough to be considered as optical duplicates
                 // in this case, write an arbitrary (first) read to the output
                 sbcd_recs[0].hprint_sbcd(wh_sbcd);
                 ++npass;
-                // write the rest of reads to the duplicate output
-                for(int32_t i=0; i < sbcd_recs.size(); ++i) {
-                    sbcd_recs[i].lane = sbcd_recs.size();
-                    sbcd_recs[i].tile = (uint64_t) max_dist_nm;
-                    sbcd_recs[i].hprint_sbcd(wh_dups);
-                    ++ndups;
+                if ( sbcd_recs.size() > 1 ) {
+                    ++udups;
+                    ndups += (sbcd_recs.size()-1);
+                    if ( write_all ) {
+                        // write the rest of reads to the duplicate output
+                        for(int32_t i=1; i < sbcd_recs.size(); ++i) {
+                            sbcd_recs[i].lane = (uint64_t) sbcd_recs.size();
+                            sbcd_recs[i].tile = (uint64_t) max_dist_nm;
+                            sbcd_recs[i].hprint_sbcd(wh_dups);
+                        }
+                    }
                 }
             }
         }
@@ -385,13 +405,17 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         sbcd_recs.clear();
 
         if ( npass % 1000000 == 0 ) {
-            notice("Processed %llu records, %llu passed, %llu filtered, %llu duplicates", npass+nfilt+ndups, npass, nfilt, ndups);
+            notice("Processed %llu records; %llu passed, %llu (%llu unique) filtered, %llu (%llu unique) duplicates", npass+nfilt+ndups, npass, nfilt, ufilt, ndups, udups);
         }
     }
+    notice("Finished processing %llu records; %llu passed, %llu (%llu unique) filtered, %llu (%llu unique) duplicates", npass+nfilt+ndups, npass, nfilt, ufilt, ndups, udups);
 
     hts_close(wh_sbcd);
-    hts_close(wh_filt);
-    hts_close(wh_dups);
+    hts_close(wh_dupstat);
+    if ( write_all ) {
+        hts_close(wh_filt);
+        hts_close(wh_dups);
+    }
 
     hprintf(wh_manifest, "1_1\t1_1.sbcds.sorted.tsv.gz\t%llu\t%llu\t0\t%llu\t%llu\t%llu\t%llu\n", npass, npass, min_gx, max_gx, min_gy, max_gy);
     hts_close(wh_manifest);

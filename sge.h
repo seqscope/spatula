@@ -199,8 +199,8 @@ typedef struct _sge_ftr_t sge_ftr_t;
 struct _sbcd_rec_t {
   uint64_t nid;
   std::string strid;
-  int32_t lane;
-  int32_t tile;
+  uint64_t lane;
+  uint64_t tile;
   uint64_t px;
   uint64_t py;
   int32_t mismatches;
@@ -209,7 +209,7 @@ struct _sbcd_rec_t {
     nid(_nid), strid(_strid), lane(_lane), tile(_tile), px(_px), py(_py), mismatches(_mismatches) {}
 
   void hprint_sbcd(htsFile* wh) {
-    hprintf(wh, "%s\t%llu\t%d\t%d\t%llu\t%llu\t%d\n", strid.c_str(), nid, lane, tile, px, py, mismatches);
+    hprintf(wh, "%s\t%llu\t%llu\t%llu\t%llu\t%d\n", strid.c_str(), lane, tile, px, py, mismatches);
   }
 };
 

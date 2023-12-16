@@ -14,7 +14,7 @@
 #include "cimg/CImg.h"
 
 /////////////////////////////////////////////////////////////////////////
-// draw-xy : Draw the image of points in 2D space
+// draw-xy : Draw the single-color image of points in 2D space
 ////////////////////////////////////////////////////////////////////////
 int32_t cmdDrawXY(int32_t argc, char **argv)
 {
@@ -50,27 +50,16 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
 
     if ( tsvf.empty() || outf.empty() )
         error("--tsv and --out must be specified");
-    if ( width == 0 || height == 0 )
-        error("--width and --height must be specified");
+    if ( width == 0 || height == 0 ) 
+        notice("width and height is not specified. Will be automatically detected while reading the input files");
 
     notice("Analysis started");
 
-    //gdImagePtr im = gdImageCreateTrueColor(width, height);
-    cimg_library::CImg<unsigned char> image(width, height, 1, 3, 255);
-
-    //int32_t colors[256];
-    //for(int32_t i=0; i < 256; ++i) 
-    //    colors[i] = gdImageColorAllocate(im, i, i, i);
-
-    uint8_t *imbuf = (uint8_t *)malloc(width * height);
-    memset(imbuf, 0, width * height);
+    std::vector<uint8_t*> imbufs;
+    int32_t cur_height = height == 0 ? 1000 : height;
+    int32_t max_y = 0;
 
     tsv_reader tf(tsvf.c_str());
-
-//    FILE *pngout = fopen(outf.c_str(), "wb");
-//    if (!pngout) {
-//        error("Cannot open %s for writing", outf.c_str());
- //   }
 
     while ( tf.read_line() ) {
         if ( tf.nfields <= icolx || tf.nfields <= icoly )
@@ -80,21 +69,55 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
         double y = tf.double_field_at(icoly);
         int32_t ix = (int32_t)(x / coord_per_pixel);
         int32_t iy = (int32_t)(y / coord_per_pixel);
-        if ( ix >= 0 && ix < width && iy >= 0 && iy < height ) {
-            if ( imbuf[iy * width + ix] + intensity_per_obs < 256 )
-                imbuf[iy * width + ix] += (uint8_t)intensity_per_obs;
-            else
-                imbuf[iy * width + ix] = 255;
+
+        // if width and height are specified, check if the point is within the range
+        if ( ( width > 0 ) && ( ix < 0 || ix >= width ) ) {
+            error("Out of range point detected (%lf, %lf): width = %d, coord_per_pixel = %lf", x, y, width, coord_per_pixel);
         }
-        else {
-            error("Out of range point detected (%lf, %lf)", x, y);
+        if ( ( height > 0 ) && ( iy < 0 || iy >= height ) ) {
+            error("Out of range point detected (%lf, %lf): width = %d, coord_per_pixel = %lf", x, y, width, coord_per_pixel);
         }
+
+        // if the x-coordinate is out of range, add more coordinates
+        if ( ix >= imbufs.size() ) imbufs.resize(ix + 1, NULL);
+        if ( imbufs[ix] == NULL ) {
+            imbufs[ix] = (uint8_t *)calloc(cur_height, sizeof(uint8_t));
+        }
+
+        // if the y-coordinate is out of range, double the cur_height
+        if ( cur_height <= iy ) {
+            int32_t new_height = cur_height;
+            while ( new_height <= iy ) new_height *= 2;
+            for(int32_t i=0; i < (int32_t)imbufs.size(); ++i) {
+                imbufs[i] = (uint8_t *)realloc(imbufs[i], new_height * sizeof(uint8_t));
+                memset(imbufs[i] + cur_height, 0, (new_height - cur_height) * sizeof(uint8_t));
+            }
+            cur_height = new_height;
+        }
+
+        max_y = iy > max_y ? iy : max_y;
+
+        if ( imbufs[ix][iy] + intensity_per_obs < 256 )
+            imbufs[ix][iy] += (uint8_t)intensity_per_obs;
+        else
+            imbufs[ix][iy] = 255;    
     }
 
-    for(int32_t iy=0; iy < height; ++iy) {
-        for(int32_t ix=0; ix < width; ++ix) {
-            //gdImageSetPixel(im, ix, iy, colors[imbuf[iy * width + ix]]);
-            uint8_t c = imbuf[iy * width + ix];
+    if ( width == 0 ) {
+        width = (int32_t)imbufs.size();
+        notice("Setting the width = %d", width);
+    }
+    if ( height == 0 ) {
+        height = max_y + 1;
+        notice("Setting the height = %d", height);
+    }
+
+    cimg_library::CImg<unsigned char> image(width, height, 1, 3, 255);
+    
+    for(int32_t ix=0; ix < width; ++ix) {
+        if ( imbufs[ix] == NULL ) continue;
+        for(int32_t iy=0; iy < height; ++iy) {
+            uint8_t c = imbufs[ix][iy];
             image(ix, iy, 0) = c;
             image(ix, iy, 1) = c;
             image(ix, iy, 2) = c;
@@ -102,7 +125,11 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     }
 
     image.save_png(outf.c_str());
-    free(imbuf);
+
+    for(int32_t ix=0; ix < width; ++ix) {
+        if ( imbufs[ix] != NULL ) 
+            free(imbufs[ix]);
+    }
 
     return 0;
 }
