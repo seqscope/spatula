@@ -158,9 +158,15 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         int32_t i_rowshift = layout_df.get_colidx("rowshift");
         int32_t i_colshift = layout_df.get_colidx("colshift");
 
-        //if ( !( layout_df.has_column("row") && layout_df.has_column("col") ) ) {
         if ( i_row < 0 || i_col < 0 ) 
             error("[row] and [col] are required but missing in the layout file %s", layoutf.c_str());
+
+        // find out the maximum row value
+        int32_t max_row = 0;
+        for (int32_t i = 0; i < layout_df.nrows; ++i) {
+            int32_t row = layout_df.get_int_elem(i, i_row);
+            max_row = row > max_row ? row : max_row;
+        }
 
         // Read the layout file to determine the offsets for each tile
         // calculate offset in the following way
@@ -194,6 +200,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
             int32_t col = layout_df.get_int_elem(i, i_col);
             double rowshift = i_rowshift < 0 ? 0. : layout_df.get_double_elem(i, i_rowshift);
             double colshift = i_colshift < 0 ? 0. : layout_df.get_double_elem(i, i_colshift);
+            //uint64_t x_offset = (uint64_t)(max_xdiff * ( (rowgap + 1.0) * (max_row - row) + rowshift ));
             uint64_t x_offset = (uint64_t)(max_xdiff * ( (rowgap + 1.0) * (row - 1) + rowshift ));
             uint64_t y_offset = (uint64_t)(max_ydiff * ( (colgap + 1.0) * (col - 1) + colshift ));
             pti->x_offset = x_offset; // now we can just add 
@@ -331,7 +338,8 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
                     error("Tile ID %s does not exist in the manifest file %s", buf_id, manifestf.c_str());
                 }
                 tile_info_t* pti = tile_info_map[buf_id];
-                uint64_t gx = (uint64_t)((rec.px + pti->x_offset - pti->xmin) * pixel_to_nm);
+                //uint64_t gx = (uint64_t)((rec.px + pti->x_offset - pti->xmin) * pixel_to_nm);
+                uint64_t gx = (uint64_t)((pti->x_offset - pti->xmax - rec.px) * pixel_to_nm);
                 uint64_t gy = (uint64_t)((rec.py + pti->y_offset - pti->ymin) * pixel_to_nm);
                 if ( gx < min_gx ) min_gx = gx;
                 if ( gx > max_gx ) max_gx = gx;

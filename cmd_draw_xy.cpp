@@ -115,12 +115,20 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     cimg_library::CImg<unsigned char> image(width, height, 1, 3, 255);
     
     for(int32_t ix=0; ix < width; ++ix) {
-        if ( imbufs[ix] == NULL ) continue;
-        for(int32_t iy=0; iy < height; ++iy) {
-            uint8_t c = imbufs[ix][iy];
-            image(ix, iy, 0) = c;
-            image(ix, iy, 1) = c;
-            image(ix, iy, 2) = c;
+        if ( imbufs[ix] == NULL ) {
+            for(int32_t iy=0; iy < height; ++iy) {
+                image(ix, iy, 0) = 0;
+                image(ix, iy, 1) = 0;
+                image(ix, iy, 2) = 0;
+            }
+        }
+        else {
+            for(int32_t iy=0; iy < height; ++iy) {
+                uint8_t c = imbufs[ix][iy];
+                image(ix, iy, 0) = c;
+                image(ix, iy, 1) = c;
+                image(ix, iy, 2) = c;
+            }
         }
     }
 
