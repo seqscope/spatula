@@ -425,7 +425,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         hts_close(wh_dups);
     }
 
-    hprintf(wh_manifest, "1_1\t1_1.sbcds.sorted.tsv.gz\t%llu\t%llu\t0\t%llu\t%llu\t%llu\t%llu\n", npass, npass, min_gx, max_gx, min_gy, max_gy);
+    hprintf(wh_manifest, "1_1\t1_1.sbcds.sorted.tsv.gz\t%llu\t%llu\t0\t%llu\t%llu\t%llu\t%llu\n", npass, npass, min_gy, max_gy, min_gx, max_gx); // note x/y are swapped
     hts_close(wh_manifest);
 
     notice("Analysis finished");

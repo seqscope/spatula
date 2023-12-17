@@ -30,9 +30,9 @@ int32_t cmdDraw3way(int32_t argc, char **argv)
     int32_t icol_gene_ngebcd = 7;
     int32_t isubcol_gene_ngebcd = 0;
 
-    std::string color_nbcd = "#320000";
-    std::string color_nmatch = "#000032";
-    std::string color_ngebcd = "#006400";
+    std::string color_nbcd = "#000032";
+    std::string color_nmatch = "#004800";
+    std::string color_ngebcd = "#640000";
     std::string id_manifest = "1_1";
 
     std::string outf;
@@ -58,8 +58,8 @@ int32_t cmdDraw3way(int32_t argc, char **argv)
 
     LONG_PARAM_GROUP("Output options", NULL)
     LONG_DOUBLE_PARAM("coord-per-pixel", &coord_per_pixel, "Number of coordinate units per pixel")
-    LONG_STRING_PARAM("color-nbcd", &color_nbcd, "RGB hex color code for nbcd per observation")
-    LONG_STRING_PARAM("color-nmatch", &color_nbcd, "RGB hex color code for nmatch per observation")
+    LONG_STRING_PARAM("color-nbcd", &color_nmatch, "RGB hex color code for nbcd per observation")
+    LONG_STRING_PARAM("color-nmatch", &color_ngebcd, "RGB hex color code for nmatch per observation")
     LONG_STRING_PARAM("color-nge", &color_nbcd, "RGB hex color code for nge per observation")
 
     LONG_PARAM_GROUP("Output Options", NULL)
@@ -111,46 +111,65 @@ int32_t cmdDraw3way(int32_t argc, char **argv)
     uint64_t height = (uint64_t)(ceil((double)(ymax - ymin + 1.0) / (double)coord_per_pixel));
     if ( width == 0 || height == 0 )
         error("Invalid width/height: %llu/%llu", width, height);
+    else
+        notice("Detected image size is (%llu x %llu)", width, height);
 
     // create and image
-    cimg_library::CImg<unsigned char> image(width, height, 1, 3, 255);
+    cimg_library::CImg<unsigned char> image(width, height, 1, 3, 0);
 
     // read the nbcd file
-    if ( ! nbcdf.empty() ) {
+    int32_t intervals = 1000000;
+    if ( !nbcdf.empty() ) {
         tsv_reader nbcd(nbcdf.c_str());
+        uint64_t nlines = 0;
+        uint64_t npx_nbcd = 0;
+        notice("Processing %s...", nbcdf.c_str());
         while ( nbcd.read_line() ) {
             if ( nbcd.nfields <= icol_x_nbcd || nbcd.nfields <= icol_y_nbcd )
                 error("Input file %s does not have enough columns - only %d", nbcdf.c_str(), nbcd.nfields);
 
+            ++nlines;
+            if ( nlines % intervals == 0 )
+                notice("Processing %llu nbcd lines... %.3lf%% of pixels (n=%llu) have positive values", nlines, (double)npx_nbcd*100.0/(double)width/(double)height, npx_nbcd);
+
             uint64_t x = nbcd.uint64_field_at(icol_x_nbcd);
             uint64_t y = nbcd.uint64_field_at(icol_y_nbcd);
-            int32_t ix = (int32_t)((x - xmin)/ coord_per_pixel);
+            int32_t ix = (int32_t)((x - xmin) / coord_per_pixel);
             int32_t iy = (int32_t)((y - ymin) / coord_per_pixel);
             if ( ix > width || iy > height )
-                error("Out of range point detected (%lf, %lf): width = %llu, height = %llu, coord_per_pixel = %lf", x, y, width, height, coord_per_pixel);
+                error("Out of range point detected (%llu -> %d, %llu ->%d): width = %llu, height = %llu, coord_per_pixel = %lf", x, ix, y, iy, width, height, coord_per_pixel);
 
+            bool zero = true;
             for(int32_t i=0; i < 3; ++i) {
                 int32_t c = image(ix, iy, i);
+                if ( c > 0 ) zero = false;
                 if ( c + rgb_nbcd[i] > 255 ) c = 255;
                 else c += rgb_nbcd[i];
                 image(ix, iy, i) = c;
             }
+            if ( zero ) ++npx_nbcd;
         }
+        notice("Finished processing %llu nbcd lines... %.3lf%% of pixels (n=%llu) have positive values", nlines, (double)npx_nbcd*100.0/(double)width/(double)height, npx_nbcd);
     }
 
     // read the nmatch files
+    uint64_t nlines = 0;
     for(int32_t i=0; i < nmatchfs.size(); ++i) {
         tsv_reader tf(nmatchfs[i].c_str());
         while ( tf.read_line() ) {
             if ( tf.nfields <= icol_x_nmatch || tf.nfields <= icol_y_nmatch )
                 error("Input file %s does not have enough columns - only %d", nmatchfs[i].c_str(), tf.nfields);
 
+            ++nlines;
+            if ( nlines % intervals == 0 )
+                notice("Processing %llu lines... from nmatch - currently reading %s", nlines, nmatchfs[i].c_str());
+
             uint64_t x = tf.uint64_field_at(icol_x_nmatch);
             uint64_t y = tf.uint64_field_at(icol_y_nmatch);
             int32_t ix = (int32_t)((x - xmin)/ coord_per_pixel);
             int32_t iy = (int32_t)((y - ymin) / coord_per_pixel);
             if ( ix > width || iy > height )
-                error("Out of range point detected (%lf, %lf): width = %llu, height = %llu, coord_per_pixel = %lf", x, y, width, height, coord_per_pixel);
+                error("Out of range point detected (%llu -> %d, %llu ->%d): width = %llu, height = %llu, coord_per_pixel = %lf", x, ix, y, iy, width, height, coord_per_pixel);
 
             for(int32_t i=0; i < 3; ++i) {
                 int32_t c = image(ix, iy, i);
@@ -159,14 +178,20 @@ int32_t cmdDraw3way(int32_t argc, char **argv)
                 image(ix, iy, i) = c;
             }
         }
+        notice("Finished processing %llu lines from nmatch", nlines);
     }
 
     // read the nge barcode files
     if ( ! ngebcdf.empty() ) {
+        nlines = 0;
         tsv_reader tf(ngebcdf.c_str());
         while ( tf.read_line() ) {
             if ( tf.nfields <= icol_x_ngebcd || tf.nfields <= icol_y_ngebcd || tf.nfields <= icol_gene_ngebcd )
                 error("Input file %s does not have enough columns - only %d", ngebcdf.c_str(), tf.nfields);
+
+            ++nlines;
+            if ( nlines % intervals == 0 )
+                notice("Processing %llu lines... from nmatch - currently reading %s", nlines, ngebcdf.c_str());
 
             double x = tf.double_field_at(icol_x_ngebcd);
             double y = tf.double_field_at(icol_y_ngebcd);        
@@ -179,7 +204,7 @@ int32_t cmdDraw3way(int32_t argc, char **argv)
             int32_t gene_count = atoi(s);
 
             if ( ix > width || iy > height )
-                error("Out of range point detected (%lf, %lf): width = %llu, height = %llu, coord_per_pixel = %lf", x, y, width, height, coord_per_pixel);
+                error("Out of range point detected (%llu -> %d, %llu ->%d): width = %llu, height = %llu, coord_per_pixel = %lf", x, ix, y, iy, width, height, coord_per_pixel);
 
             for(int32_t i=0; i < 3; ++i) {
                 int32_t c = image(ix, iy, i);
@@ -188,6 +213,7 @@ int32_t cmdDraw3way(int32_t argc, char **argv)
                 image(ix, iy, i) = c;
             }
         }
+        notice("Finished processing %llu lines... from %s", nlines, ngebcdf.c_str());
     }
 
     image.save_png(outf.c_str());

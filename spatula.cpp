@@ -47,7 +47,7 @@ int32_t main(int32_t argc, char **argv)
 
   LONG_COMMAND_GROUP("Tools for Simple image processing", NULL)
   LONG_COMMAND("draw-xy", &cmdDrawXY, "Draw the image of points in 2D space")
-  LONG_COMMAND("draw-3xy", &cmdDrawXY, "Draw the 3-way image from the output of sttools pipeline")
+  LONG_COMMAND("draw-3way", &cmdDraw3way, "Draw the 3-way image from the output of sttools pipeline")
 
   END_LONG_COMMANDS();
 
