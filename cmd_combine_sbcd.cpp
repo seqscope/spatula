@@ -22,8 +22,9 @@ struct _tile_info_t
     uint64_t x_offset;
     uint64_t y_offset;
     std::string sbcdf;
+    bool has_offset;
 
-    _tile_info_t() : row(0), col(0), xmin(0), xmax(0), ymin(0), ymax(0), x_offset(0), y_offset(0) {}
+    _tile_info_t() : row(0), col(0), xmin(0), xmax(0), ymin(0), ymax(0), x_offset(0), y_offset(0), has_offset(false) {}
 };
 typedef struct _tile_info_t tile_info_t;
 
@@ -205,6 +206,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
             uint64_t y_offset = (uint64_t)(max_ydiff * ( (colgap + 1.0) * (col - 1) + colshift ));
             pti->x_offset = x_offset; // now we can just add 
             pti->y_offset = y_offset;
+            pti->has_offset = true;
         }
     }
     else {
@@ -244,6 +246,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
 
             pti->x_offset = (uint64_t)offset_df.get_uint64_elem(i, i_xoffset);
             pti->y_offset = (uint64_t)offset_df.get_uint64_elem(i, i_yoffset);
+            pti->has_offset = true;
         }        
     }   
 
@@ -257,6 +260,13 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     else
     {
         notice("The directory %s already exists", outdir.c_str());
+    }
+
+    // make sure that all the tiles in the manifest file has the offset information
+    for(std::map<std::string, tile_info_t*>::iterator it = tile_info_map.begin(); it != tile_info_map.end(); ++it) {
+        if ( !it->second->has_offset ) {
+            error("Tile %s does not have offset/layout information", it->first.c_str());
+        }
     }
 
     // write a new sbcd file
