@@ -92,7 +92,7 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
 
     // output file storing individual duplicate reads
     char buf[65536];
-    sprintf(buf, "%s.dups.sbcds.tsv.gz", outprefix.c_str());
+    snprintf(buf, 65536, "%s.dups.sbcds.tsv.gz", outprefix.c_str());
     htsFile *wdups = hts_open(buf, "wz");
     hprintf(wdups, "#barcode\tntiles\tdupcount\n");
 
@@ -197,7 +197,7 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
     }
 
     // write the histogram
-    sprintf(buf, "%s.hist.tsv", outprefix.c_str());
+    snprintf(buf, 65536, "%s.hist.tsv", outprefix.c_str());
     htsFile *whist = hts_open(buf, "w");
     if (whist == NULL)
         error("Cannot open %s for writing", buf);
@@ -209,7 +209,7 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
     hts_close(whist);
 
     // write the tile counts
-    sprintf(buf, "%s.tiles.tsv", outprefix.c_str());
+    snprintf(buf, 65536, "%s.tiles.tsv", outprefix.c_str());
     htsFile *wtile = hts_open(buf, "w");
     if (wtile == NULL)
         error("Cannot open %s for writing", buf);

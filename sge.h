@@ -4,6 +4,7 @@
 #include "spatula.h"
 #include "qgenlib/tsv_reader.h"
 #include "qgenlib/dataframe.h"
+#include "qgenlib/qgen_error.h"
 #include "seq_utils.h"
 #include "file_utils.h"
 #include "sge.h"
@@ -194,6 +195,25 @@ struct _sge_ftr_t
 };
 
 typedef struct _sge_ftr_t sge_ftr_t;
+
+struct _sbcd_rec_t {
+  uint64_t nid;
+  std::string strid;
+  uint64_t lane;
+  uint64_t tile;
+  uint64_t px;
+  uint64_t py;
+  int32_t mismatches;
+
+  _sbcd_rec_t(uint64_t _nid, const char* _strid, int32_t _lane, int32_t _tile, uint64_t _px, uint64_t _py, int32_t _mismatches) : 
+    nid(_nid), strid(_strid), lane(_lane), tile(_tile), px(_px), py(_py), mismatches(_mismatches) {}
+
+  void hprint_sbcd(htsFile* wh) {
+    hprintf(wh, "%s\t%llu\t%llu\t%llu\t%llu\t%d\n", strid.c_str(), lane, tile, px, py, mismatches);
+  }
+};
+
+typedef struct _sbcd_rec_t sbcd_rec_t;
 
 // read SGE file in a streamed fashion
 // matrix.mtx must be sorted by barcode first, and feature second

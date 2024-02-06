@@ -38,8 +38,10 @@ include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
     cmd_draw_xy.cpp
+    cmd_draw_3way.cpp
     cmd_eval_dups_sbcd.cpp
     cmd_combine_sge.cpp
+    cmd_combine_sbcd.cpp
     cmd_subset_sge.cpp
     cmd_make_spatial_dge.cpp
     cmd_build_spatial_barcodes.cpp
@@ -94,7 +96,7 @@ else()
     set(LZMA ${LZMA_LIBRARIES})
 endif()
 
-find_library(DEFLATELIB deflate HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
+find_library(DEFLATELIB deflate libdeflate.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../libdeflate/)
 if(NOT DEFLATELIB)
     message(FATAL_ERROR "libdeflate library not found")
 endif()
