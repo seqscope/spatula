@@ -18,6 +18,7 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv);
 int32_t cmdDrawXY(int32_t argc, char **argv);
 int32_t cmdDraw3way(int32_t argc, char **argv);
 int32_t cmdCombineSBCD(int32_t argc, char **argv);
+int32_t cmdHist(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -48,6 +49,9 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND_GROUP("Tools for Simple image processing", NULL)
   LONG_COMMAND("draw-xy", &cmdDrawXY, "Draw the image of points in 2D space")
   LONG_COMMAND("draw-3way", &cmdDraw3way, "Draw the 3-way image from the output of sttools pipeline")
+
+  LONG_COMMAND_GROUP("Miscellaneous Tools", NULL)
+  LONG_COMMAND("hist", &cmdHist, "Create a text-based histogram")
 
   END_LONG_COMMANDS();
 

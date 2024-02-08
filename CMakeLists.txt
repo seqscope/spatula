@@ -37,6 +37,7 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_hist.cpp
     cmd_draw_xy.cpp
     cmd_draw_3way.cpp
     cmd_eval_dups_sbcd.cpp
