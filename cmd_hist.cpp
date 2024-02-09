@@ -3,10 +3,43 @@
 #include "qgenlib/tsv_reader.h"
 #include "qgenlib/qgen_error.h"
 #include <ctime>
+#include <cmath>
 #include <set>
 #include <map>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+std::string double2decstr(double original, int32_t digits) { 
+    char buf[255];
+    snprintf(buf, 255, "%.*f", digits, original);
+    return std::string(buf);
+}
+std::string double2unitstr(double original, double unit) {
+    char buf[255];
+    int32_t exponent_o = floor(log10(abs(original)));    
+    if ( ( original == floor(original) ) && ( exponent_o < 5 ) ) {
+        snprintf(buf, 255, "%d", (int32_t)original);
+    }
+    else {
+        int32_t exponent_u = floor(log10(abs(unit)));
+        int32_t sig_digits = exponent_o - exponent_u + 1;
+        if ( sig_digits < 2 ) sig_digits = 2; 
+        snprintf(buf, 255, "%.*g", sig_digits, original);
+    }
+    return std::string(buf);   
+}
+
+double double_approx(double original, int32_t sig_digits = 0) {
+    if ( original == 0 ) return 0;
+    int32_t exponent = floor(log10(abs(original)));
+    if ( sig_digits == 0 ) sig_digits = exponent;
+
+    double significand = original / pow(10.0, exponent);
+    double factor = pow(10.0, sig_digits);
+    significand = round(significand * factor) / factor;
+    double approx = significand * pow(10.0, exponent);
+    return approx;
+}
 
 void find_minmax(const std::vector<double>& vals, double& min_x, double& max_x) {
     min_x = vals[0];
@@ -80,7 +113,7 @@ int32_t cmdHist(int32_t argc, char **argv)
             batch.push_back(x);
             if ( batch.size() >= batch_size ) {
                 find_minmax(batch, min_x, max_x);
-                bin_width = (max_x - min_x) / num_bins;
+                bin_width = double_approx((max_x - min_x) / num_bins, 1);
                 notice("Determined the bin width = %lf", bin_width);
                 for(int32_t i=0; i < (int32_t)batch.size(); ++i) {
                     int64_t bin = (int64_t)(batch[i] / bin_width);
@@ -101,7 +134,7 @@ int32_t cmdHist(int32_t argc, char **argv)
 
     if ( bin_width == 0 ) {
         find_minmax(batch, min_x, max_x);
-        bin_width = (max_x - min_x) / num_bins;
+        bin_width = double_approx((max_x - min_x) / num_bins, 1);
         notice("Determined the bin width = %lf", bin_width);
         for(int32_t i=0; i < (int32_t)batch.size(); ++i) {
             int64_t bin = (int64_t)(batch[i] / bin_width);
@@ -138,22 +171,22 @@ int32_t cmdHist(int32_t argc, char **argv)
         double from = it->first * bin_width;
         double to = from + bin_width;
         std::vector<std::string> row;
-        row.push_back(std::to_string(from));
-        row.push_back(std::to_string(to));
+        row.push_back(double2unitstr(from, bin_width));
+        row.push_back(double2unitstr(to, bin_width));
         if ( show_median ) {
             double median = (from + to) / 2.0;
-            row.push_back(std::to_string(median));
+            row.push_back(double2unitstr(median, bin_width/10));
         }
         row.push_back(std::to_string(it->second));
         // print the fraction
         if ( show_fraction ) 
-            row.push_back(std::to_string((double)it->second / nlines));
+            row.push_back(double2decstr((double)it->second / nlines,5));
         // print the cumulative fraction
         if ( show_cumulative ) {
             cumul += it->second;
             row.push_back(std::to_string(cumul));
             if ( show_fraction )
-                row.push_back(std::to_string((double)cumul / nlines));
+                row.push_back(double2decstr((double)cumul / nlines,5));
         }
         hprintf(wh, "%s", row[0].c_str());
         for(int32_t i=1; i < (int32_t)row.size(); ++i)
