@@ -37,6 +37,7 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_filter_common_barcodes.cpp
     cmd_hist.cpp
     cmd_draw_xy.cpp
     cmd_draw_3way.cpp
@@ -56,6 +57,8 @@ set(SOURCE_FILES
     cmd_dge2sdge.cpp
     sge.cpp
     sge.h
+    fastq_utils.cpp
+    fastq_utils.h
     seq_utils.cpp
     seq_utils.h
     file_utils.cpp
