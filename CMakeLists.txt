@@ -37,6 +37,7 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_stratify_fastq_by_barcodes.cpp
     cmd_filter_common_barcodes.cpp
     cmd_hist.cpp
     cmd_draw_xy.cpp

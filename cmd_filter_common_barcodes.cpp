@@ -10,17 +10,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-// code to support 128-bit integer
-typedef __uint128_t uint128_t; // 128-bit unsigned integer
-struct uint128_hash {
-    std::size_t operator()(const uint128_t& key) const {
-        return std::hash<uint64_t>()(key >> 64) ^ std::hash<uint64_t>()(key);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////
-// estimate-complexity-fastq : Estimate the library complexity from a FASTQ file
-/////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+// filter-common-barcodes : Filter FASTQ file to filter out rare barcode+UMI pairs
+///////////////////////////////////////////////////////////////////////////////////
 int32_t cmdFilterCommonBarcodes(int32_t argc, char **argv)
 {
     std::string fq1f;

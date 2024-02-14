@@ -69,6 +69,9 @@ const unsigned char seq_nt5_table[256] = {
 // IUPAC16 to letter mapping
 const char *seq_nt16_rev_table = "XACMGRSVTWYHKDBN";
 
+// ACGNT to ASCII conversion 
+const char *seq_nt5_rev_table = "ACGNT";
+
 // Force-convert IUPAC16 to AGCT(01234)
 const unsigned char seq_nt16to4_table[] = {4, 0, 1, 4, 2, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4};
 
@@ -145,7 +148,22 @@ uint64_t seq2bits(const char *seq, int32_t len, uint8_t nonACGTs)
   return bits;
 }
 
-// convert sequences into 2bit strings (len <= 27)
+// convert sequences into 2bit strings (len <= 64)
+uint128_t seq2bits_128(const char *seq, int32_t len, uint8_t nonACGTs)
+{
+  uint128_t bits = 0;
+  uint8_t c;
+  for (int32_t i = 0; i < len; ++i)
+  {
+    c = seq_nt6_table[seq[i]];
+    if (c == 0 || c == 5)
+      c = nonACGTs + 1;
+    bits = ((bits << 2) | ((c - 1) & 0x03));
+  }
+  return bits;
+}
+
+// convert sequences into base-5 binaries (len <= 27)
 uint64_t seq2nt5(const char *seq, int32_t len)
 {
   uint64_t bits = 0;
@@ -157,24 +175,63 @@ uint64_t seq2nt5(const char *seq, int32_t len)
   return bits;
 }
 
-// // Read a record from a FASTQ file
-// bool read_fastq_record(htsFile *hf, fq_rec_t &rec)
-// {
-//   int32_t len = hts_getline(hf, KS_SEP_LINE, &rec.rname);
-//   if (len == 0)
-//   { // EOF reached. No record is returned
-//     return false;
-//   }
-//   len = hts_getline(hf, KS_SEP_LINE, &rec.seq);
-//   if (len == 0)
-//     error("Unexpected EOF in reading a FASTQ file");
-//   len = hts_getline(hf, KS_SEP_LINE, &rec.qual);
-//   if (len == 0)
-//     error("Unexpected EOF in reading a FASTQ file");
-//   if (rec.qual.s[0] != '+')
-//     error("Unexpected line in reading a FASTQ file. Expected '+', but observed %s.", rec.qual.s);
-//   len = hts_getline(hf, KS_SEP_LINE, &rec.qual);
-//   if (len == 0)
-//     error("Unexpected EOF in reading a FASTQ file");
-//   return true;
-// }
+// convert sequences into base-5 binaries (len <= 55)
+uint128_t seq2nt5_128(const char *seq, int32_t len)
+{
+  uint128_t bits = 0;
+  for (int32_t i = 0; i < len; ++i)
+  {
+    bits = bits * 5 + (int32_t)seq_nt5_table[seq[i]];
+  }
+  // error("%s %llu", seq, bits);
+  return bits;
+}
+
+// convert base-5 binaries into sequences (len <= 27)
+bool nt52seq(uint64_t nt5, int32_t len, char *seq) {
+  int32_t i;
+  for (i = len - 1; i >= 0; --i) {
+    seq[i] = seq_nt5_rev_table[nt5 % 5];
+    nt5 /= 5;
+  }
+  seq[len] = '\0';
+  return nt5 == 0; // if nt5 is not zero, then the sequence is too long
+}
+
+// convert base-5 binaries into sequences (len <= 55)
+bool nt52seq_128(uint128_t nt5, int32_t len, char *seq) {
+  int32_t i;
+  for (i = len - 1; i >= 0; --i) {
+    seq[i] = seq_nt5_rev_table[nt5 % 5];
+    nt5 /= 5;
+  }
+  seq[len] = '\0';
+  return nt5 == 0; // if nt5 is not zero, then the sequence is too long
+}
+
+// convert long sequences into multiple chunks of base-5 binaries (len <= 27)
+int32_t seq2nt5multi(const char *seq, int32_t lseq, uint64_t *nt5s, int32_t nt5unit) {
+  // determine the number of chunks
+  int32_t nchunks = (lseq + nt5unit - 1) / nt5unit;
+  int32_t offset = 0;
+  int32_t i;
+  for (i = 0; i < nchunks; ++i) {
+    nt5s[i] = seq2nt5(seq + i * nt5unit, offset + nt5unit > lseq ? lseq - offset : nt5unit);
+    offset += nt5unit;
+  }
+  return nchunks;
+}
+
+// convert multiple chunks of base-5 binaries into sequences
+bool nt5multi2seq(uint64_t *nt5s, int32_t lseq, char *seq, int32_t nt5unit) {
+  int32_t nchunks = (lseq + nt5unit - 1) / nt5unit;
+  int32_t offset = 0;
+  int32_t i;
+  for (i = 0; i < nchunks; ++i) {
+    if (!nt52seq(nt5s[i], offset + nt5unit > lseq ? lseq - offset : nt5unit, seq + i * nt5unit))
+      return false;
+    offset += nt5unit;
+  }
+  seq[lseq] = '\0';
+  return true;
+}
