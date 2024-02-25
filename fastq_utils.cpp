@@ -33,11 +33,21 @@ bool read_fastq_record(htsFile *hf, fq_rec_t &rec)
 bool write_fastq_record(htsFile* wf, fq_rec_t & rec)
 {
     if ( wf != NULL ) {
-        hprintf(wf, "%s\n", rec.rname.s);
-        hprintf(wf, "%s\n", rec.seq.s);
-        hprintf(wf, "%s\n", rec.comment.s);
-        hprintf(wf, "%s\n", rec.qual.s);
+        // hprintf(wf, "%s\n", rec.rname.s);
+        // hprintf(wf, "%s\n", rec.seq.s);
+        // hprintf(wf, "%s\n", rec.comment.s);
+        // hprintf(wf, "%s\n", rec.qual.s);
+        hprintf(wf, "%s\n%s\n%s\n%s\n", rec.rname.s, rec.seq.s, rec.comment.s, rec.qual.s);
         return true;
     }
     else return false;
+}
+
+bool write_fastq_record_fd(int32_t fd, fq_rec_t & rec)
+{
+    if ( dprintf(fd, "%s\n%s\n%s\n%s\n", rec.rname.s, rec.seq.s, rec.comment.s, rec.qual.s) <= 0 ) {
+        error("Cannot write to the file descriptor %d", fd);
+        return false;
+    }
+    return true;
 }
