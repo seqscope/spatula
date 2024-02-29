@@ -18,6 +18,10 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv);
 int32_t cmdDrawXY(int32_t argc, char **argv);
 int32_t cmdDraw3way(int32_t argc, char **argv);
 int32_t cmdCombineSBCD(int32_t argc, char **argv);
+int32_t cmdHist(int32_t argc, char **argv);
+int32_t cmdFilterCommonBarcodes(int32_t argc, char **argv);
+int32_t cmdStratifyFASTQByBarcodes(int32_t argc, char **argv);
+int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -44,10 +48,16 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("filter-fastqs", &cmdFilterFASTQs, "Filter FASTQs based on a pattern")
   LONG_COMMAND("reformat-fastqs", &cmdReformatFASTQs, "Reformat FASTQs to be ready for STARsolo alignment")
   LONG_COMMAND("reformat-fastqs-mt", &cmdReformatFASTQsMT, "Reformat FASTQs to be ready for STARsolo alignment (multithreaded/not working)")
+  LONG_COMMAND("filter-common-barcodes", &cmdFilterCommonBarcodes, "Filter FASTQ files based on the frequency of barcodes")
+  LONG_COMMAND("stratify-fastq-by-barcodes", &cmdStratifyFASTQByBarcodes, "Stratify FASTQ files by spatial barcodes and UMIs")
+  LONG_COMMAND("custom-demux-fastq", &cmdCustomDemuxFASTQ, "Demultiplex FASTQ files based in a customized manner")
 
   LONG_COMMAND_GROUP("Tools for Simple image processing", NULL)
   LONG_COMMAND("draw-xy", &cmdDrawXY, "Draw the image of points in 2D space")
   LONG_COMMAND("draw-3way", &cmdDraw3way, "Draw the 3-way image from the output of sttools pipeline")
+
+  LONG_COMMAND_GROUP("Miscellaneous Tools", NULL)
+  LONG_COMMAND("hist", &cmdHist, "Create a text-based histogram")
 
   END_LONG_COMMANDS();
 
