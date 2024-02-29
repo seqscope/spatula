@@ -276,7 +276,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     htsFile* wh_dups = write_all ? hts_open( (outdir + "/1_1.dups.sorted.tsv.gz").c_str(), "wz" ) : NULL;
     htsFile* wh_filt = write_all ? hts_open( (outdir + "/1_1.filtered.sorted.tsv.gz").c_str(), "wz" ) : NULL;
 
-    hprintf(wh_manifest, "id\tfilepath\tbarcodes\ttmatches\tmismatches\txmin\txmax\tymin\tymax\n");
+    hprintf(wh_manifest, "id\tfilepath\tbarcodes\tmatches\tmismatches\txmin\txmax\tymin\tymax\n");
     hprintf(wh_dupstat,  "ndups\tmax_dist_nm\n");
 
     // open all tiles
