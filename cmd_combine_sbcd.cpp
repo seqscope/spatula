@@ -284,12 +284,18 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
 
     // make sure that all the tiles in the manifest file has the offset information
     std::vector<std::string> missing_tiles;
+    std::vector<std::string> tiles;
+    std::vector<std::string> tile_paths;
     for(std::map<std::string, tile_info_t*>::iterator it = tile_info_map.begin(); it != tile_info_map.end(); ++it) {
         if ( !it->second->has_offset ) {
             if ( require_exact_match ) 
                 error("Tile %s does not have offset/layout information", it->first.c_str());
             else
                 missing_tiles.push_back(it->first);
+        }
+        else {
+            tiles.push_back(it->first);
+            tile_paths.push_back(it->second->sbcdf);
         }
     }
 
@@ -315,10 +321,12 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     hprintf(wh_dupstat,  "ndups\tmax_dist_nm\n");
 
     // open all tiles
-    std::vector<std::string> tiles;
+    //std::vector<std::string> tiles;
     std::vector<tsv_reader*> bcdfs;
-    open_tiles(manifest_df, tiles, bcdfs);
-    int32_t ntiles = manifest_df.nrows;
+    //open_tiles(manifest_df, tiles, bcdfs);
+    //int32_t ntiles = manifest_df.nrows;
+    open_tiles(tile_paths, bcdfs);
+    int32_t ntiles = (int32_t)tiles.size();
     std::vector<uint64_t> tseqs(ntiles);   // sequences at each tile
 
     // read first lines from each tile
