@@ -44,6 +44,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     double max_dup_dist_nm = 10000.; // maximum distance allowed for duplicates in nm scale
     double rowgap = 0.0;             // additional gap between rows (proportional to the height of a tile)
     double colgap = 0.0;             // additional gap between columns (proportional to the width of a tile)
+    bool require_exact_match = false;// require exact match between manifest file and layout file. If false, layout can only contain subset of tiles in the manifest file
     bool write_all = false;          // write all spatial barcodes to the output file
 
     paramList pl;
@@ -53,6 +54,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     LONG_STRING_PARAM("offset", &offsetf, "Offset file, each containing [lane] [tile] and [row]/[col] as columns")
     LONG_STRING_PARAM("sbcd", &sbcddir, "Directory containing spatial barcode files")
     LONG_STRING_PARAM("manifest", &manifestf, "Manifest file containing the list of spatial barcode files")
+    LONG_PARAM("require-exact-match", &require_exact_match, "Require exact match between manifest file and layout file. If false, layout can only contain subset of tiles in the manifest file")
 
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out", &outdir, "Output spatial barcode file after merging")
@@ -176,25 +178,33 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         for (int32_t i = 0; i < layout_df.nrows; ++i)
         {
             tile_info_t* pti = NULL;
-            //if ( layout_df.has_column("id") ) {
-            if ( i_id >= 0 ) {
+            if ( i_id >= 0 ) { // layout has "id" column
                 it = tile_info_map.find(layout_df.get_str_elem(i, i_id));
-                if ( it == tile_info_map.end() ) {
-                    error("Tile %s does not exist in the layout file %s", layout_df.get_str_elem(i, i_id).c_str(), layoutf.c_str());
+                if ( it == tile_info_map.end() ) { // tile not found
+                    if ( require_exact_match)
+                        error("Tile %s does not exist in the layout file %s", layout_df.get_str_elem(i, i_id).c_str(), layoutf.c_str());
+                    else
+                        continue;
                 }
-                pti = it->second;
+                else {
+                    pti = it->second;
+                }
             }
-            else {
-                //if ( !( layout_df.has_column("lane") && layout_df.has_column("tile") ) ) {
+            else { // layout has "lane" and "tile" columns
                 if ( i_lane < 0 || i_tile < 0 ) {
                     error("[id] or [lane]/[tile] column is required in the layout file %s", layoutf.c_str());
                 }
                 snprintf(buf_id, 255, "%d_%d", layout_df.get_int_elem(i, i_lane), layout_df.get_int_elem(i, i_tile));
                 it = tile_info_map.find(buf_id);
                 if ( it == tile_info_map.end() ) {
-                    error("Tile %s does not exist in the layout file %s", buf_id, layoutf.c_str());
+                    if ( require_exact_match ) 
+                        error("Tile %s does not exist in the layout file %s", buf_id, layoutf.c_str());
+                    else
+                        continue;
                 }
-                pti = it->second;
+                else {
+                    pti = it->second;
+                }
             }
 
             int32_t row = layout_df.get_int_elem(i, i_row);
@@ -228,9 +238,14 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
             if ( i_id >= 0 ) {
                 it = tile_info_map.find(offset_df.get_str_elem(i, i_id));
                 if ( it == tile_info_map.end() ) {
-                    error("Tile %s does not exist in the manifest file %s", offset_df.get_str_elem(i, i_id).c_str(), manifestf.c_str());
+                    if ( require_exact_match )
+                        error("Tile %s does not exist in the manifest file %s", offset_df.get_str_elem(i, i_id).c_str(), manifestf.c_str());
+                    else
+                        continue;
                 }
-                pti = it->second;
+                else {
+                    pti = it->second;
+                }
             }
             else {
                 if ( i_lane < 0 || i_tile < 0 ) {
@@ -239,9 +254,14 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
                 snprintf(buf_id, 255, "%d_%d", offset_df.get_int_elem(i, i_lane), offset_df.get_int_elem(i, i_tile));
                 it = tile_info_map.find(buf_id);
                 if ( it == tile_info_map.end() ) {
-                    error("Tile %s does not exist in the manifest file %s", buf_id, manifestf.c_str());
+                    if ( require_exact_match )
+                        error("Tile %s does not exist in the manifest file %s", buf_id, manifestf.c_str());
+                    else
+                        continue;
                 }
-                pti = it->second;
+                else {
+                    pti = it->second;
+                }
             }
 
             pti->x_offset = (uint64_t)offset_df.get_uint64_elem(i, i_xoffset);
@@ -263,11 +283,26 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     }
 
     // make sure that all the tiles in the manifest file has the offset information
+    std::vector<std::string> missing_tiles;
     for(std::map<std::string, tile_info_t*>::iterator it = tile_info_map.begin(); it != tile_info_map.end(); ++it) {
         if ( !it->second->has_offset ) {
-            error("Tile %s does not have offset/layout information", it->first.c_str());
+            if ( require_exact_match ) 
+                error("Tile %s does not have offset/layout information", it->first.c_str());
+            else
+                missing_tiles.push_back(it->first);
         }
     }
+
+    if ( missing_tiles.size() > 0 ) {
+        notice("Removing %zu tiles that is not included in the layout/offset files", missing_tiles.size());
+        for(int32_t i=0; i < (int32_t)missing_tiles.size(); ++i) {
+            tile_info_map.erase(missing_tiles[i]);
+        }
+    }
+    if ( tile_info_map.size() == 0 ) {
+        error("No tiles are left after removing the missing tiles");
+    }
+    notice("Total number of tiles to be combined : %zu", tile_info_map.size());
 
     // write a new sbcd file
     htsFile* wh_sbcd = hts_open( (outdir + "/1_1.sbcds.sorted.tsv.gz").c_str(), "wz" );
