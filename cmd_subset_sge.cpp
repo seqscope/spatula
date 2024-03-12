@@ -31,7 +31,7 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   bool out_minmax_fixed = false;              // do not update output minmax coordinates based on the observed points
   double json_x_offset = 0.0;                 // x-offset to add to the geojson boundary
   double json_y_offset = 0.0;                 // y-offset to add to the geojson boundary
-  double px_per_um = 26.67;                   // pixels per um
+  double px_per_um = 1000.0;                  // pixels per um
   // TODO: later, we can add a whitelist option to subset based on barcode whitelist
   // TODO: later, we can add a boundarie polygon option to subset based on polygon
 
@@ -39,10 +39,10 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   BEGIN_LONG_PARAMS(longParameters)
   LONG_PARAM_GROUP("Input options", NULL)
   LONG_STRING_PARAM("sge", &sgedir, "Spatial gene expression directory")
-  LONG_STRING_PARAM("bcd", &bcdf, "Shared barcode file path (e.g. barcodes.tsv.gz)")
-  LONG_STRING_PARAM("ftr", &ftrf, "Shared feature file path (e.g. feature.tsv.gz)")
-  LONG_STRING_PARAM("mtx", &mtxf, "Shared matrix file path (e.g. matrix.mtx.gz)")
-  LONG_STRING_PARAM("minmax", &minmaxf, "Shared minmax.tsv file path (e.g. barcodes.minmax.tsv) - required in [row]/[col] mode")
+  LONG_STRING_PARAM("bcd", &bcdf, "Barcode file path (e.g. barcodes.tsv.gz)")
+  LONG_STRING_PARAM("ftr", &ftrf, "Feature file path (e.g. feature.tsv.gz)")
+  LONG_STRING_PARAM("mtx", &mtxf, "Matrix file path (e.g. matrix.mtx.gz)")
+  LONG_STRING_PARAM("minmax", &minmaxf, "Boundary file path (e.g. barcodes.minmax.tsv)")
 
   LONG_PARAM_GROUP("Filter options", NULL)
   LONG_INT_PARAM("xmin", &xmin, "Minimum x coordinate")
@@ -54,7 +54,7 @@ int32_t cmdSubsetSGE(int32_t argc, char **argv)
   LONG_DOUBLE_PARAM("json-x-offset", &json_x_offset, "X-offset to add to the geojson boundary")
   LONG_DOUBLE_PARAM("json-y-offset", &json_y_offset, "Y-offset to add to the geojson boundary")
   LONG_STRING_PARAM("whitelist", &bcdwhtf, "Barcode whitelist file path")
-  LONG_DOUBLE_PARAM("px-per-um", &px_per_um, "Pixels/um scale (default: 26.67)")
+  LONG_DOUBLE_PARAM("px-per-um", &px_per_um, "Pixels/um scale (default: 1000, 26.67 for HiSeq2500, 28.75 for NovaSeq 6000)")
 
   LONG_PARAM_GROUP("Output Options", NULL)
   LONG_STRING_PARAM("out", &outdir, "Output directory")

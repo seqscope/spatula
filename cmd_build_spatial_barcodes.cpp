@@ -93,9 +93,9 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
 
   BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input options", NULL)
-    LONG_STRING_PARAM("fq", &fastqf, "FASTQ file that contains spatial barcode")
-    LONG_STRING_PARAM("format", &format, "Format of the HDMI array (DraI32, DMix32, DraI20, DPAGE32, HDMI20, HDMI30, DraI31)")
-    LONG_STRING_PARAM("platform", &platform, "Platform of the sequencing data to determine the rule to parse the readnames (accepting Illumina, Salus, SalusGlobal)")
+    LONG_STRING_PARAM("fq", &fastqf, "Input FASTQ file that contains spatial barcode in the readname")
+    LONG_STRING_PARAM("format", &format, "Format of the spatial barcodes (e.g. DraI32, HDMI20, T7-30, etc)")
+    LONG_STRING_PARAM("platform", &platform, "Platform of the sequencing data to determine the rule to parse the readnames (e.g. Illumina, SalusGlobal)")
     LONG_INT_PARAM("force-lane", &force_lane, "Force a lane number. Required a positive value for Salus/SalusGlobal platforms")
 
     LONG_PARAM_GROUP("Output Options", NULL)
@@ -116,48 +116,48 @@ int32_t cmdBuildSpatialBarcodeDict(int32_t argc, char** argv) {
   std::vector<std::string> hdmi_patterns;
   bool rev_comp = true;
 
-  if ( format.compare("DraI32") == 0 ) {
+  if ( format.compare("DraI32") == 0 ) { // 32-bp DraI format for Seq-Scope
     hdmi_length = 32;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBVNBNN");
   }
-  else if ( format.compare("DraI31") == 0 ) {
+  else if ( format.compare("DraI31") == 0 ) { // 31-bp DraI format for Seq-Scope
     hdmi_length = 31;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBVNBN");
   }
-  else if ( format.compare("T7-30") == 0 ) {
+  else if ( format.compare("T7-30") == 0 ) {  // 30-bp T7 format
     hdmi_length = 30;
     hdmi_patterns.push_back("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
     rev_comp = false;
   }    
-  else if ( format.compare("HDMI30") == 0 ) {
+  else if ( format.compare("HDMI30") == 0 ) { // 30bp HDMI format for Seq-Scope
     hdmi_length = 30;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBNNB");
   }    
-  else if ( format.compare("DraI20") == 0 ) {
+  else if ( format.compare("DraI20") == 0 ) { // 20bp DraI format for Seq-Scope
     hdmi_length = 20;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNN");
   }
-  else if ( format.compare("HDMI20") == 0 ) {
+  else if ( format.compare("HDMI20") == 0 ) { // 20bp HDMI format for SeqScope
     hdmi_length = 20;
     hdmi_patterns.push_back("NNHNVNNVNVNVNVNVNVNN");
   }
-  else if ( format.compare("DMix32") == 0 ) {
+  else if ( format.compare("DMix32") == 0 ) { // 32-bp mixture format of multiple DraI-like patterns
     hdmi_length = 32;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBNNSNN");
     hdmi_patterns.push_back("NNNBNNBNNBNNBNNBNNBNNBNNBNNBNNBN");
     hdmi_patterns.push_back("NNNNBNNBNNBNNBNNBNNBNNBNNBNNBNNB");
   }
-  else if ( format.compare("XGMix32") == 0 ) {
+  else if ( format.compare("XGMix32") == 0 ) { // 32-bp mixture format of multiple XG patterns
     hdmi_length = 32;
     hdmi_patterns.push_back("NNHHNNHHNNHHNNHHNNHHNNHHNNHHNNHH");
     hdmi_patterns.push_back("DDNNDDNNDDNNDDNNDDNNDDNNDDNNDDNN");
   }
-  else if ( format.compare("DPAGE32") == 0 ) {
+  else if ( format.compare("DPAGE32") == 0 ) { // 32-bp mixture of DPAGE patterns
     hdmi_length = 32;
     hdmi_patterns.push_back("NNNNNBNNBNNBNNBNNBNNBNNBNNBVNBNN");
     hdmi_patterns.push_back("NNNNBNNBNNBNNBNNBNNBNNBNNBNNBNNB");
   }
-  else if ( format.compare("XG3") == 0 ) {
+  else if ( format.compare("XG3") == 0 ) { // this is the same as XGMix32
     hdmi_length = 32;
     hdmi_patterns.push_back("DDNNDDNNDDNNDDNNDDNNDDNNDDNNDDNN");
     hdmi_patterns.push_back("NNHHNNHHNNHHNNHHNNHHNNHHNNHHNNHH");

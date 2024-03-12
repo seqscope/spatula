@@ -27,7 +27,7 @@ int32_t cmdEvalDupsSBCD(int32_t argc, char **argv)
     LONG_INT_PARAM("match-len", &match_len, "Length of HDMI spatial barcodes to require perfect matches")
 
     LONG_PARAM_GROUP("Output Options", NULL)
-    LONG_STRING_PARAM("out", &outprefix, "Output prefix (index.tsv, matches.tsv.gz)")
+    LONG_STRING_PARAM("out", &outprefix, "Prefix of output files (.dups.sbcds.tsv.gz, .tiles.tsv, .hist.tsv)")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));

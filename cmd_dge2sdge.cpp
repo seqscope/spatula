@@ -11,14 +11,14 @@
 #include <sys/types.h>
 
 /////////////////////////////////////////////////////////////////////////
-// dge2sdge : Convert multiple DGEs to a single SDGE
+// dge2sge : Convert multiple DGEs to a single SGE
 ////////////////////////////////////////////////////////////////////////
 int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   std::string sbcddir;
   std::vector<std::string> sbcdfs;
   std::string outdir;
   std::string bcdf; // barcodes.tsv
-  std::string ftrf; // feature.tsv
+  std::string ftrf; // features.tsv
   std::vector<std::string> mtxfs; // matrix.mtx files
 
   paramList pl;
@@ -27,7 +27,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
     LONG_STRING_PARAM("sbcd", &sbcddir, "Spatial barcode dictionary generated from 'build-sbcds' command")
     LONG_MULTI_STRING_PARAM("match", &sbcdfs, "List of spatial barcode files that were used for whitelist generation")
     LONG_STRING_PARAM("bcd", &bcdf, "Shared barcode file path (e.g. barcodes.tsv.gz)")
-    LONG_STRING_PARAM("ftr", &ftrf, "Shared feature file path (e.g. feature.tsv.gz)")
+    LONG_STRING_PARAM("ftr", &ftrf, "Shared feature file path (e.g. features.tsv.gz)")
     LONG_MULTI_STRING_PARAM("mtx", &mtxfs, "Shared matrix file path (e.g. matrix.mtx.gz)")
     
     LONG_PARAM_GROUP("Output Options", NULL)
@@ -278,7 +278,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   notice("Finished wriing spatial barcodes and uncompressed .tmp.matrix.mtx files");
 
   notice("Started wriing compressed features.tsv.gz files");
-  // write feature.tsv.gz file for each tile
+  // write features.tsv.gz file for each tile
   tile_writer ftr_tw( mtx_tw.rootdir.c_str(), "features.tsv.gz", true);
   for(int32_t i=0; i < (int32_t)ftr_ids.size(); ++i) {
     std::string buf1, buf2;

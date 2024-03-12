@@ -545,6 +545,26 @@ bool read_minmax(const char *fn, uint64_t &xmin, uint64_t &xmax, uint64_t &ymin,
     return true;
 }
 
+void open_tiles(std::vector<std::string> &tile_paths, std::vector<tsv_reader*>& bcdfs) {
+    // clear up the existing files if exists
+    if (bcdfs.size() > 0)
+    {
+        for (int32_t i = 0; i < (int32_t)bcdfs.size(); ++i)
+        {
+            delete bcdfs[i];
+        }
+        bcdfs.clear();
+    }
+
+    for(int32_t i=0; i < (int32_t)tile_paths.size(); ++i) {
+        bcdfs.push_back(new tsv_reader(tile_paths[i].c_str()));
+        if (bcdfs.back()->read_line() == 0)
+        {
+            error("ERROR: Observed an empty barcode file %s", tile_paths[i].c_str());
+        }
+    }
+}
+
 // open all tiles
 void open_tiles(dataframe_t &df, std::vector<std::string> &tiles, std::vector<tsv_reader *> &bcdfs)
 {

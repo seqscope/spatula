@@ -33,7 +33,7 @@ int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
     LONG_INT_PARAM("skip-sbcd", &skip_sbcd, "Skip first bases of spatial barcode (Read 1)")
     LONG_INT_PARAM("match-len", &match_len, "Length of HDMI spatial barcodes to require perfect matches")
     LONG_PARAM("skip-duplicates", &skip_duplicates, "Skip duplicate barcodes that occurs multiple times")
-    LONG_INT_PARAM("threads", &nthreads, "Number of threads")    
+//  LONG_INT_PARAM("threads", &nthreads, "Number of threads")    
     
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out",&outprefix,"Output prefix (index.tsv, matches.tsv.gz)")
