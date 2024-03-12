@@ -1,4 +1,4 @@
-# spatula -- A C++ toolkit for spatial transcriptomics
+# spatula : A C++ toolkit for spatial transcriptomics
 
 ## Overview 
 
