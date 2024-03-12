@@ -1,4 +1,4 @@
-# Welcome to the GitHub Repository of spatula tool
+# spatula -- A C++ toolkit for spatial transcriptomics
 
 ## Overview 
 
