@@ -40,8 +40,8 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     std::string outdir;              // output directory containing merged sbcd with global coordinates in nm scale
     int32_t match_len = 27;          // length of HDMI spatial barcodes to be considered for matching
     double pixel_to_nm = 34.78;      // pixel to nm conversion factor (37.5 for Seq-Scope Hi-Seq, 34.78 for Seq-Scope NovaSeq)
-    int32_t max_dup_allowed = 5;     // maximum number of duplicates allowed for each spatial barcode. If this is 1, duplicates are not allowed
-    double max_dup_dist_nm = 10000.; // maximum distance allowed for duplicates in nm scale
+    int32_t max_dup_allowed = 1;     // maximum number of duplicates allowed for each spatial barcode. If this is 1, duplicates are not allowed
+    double max_dup_dist_nm = 1000.; // maximum distance allowed for duplicates in nm scale
     double rowgap = 0.0;             // additional gap between rows (proportional to the height of a tile)
     double colgap = 0.0;             // additional gap between columns (proportional to the width of a tile)
     bool require_exact_match = false;// require exact match between manifest file and layout file. If false, layout can only contain subset of tiles in the manifest file
@@ -61,7 +61,7 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     LONG_PARAM("write-all", &write_all, "Write all spatial barcodes to the output file, including duplicated and filtered reads")
 
     LONG_PARAM_GROUP("Options for coordinate conversion", NULL)
-    LONG_DOUBLE_PARAM("pixel-to-nm", &pixel_to_nm, "Pixel to nm conversion factor (37.5 for Seq-Scope)")
+    LONG_DOUBLE_PARAM("pixel-to-nm", &pixel_to_nm, "Pixel to nm conversion factor (37.5 for HiSeq2500, 34.78 for NovaSeq 6000)")
     LONG_DOUBLE_PARAM("rowgap", &rowgap, "Additional gap between rows (proportional to the height of a tile)")
     LONG_DOUBLE_PARAM("colgap", &colgap, "Additional gap between columns (proportional to the width of a tile)")
 

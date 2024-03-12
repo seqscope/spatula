@@ -25,21 +25,22 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
-  commandHelp.copyright_str = "Copyright (c) 2009-2024 by Hyun Min Kang";
+  commandHelp.copyright_str = "Copyright (c) 2022-2024 by Hyun Min Kang";
 
   commandList cl;
 
   BEGIN_LONG_COMMANDS(longCommandlines)
   LONG_COMMAND_GROUP("Tools for Analyzing Spatial Barcodes", NULL)
   LONG_COMMAND("build-sbcds", &cmdBuildSpatialBarcodeDict, "Create spatial barcode dictionary based from HDMI FASTQ arrays")
+  LONG_COMMAND("combine-sbcds", &cmdCombineSBCD, "Combine multiple SBCD files")
   LONG_COMMAND("match-sbcds", &cmdMatchSpatialBarcodes, "Match the FASTQ file containing spatial barcodes with the spatial barcode dictionary")
   LONG_COMMAND("eval-dups-sbcds", &cmdEvalDupsSBCD, "Evaluate duplicates in spatial barcodes")
 
   LONG_COMMAND_GROUP("Tools for Analyzing Spatial Gene Expression (SGE)", NULL)
   LONG_COMMAND("make-sdge", &cmdMakeSpatialDGE, "Make spatial DGE files from STARsolo output")
   LONG_COMMAND("combine-sge", &cmdCombineSGE, "Combine multiple SGE files")
-  LONG_COMMAND("combine-sbcds", &cmdCombineSBCD, "Combine multiple SBCD files")
-  LONG_COMMAND("dge2sdge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SDGE format")
+  LONG_COMMAND("dge2sdge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SGE format (same as dge2sge)")
+  LONG_COMMAND("dge2sge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SGE format (same as dge2sdge)")
   LONG_COMMAND("subset-sge", &cmdSubsetSGE, "Subset Spatial SGE based on bounding box")
   LONG_COMMAND("combine-sge", &cmdCombineSGE, "Combine multiple SGE files")
   LONG_COMMAND("match-tag", &cmdMatchTag, "Match tags from FASTQ")
