@@ -29,10 +29,10 @@ After installing `htslib` and `qgenlib`, you can clone the current snapshot of t
 
 ```sh
 ## clone the current snapshot of this repository
-$ git clone https://github.com/hyunminkang/qgenlib.git
+$ git clone https://github.com/seqscope/spatula.git
 
-## move to the qgenlib directory
-$ cd qgenlib
+## move to the spatula directory
+$ cd spatula
 
 ## create a build directory
 $ mkdir build
