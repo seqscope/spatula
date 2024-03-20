@@ -3,6 +3,7 @@
 ## Summary 
 
 `spatula custom-demux-fastq` takes FASTQ files of sequenced reads and indexes to demultiplex the reads by sample. Compared to the default FASTQ demultiplexing tool provided by Illumina, `custom-demux-fastq` allows users to specify the matching criteria in a more flexible way. Specifically, the software performs demultiplexing based on the following criteria:
+
 * Unlike the default Illumina demultiplexing tool, `custom-demux-fastq` does not consider `N` as mismatches (by default).
 * The software allows users to specify the number of mismatches allowed to be considered as the match.
 * It also requires that the 2nd-best matching index sequences have larger hamming distance with the index sequences with a specific margin, compared to the best matching index sequences.
@@ -53,6 +54,7 @@ See below for a more detailed usage description.
 ## Expected Output
 
 With `[out_prefix]` as the prefix, and `[sample_ID]` be the ID of best-matching samples, the following files will be created:
+
 * `[out_prefix].[sample_ID].R1.fastq.gz` : The FASTQ file of Read 1 for the sample.
 * `[out_prefix].[sample_ID].R2.fastq.gz` : The FASTQ file of Read 2 for the sample (if available).
 * `[out_prefix].[sample_ID].I1.fastq.gz` : The FASTQ file of Index 1 for the sample.
