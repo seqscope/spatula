@@ -1103,10 +1103,12 @@
 
 <h1 id="spatula-custom-demux-fastq">spatula custom-demux-fastq<a class="headerlink" href="#spatula-custom-demux-fastq" title="Permanent link">&para;</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
-<p><code>spatula custom-demux-fastq</code> takes FASTQ files of sequenced reads and indexes to demultiplex the reads by sample. Compared to the default FASTQ demultiplexing tool provided by Illumina, <code>custom-demux-fastq</code> allows users to specify the matching criteria in a more flexible way. Specifically, the software performs demultiplexing based on the following criteria:
-* Unlike the default Illumina demultiplexing tool, <code>custom-demux-fastq</code> does not consider <code>N</code> as mismatches (by default).
-* The software allows users to specify the number of mismatches allowed to be considered as the match.
-* It also requires that the 2<sup>nd</sup>-best matching index sequences have larger hamming distance with the index sequences with a specific margin, compared to the best matching index sequences.</p>
+<p><code>spatula custom-demux-fastq</code> takes FASTQ files of sequenced reads and indexes to demultiplex the reads by sample. Compared to the default FASTQ demultiplexing tool provided by Illumina, <code>custom-demux-fastq</code> allows users to specify the matching criteria in a more flexible way. Specifically, the software performs demultiplexing based on the following criteria:</p>
+<ul>
+<li>Unlike the default Illumina demultiplexing tool, <code>custom-demux-fastq</code> does not consider <code>N</code> as mismatches (by default).</li>
+<li>The software allows users to specify the number of mismatches allowed to be considered as the match.</li>
+<li>It also requires that the 2<sup>nd</sup>-best matching index sequences have larger hamming distance with the index sequences with a specific margin, compared to the best matching index sequences.</li>
+</ul>
 <p>Note that this tool is NOT limited to demultiplexing spatial transcriptomics sequence data, and can be used for a general tool for demultiplexing FASTQ files as well.</p>
 <p>Also note that this tool uses multi-process parallelization to speed up the compression. It is recommended to run this tool with at least 5-10 CPUs. <code>gzip</code> or <code>pigz</code> must be installed in the system to compress the output files.</p>
 <p>Here is a summary of a typical use case:</p>
@@ -1148,12 +1150,14 @@
 <li><code>--ambiguous</code> : The sample ID of the ambiguously demultiplexed reads. The default is <code>ambiguous</code>.</li>
 </ul>
 <h2 id="expected-output">Expected Output<a class="headerlink" href="#expected-output" title="Permanent link">&para;</a></h2>
-<p>With <code>[out_prefix]</code> as the prefix, and <code>[sample_ID]</code> be the ID of best-matching samples, the following files will be created:
-* <code>[out_prefix].[sample_ID].R1.fastq.gz</code> : The FASTQ file of Read 1 for the sample.
-* <code>[out_prefix].[sample_ID].R2.fastq.gz</code> : The FASTQ file of Read 2 for the sample (if available).
-* <code>[out_prefix].[sample_ID].I1.fastq.gz</code> : The FASTQ file of Index 1 for the sample.
-* <code>[out_prefix].[sample_ID].I2.fastq.gz</code> : The FASTQ file of Index 2 for the sample (if available).
-* If the suffix is specified with <code>--suffix-R1</code>, <code>--suffix-R2</code>, <code>--suffix-I1</code>, <code>--suffix-I2</code>, the suffix will be replaced with the specified suffix.</p>
+<p>With <code>[out_prefix]</code> as the prefix, and <code>[sample_ID]</code> be the ID of best-matching samples, the following files will be created:</p>
+<ul>
+<li><code>[out_prefix].[sample_ID].R1.fastq.gz</code> : The FASTQ file of Read 1 for the sample.</li>
+<li><code>[out_prefix].[sample_ID].R2.fastq.gz</code> : The FASTQ file of Read 2 for the sample (if available).</li>
+<li><code>[out_prefix].[sample_ID].I1.fastq.gz</code> : The FASTQ file of Index 1 for the sample.</li>
+<li><code>[out_prefix].[sample_ID].I2.fastq.gz</code> : The FASTQ file of Index 2 for the sample (if available).</li>
+<li>If the suffix is specified with <code>--suffix-R1</code>, <code>--suffix-R2</code>, <code>--suffix-I1</code>, <code>--suffix-I2</code>, the suffix will be replaced with the specified suffix.</li>
+</ul>
 <h2 id="full-usage">Full Usage<a class="headerlink" href="#full-usage" title="Permanent link">&para;</a></h2>
 <p>The full usage of <code>spatula subset-sge</code> can be viewed with the <code>--help</code> option:</p>
 <div class="highlight"><pre><span></span><code>$ ./spatula custom-demux-fastq --help

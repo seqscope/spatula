@@ -2,72 +2,72 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://seqscope.github.io/spatula/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/install/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/quickstart/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/build_sbcds/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/combine_sbcds/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/custom_demux_fastq/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/dge2sge/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/draw_3way/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/draw_xy/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/eval_dups_sbcds/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/match_sbcds/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/reformat_fastqs/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/subset_sge/</loc>
-         <lastmod>2024-03-19</lastmod>
+         <lastmod>2024-03-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
