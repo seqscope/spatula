@@ -854,6 +854,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#detailed-usage-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Usage Description
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detailed Usage Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#demultiplexing-from-bcl-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Demultiplexing from BCL files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#further-demultiplexing-already-demultiplexed-fastq-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Further demultiplexing already demultiplexed FASTQ files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-options" class="md-nav__link">
     <span class="md-ellipsis">
       Key options
@@ -1048,6 +1081,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#detailed-usage-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Usage Description
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Detailed Usage Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#demultiplexing-from-bcl-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Demultiplexing from BCL files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#further-demultiplexing-already-demultiplexed-fastq-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Further demultiplexing already demultiplexed FASTQ files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-options" class="md-nav__link">
     <span class="md-ellipsis">
       Key options
@@ -1124,6 +1190,19 @@
 <span class="w">                           </span>--out<span class="w"> </span>/path/to/output_prefix
 </code></pre></div>
 <p>See below for a more detailed usage description.</p>
+<h2 id="detailed-usage-description">Detailed Usage Description<a class="headerlink" href="#detailed-usage-description" title="Permanent link">&para;</a></h2>
+<p>There are two expected use cases of <code>spatula custom_demux_fastq</code>:</p>
+<h3 id="demultiplexing-from-bcl-files">Demultiplexing from BCL files<a class="headerlink" href="#demultiplexing-from-bcl-files" title="Permanent link">&para;</a></h3>
+<p>If you have access to the full BCL file, instead of demultiplexing individual samples, you may run <code>bcl2fastq</code> tool without performing demultiplexing, but creating index sequences as follows: </p>
+<div class="highlight"><pre><span></span><code><span class="c1">## ${bcldir} : directory containing BCL files</span>
+<span class="c1">## ${outdir} : directory of output FASTQ files</span>
+bcl2fastq<span class="w"> </span>-R<span class="w"> </span><span class="si">${</span><span class="nv">bcldir</span><span class="si">}</span><span class="w"> </span>-o<span class="w"> </span><span class="si">${</span><span class="nv">outdir</span><span class="si">}</span><span class="w"> </span>--create-fastq-for-index-reads
+</code></pre></div>
+<p>Then all reads in the FASTQ file will be written into "Undetermined" FASTQs. You can use <code>spatula custom_demux_fastq</code> as input to demultiplex FASTQ files instead. </p>
+<h3 id="further-demultiplexing-already-demultiplexed-fastq-files">Further demultiplexing already demultiplexed FASTQ files<a class="headerlink" href="#further-demultiplexing-already-demultiplexed-fastq-files" title="Permanent link">&para;</a></h3>
+<p>If you already have demultiplexed FASTQ files, you will already have FASTQ files that are demultiplexed individual samples. We typically do NOT recommend running <code>spatula custom_demux_fastq</code> on the FASTQ files that are successfully demultiplexed, as the results will look very similar to the default <code>bcl2fastq</code> pipeline. </p>
+<p>However, if you have a substantial amount of "Undetermined" reads remaining, you may want use <code>spatula custom_demux_fastq</code> to further demultiplex the reads. Because Illumina's <code>bcl2fastq</code> pipeline typically performs demulitplexing in a conservative way, you may be able to rescue some of the reads with this tool.</p>
+<p>Note that, if you have a very large number of samples (e.g. &gt;10) demultiplexed in a single run, modifying the default parameter (e.g. using <code>--min-diff 1</code> and/or <code>--max-mismatch 1</code>) may be necessary to achieve more sensible results.</p>
 <h2 id="key-options">Key options<a class="headerlink" href="#key-options" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>--R1</code> : (Required) The path to the FASTQ file of Read 1.</li>
