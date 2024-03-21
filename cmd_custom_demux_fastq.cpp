@@ -240,7 +240,7 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
             write_fastq_record_fd( out_pipe.get_fd(idx_R2s[imin]), recR2 );
         write_fastq_record_fd( out_pipe.get_fd(idx_I1s[imin]), recI1 );
         if (hI2 != NULL)
-            write_fastq_record_fd( out_pipe.get_fd(idx_R2s[imin]), recI2 );
+            write_fastq_record_fd( out_pipe.get_fd(idx_I2s[imin]), recI2 );
 
         ++nrecs;
 
