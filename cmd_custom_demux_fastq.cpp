@@ -125,6 +125,12 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
     std::vector<std::string> sample_ids;
     std::vector<std::string> sample_i1s;
     std::vector<std::string> sample_i2s;
+
+    // check if the requird columns exist
+    if ( !sample_df.has_column("ID") )
+        error("Cannot find ID column in %s", samplef.c_str());
+    if ( !sample_df.has_column("I1") )
+        error("Cannot find I1 column in %s", samplef.c_str());
     for (int32_t i = 0; i < sample_df.nrows; ++i)
     {
         sample_ids.push_back(sample_df.get_str_elem(i, "ID"));
