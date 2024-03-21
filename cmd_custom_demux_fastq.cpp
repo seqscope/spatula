@@ -49,6 +49,7 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
     std::string outsuffixI2(".I2.fastq.gz");
     std::string keyword_ambiguous("ambiguous");
     std::string cmd_compress("gzip -c");
+    int32_t verbose_unit_read = 1000000;
     bool consider_N_as_mismatch = false; // consider N as mismatch
     int32_t max_mismatch = 2;            // maximum mismatch allowed
     int32_t min_diff = 2;                // minimum difference between the best and second best match
@@ -67,6 +68,7 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
     LONG_PARAM("consider-N-as-mismatch", &consider_N_as_mismatch, "Consider N as mismatch (default: false)")
     LONG_INT_PARAM("max-mismatch", &max_mismatch, "Maximum number of mismatch allowed")
     LONG_INT_PARAM("min-diff", &min_diff, "Minimum difference between the best and second best match")
+    LONG_INT_PARAM("verbose-chunk", &verbose_unit_read, "Number of records to print output messages (default: 1000000)")
 
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out", &outprefix, "Output prefix")
@@ -123,6 +125,12 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
     std::vector<std::string> sample_ids;
     std::vector<std::string> sample_i1s;
     std::vector<std::string> sample_i2s;
+
+    // check if the requird columns exist
+    if ( !sample_df.has_column("ID") )
+        error("Cannot find ID column in %s", samplef.c_str());
+    if ( !sample_df.has_column("I1") )
+        error("Cannot find I1 column in %s", samplef.c_str());
     for (int32_t i = 0; i < sample_df.nrows; ++i)
     {
         sample_ids.push_back(sample_df.get_str_elem(i, "ID"));
@@ -138,7 +146,6 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
     fq_rec_t recR1, recR2, recI1, recI2;
     uint64_t nrecs = 0;
 
-    uint64_t verbose_unit_read = 1000000;
     multiproc_compressor_t out_pipe(cmd_compress.c_str());
     std::vector<int32_t> idx_R1s;
     std::vector<int32_t> idx_R2s;
@@ -148,6 +155,7 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
     std::vector<int32_t> mismatches(sample_ids.size(), 0);
     std::vector<uint64_t> nwritten(sample_prefixes.size(), 0);
 
+    notice("Opening the output files for writing");
     // open output files for writing
     for (int32_t i = 0; i < (int32_t)sample_prefixes.size(); ++i)
     {
@@ -176,6 +184,7 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
     if ( !out_pipe.open_pipes() )
         error("Cannot open the output files");
 
+    notice("Started reading the input FASTQ files...");
     while (true)
     {
         bool retR1 = hR1 == NULL ? true : read_fastq_record(hR1, recR1);
@@ -238,6 +247,7 @@ int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv)
         if (nrecs % verbose_unit_read == 0)
             notice("Processing %llu FASTQ records...", nrecs);
     }
+    notice("Finished processing %llu FASTQ records...", nrecs);
 
     // report the number of records per sample
     for (int32_t i = 0; i < (int32_t)sample_prefixes.size(); ++i)
