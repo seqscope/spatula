@@ -12,6 +12,7 @@ int32_t cmdReformatFASTQs(int32_t argc, char **argv);
 int32_t cmdFilterFASTQs(int32_t argc, char **argv);
 int32_t cmdReformatFASTQsMT(int32_t argc, char **argv);
 int32_t cmdDGE2SDGE(int32_t argc, char **argv);
+int32_t cmdDrawSGE(int32_t argc, char **argv);
 int32_t cmdSubsetSGE(int32_t argc, char **argv);
 int32_t cmdCombineSGE(int32_t argc, char **argv);
 int32_t cmdEvalDupsSBCD(int32_t argc, char **argv);
@@ -58,6 +59,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND_GROUP("Tools for Simple image processing", NULL)
   LONG_COMMAND("draw-xy", &cmdDrawXY, "Draw the image of points in 2D space")
   LONG_COMMAND("draw-3way", &cmdDraw3way, "Draw the 3-way image from the output of sttools pipeline")
+  LONG_COMMAND("draw-sge", &cmdDrawSGE, "Draw the image of spatial gene expression (SGE) data")
 
   LONG_COMMAND_GROUP("Miscellaneous Tools", NULL)
   LONG_COMMAND("hist", &cmdHist, "Create a text-based histogram")

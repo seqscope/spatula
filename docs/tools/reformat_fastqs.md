@@ -3,6 +3,7 @@
 ## Summary 
 
 `spatula reformat-fastqs` takes paired-end FASTQ files and reformats it into a format that can be used by `STARsolo` by filtering out irrelevant reads while arranging the barcodes and UMI sequences. Specifically, the software achieves the following:
+
 * Filter out reads that does not have matching barcode sequences in the spatial barcode dictionary.
 * Reformat the Read 1 sequences to be compatible with `STARsolo`, by copying the UMI sequences next to the spatial barcode sequences in Read 1.
 * Trim Read 2 sequences to a specified length, which typically helps increase the mapping rates.

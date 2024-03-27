@@ -43,6 +43,7 @@ set(SOURCE_FILES
     cmd_hist.cpp
     cmd_draw_xy.cpp
     cmd_draw_3way.cpp
+    cmd_draw_sge.cpp
     cmd_eval_dups_sbcd.cpp
     cmd_combine_sge.cpp
     cmd_combine_sbcd.cpp
