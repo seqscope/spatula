@@ -16,9 +16,9 @@ A typical example is as follows:
 ```
 spatula draw-sge  --manifest /path/to/combine/sbcds/output/dir/manifest.tsv \
                   --sge      /path/to/dge2sge/output/dir \
-                  --color-gene #320000:_all_:1 \ 
-                  --color-gene #003200:Glul,Cyp2e1:1 \
-                  --color-list #000064:/path/to/custom/gene_list.tsv \
+                  --color-gene 320000:_all_:1 \ 
+                  --color-gene 003200:Glul,Cyp2e1:1 \
+                  --color-list 000064:/path/to/custom/gene_list.tsv \
                   --out      /path/to/output/image.png                
 ```
 
@@ -33,12 +33,12 @@ See below for a more detailed usage description.
 ## Options to Specify Genes to Visualize
 
 * `--color-gene` : (Allows multiple uses) A string formatted as [RGB_Hex_Code]:[gene1],[gene2],...:[idx]. 
-    - The `[RGB_Hex_Code]` is the RGB hex color code (`#RRGGBB` format) for each observation of the specified genes.
+    - The `[RGB_Hex_Code]` is the RGB hex color code (`RRGGBB` format) for each observation of the specified genes.
     - The `[gene1],[gene2],...` is the list of genes to color with the specified color. Either gene ID (e.g. `ENSMUSG00000026473`) or gene symbol (e.g. `Glul`) may be used. `_all_` can be used to color all genes with the specified color.
     - The `[idx]` is optional field to specify the index of the gene expression in the SGE matrix. (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto). The default is 1.
-    - For example, `--color-gene #003200:Glul,Cyp2e1:1` will color *Glul* and *Cyp2e1* genes with green (increasing intensity by 50 for each observation).
+    - For example, `--color-gene 003200:Glul,Cyp2e1:1` will color *Glul* and *Cyp2e1* genes with green (increasing intensity by 50 for each observation).
 * `--color-list` : (Allows multiple uses) A string formatted as [RGB_Hex_Code]:[path_to_gene_list]:[default_idx].
-    - The `[RGB_Hex_Code]` is the RGB hex color code (`#RRGGBB` format) for each observation of the specified genes.
+    - The `[RGB_Hex_Code]` is the RGB hex color code (`RRGGBB` format) for each observation of the specified genes.
     - The `[path_to_gene_list]` is the path to the gene list file. The file should be a tab-separated file with following columns (with header):
         - `id` column contains unique gene ID (e.g. `ENSMUSG00000026473`)
         - `name` column contains gene symbol (e.g. `Glul`), which does not have to be unique.
@@ -46,7 +46,7 @@ See below for a more detailed usage description.
         - Either `id` and `name` column must be present. `idx` column is optional.
     - The `[default_idx]` is optional field to specify the index of the gene expression in the SGE matrix. (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto). This is only in effect when `idx` column is not present in the `[path_to_gene_list]` file.
     - If neither `idx` column nor `[default_idx]` is present, the default is 1.
-    - For example, `--color-list #000064:/path/to/custom/gene_list.tsv` will color genes in the `/path/to/custom/gene_list.tsv` file with blue, with `default_idx=1`, increasing intensity by 100 for each observation.
+    - For example, `--color-list 000064:/path/to/custom/gene_list.tsv` will color genes in the `/path/to/custom/gene_list.tsv` file with blue, with `default_idx=1`, increasing intensity by 100 for each observation.
     - Here is an example content of the gene list file `mt-genes.tsv`, which contains gene ID for mitochondrial genes in mouse:
 ```
 id
