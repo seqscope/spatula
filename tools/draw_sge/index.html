@@ -8,13 +8,11 @@
       
       
       
-        <link rel="canonical" href="https://seqscope.github.io/spatula/tools/reformat_fastqs/">
+        <link rel="canonical" href="https://seqscope.github.io/spatula/tools/draw_sge/">
       
       
-        <link rel="prev" href="../subset_sge/">
+        <link rel="prev" href="../draw_3way/">
       
-      
-        <link rel="next" href="../custom_demux_fastq/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +20,7 @@
     
     
       
-        <title>reformat-fastqs - spatula</title>
+        <title>draw-sge - spatula</title>
       
     
     
@@ -74,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#spatula-reformat-fastqs" class="md-skip">
+        <a href="#spatula-draw-sge" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              reformat-fastqs
+              draw-sge
             
           </span>
         </div>
@@ -724,8 +722,6 @@
                 
   
   
-    
-  
   
   
     
@@ -746,11 +742,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
         
           
           <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
@@ -764,7 +760,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             FASTQ Processing
@@ -775,30 +771,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    reformat-fastqs
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../reformat_fastqs/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -807,71 +783,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      Summary
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#required-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Required options
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#additional-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Additional Options
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#expected-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Expected Output
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#full-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Full Usage
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -910,6 +821,8 @@
                 
   
   
+    
+  
   
   
     
@@ -932,11 +845,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" checked>
         
           
           <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
@@ -950,7 +863,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             Miscellaneous Tools
@@ -1003,10 +916,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../draw_sge/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    draw-sge
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1015,6 +948,80 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#required-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#options-to-specify-genes-to-visualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      Options to Specify Genes to Visualize
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Full Usage
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1080,6 +1087,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#options-to-specify-genes-to-visualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      Options to Specify Genes to Visualize
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#additional-options" class="md-nav__link">
     <span class="md-ellipsis">
       Additional Options
@@ -1124,59 +1140,83 @@
   
 
 
-<h1 id="spatula-reformat-fastqs">spatula reformat-fastqs<a class="headerlink" href="#spatula-reformat-fastqs" title="Permanent link">&para;</a></h1>
+<h1 id="spatula-draw-sge">spatula draw-sge<a class="headerlink" href="#spatula-draw-sge" title="Permanent link">&para;</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
-<p><code>spatula reformat-fastqs</code> takes paired-end FASTQ files and reformats it into a format that can be used by <code>STARsolo</code> by filtering out irrelevant reads while arranging the barcodes and UMI sequences. Specifically, the software achieves the following:</p>
+<p><code>spatula draw-sge</code> is a tool to visualize the spatial gene expression based on specific combination of colors and gene set. </p>
+<p><strong>IMPORTANT</strong> <a href="https://imagemagick.org/script/download.php">ImageMagick</a> must be installed to use this tool.</p>
+<p>A typical use case is as follows:</p>
 <ul>
-<li>Filter out reads that does not have matching barcode sequences in the spatial barcode dictionary.</li>
-<li>Reformat the Read 1 sequences to be compatible with <code>STARsolo</code>, by copying the UMI sequences next to the spatial barcode sequences in Read 1.</li>
-<li>Trim Read 2 sequences to a specified length, which typically helps increase the mapping rates.</li>
-<li>If needed, trim the beginning of Read 1 sequences to match the spatial barcode sequences.</li>
-</ul>
-<p>Here is a summary of a typical use case:</p>
-<ul>
-<li>Input: Takes (a) a pair of FASTQ files and (b) tsv files containing spatial barcodes to be matched.</li>
-<li>Output: Produces a pair of (uncompressed) FASTQ files after filtering reads and rearranging the part of sequences. </li>
+<li>Input: Takes a SGE matrix from <code>dge2sge</code> and the list of genes (with designated colors) to visualize the spatial gene expression.</li>
+<li>Output: Produces an 2D image that plots the spatial distribution of expression of selected genes.</li>
 </ul>
 <p>A typical example is as follows:</p>
-<div class="highlight"><pre><span></span><code>spatula<span class="w"> </span>reformat-fastqs<span class="w"> </span>--fq1<span class="w"> </span>/path/to/input.R1.fastq.gz<span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--fq2<span class="w"> </span>/path/to/input.R2.fastq.gz<span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--match-tsv<span class="w"> </span>/path/to/match_sbcds_prefix1.match.sorted.uniq.tsv.gz<span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--match-tsv<span class="w"> </span>/path/to/match_sbcds_prefix2.match.sorted.uniq.tsv.gz<span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--match-tsv<span class="w"> </span>/path/to/match_sbcds_prefix3.match.sorted.uniq.tsv.gz<span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--skip-sbcd<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--len-sbcd<span class="w"> </span><span class="m">31</span><span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--len-umi<span class="w"> </span><span class="m">9</span><span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--len-r2<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--out1<span class="w"> </span>/path/to/output.R1.fastq<span class="w"> </span><span class="se">\</span>
-<span class="w">                        </span>--out2<span class="w"> </span>/path/to/output.R2.fastq
+<div class="highlight"><pre><span></span><code>spatula draw-sge  --manifest /path/to/combine/sbcds/output/dir/manifest.tsv \
+                  --sge      /path/to/dge2sge/output/dir \
+                  --color-gene 320000:_all_:1 \ 
+                  --color-gene 003200:Glul,Cyp2e1:1 \
+                  --color-list 000064:/path/to/custom/gene_list.tsv \
+                  --out      /path/to/output/image.png                
 </code></pre></div>
 <p>See below for a more detailed usage description.</p>
 <h2 id="required-options">Required options<a class="headerlink" href="#required-options" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>--fq1</code> : The path to the FASTQ file of Read 1, which typically contains spatial barcode sequences.</li>
-<li><code>--fq2</code> : The path to the FASTQ file of Read 2, which typically contains UMI sequences and cDNA sequences.</li>
-<li><code>--match-tsv</code> : (Multiples allowed) The output <code>match.sorted.uniq.tsv.gz</code> file from <code>spatula match-sbcds</code> that contains the spatial barcode sequences to be matched. </li>
-<li><code>--out1</code> : The path to the output FASTQ files of Read 1.</li>
-<li><code>--out2</code> : The path to the output FASTQ files of Read 2. See <a href="#expected-output">Expected Output</a> for more details.</li>
+<li><code>--manifest</code> : The <code>manifest.tsv</code> file from the <code>combine-sbcds</code> file that contains the summary of the spatial coordinate of a Seq-Scope Chip. It must contain <code>xmin</code>, <code>xmax</code>, <code>ymin</code>, and <code>ymax</code> columns.</li>
+<li><code>--sge</code> : The directory containing SGE matrix, typically from <code>dge2sge</code> command.</li>
+<li><code>--out</code> : The output filename of the image. Currently, <code>.png</code> is supported. </li>
+</ul>
+<h2 id="options-to-specify-genes-to-visualize">Options to Specify Genes to Visualize<a class="headerlink" href="#options-to-specify-genes-to-visualize" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>--color-gene</code> : (Allows multiple uses) A string formatted as [RGB_Hex_Code]:[gene1],[gene2],...:[idx]. <ul>
+<li>The <code>[RGB_Hex_Code]</code> is the RGB hex color code (<code>RRGGBB</code> format) for each observation of the specified genes.</li>
+<li>The <code>[gene1],[gene2],...</code> is the list of genes to color with the specified color. Either gene ID (e.g. <code>ENSMUSG00000026473</code>) or gene symbol (e.g. <code>Glul</code>) may be used. <code>_all_</code> can be used to color all genes with the specified color.</li>
+<li>The <code>[idx]</code> is optional field to specify the index of the gene expression in the SGE matrix. (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto). The default is 1.</li>
+<li>For example, <code>--color-gene 003200:Glul,Cyp2e1:1</code> will color <em>Glul</em> and <em>Cyp2e1</em> genes with green (increasing intensity by 50 for each observation).</li>
+</ul>
+</li>
+<li><code>--color-list</code> : (Allows multiple uses) A string formatted as [RGB_Hex_Code]:[path_to_gene_list]:[default_idx].<ul>
+<li>The <code>[RGB_Hex_Code]</code> is the RGB hex color code (<code>RRGGBB</code> format) for each observation of the specified genes.</li>
+<li>The <code>[path_to_gene_list]</code> is the path to the gene list file. The file should be a tab-separated file with following columns (with header):<ul>
+<li><code>id</code> column contains unique gene ID (e.g. <code>ENSMUSG00000026473</code>)</li>
+<li><code>name</code> column contains gene symbol (e.g. <code>Glul</code>), which does not have to be unique.</li>
+<li><code>idx</code> column index (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto).</li>
+<li>Either <code>id</code> and <code>name</code> column must be present. <code>idx</code> column is optional.</li>
+</ul>
+</li>
+<li>The <code>[default_idx]</code> is optional field to specify the index of the gene expression in the SGE matrix. (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto). This is only in effect when <code>idx</code> column is not present in the <code>[path_to_gene_list]</code> file.</li>
+<li>If neither <code>idx</code> column nor <code>[default_idx]</code> is present, the default is 1.</li>
+<li>For example, <code>--color-list 000064:/path/to/custom/gene_list.tsv</code> will color genes in the <code>/path/to/custom/gene_list.tsv</code> file with blue, with <code>default_idx=1</code>, increasing intensity by 100 for each observation.</li>
+<li>Here is an example content of the gene list file <code>mt-genes.tsv</code>, which contains gene ID for mitochondrial genes in mouse:
+<div class="highlight"><pre><span></span><code>id
+ENSMUSG00000064341
+ENSMUSG00000064345
+ENSMUSG00000064351
+ENSMUSG00000064354
+ENSMUSG00000064356
+ENSMUSG00000064357
+ENSMUSG00000064358
+ENSMUSG00000064360
+ENSMUSG00000065947
+ENSMUSG00000064363
+ENSMUSG00000064367
+ENSMUSG00000064368
+ENSMUSG00000064370
+</code></pre></div></li>
+</ul>
+</li>
 </ul>
 <h2 id="additional-options">Additional Options<a class="headerlink" href="#additional-options" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>--len-match</code> : The length of the spatial barcode to consider for a match. The default is 27, and the maximum possible value is 27.</li>
-<li><code>--len-sbcd</code> : The length of the spatial barcode sequence to be copied in Read 1. The default is 30, and must be equal or smaller than actual spatial barcode length.</li>
-<li><code>--len-umi</code> : The length of the UMI sequence (randomer) to be copied from Read 2 (beginning) to Read 1 (after spatial barcode). The default is 9.</li>
-<li><code>--len-r2</code> : The length of Read 2 sequences to be trimmed. The default is 101.</li>
-<li><code>--skip-sbcd</code> : The number of bases to be skipped in the beginning of the read. This is useful when insufficient bases are sequenced in the 1<sup>st</sup>-seq spatial barcode, which is reverse complemented. The default is 1.</li>
+<li><code>--coord-per-pixel</code> : The number of coordinates to be collapsed into a pixel as a factor to divide the input coordinate with. The default is 1000.0.</li>
+<li><code>--bcd</code> : The barcode file name in the SGE directory. The default is <code>barcodes.tsv.gz</code>.</li>
+<li><code>--ftr</code> : The feature file name in the SGE directory. The default is <code>features.tsv.gz</code>.</li>
+<li><code>--mtx</code> : The matrix file name in the SGE directory. The default is <code>matrix.mtx.gz</code>.</li>
 </ul>
 <h2 id="expected-output">Expected Output<a class="headerlink" href="#expected-output" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>[out1]</code> is output FASTQ file for Read 1. It should contain spatial barcodes, followed by the UMI (randomer) sequences.</li>
-<li><code>[out2]</code> is output FASTQ file for Read 2. It should contain the cDNA sequences, which includes the randomer sequence, trimmed to the specified length.</li>
-</ul>
+<p>The output <code>[out]</code> will be created as a PNG file containing the image of the input points.</p>
 <h2 id="full-usage">Full Usage<a class="headerlink" href="#full-usage" title="Permanent link">&para;</a></h2>
-<p>The full usage of <code>spatula reformat-fastqs</code> can be viewed with the <code>--help</code> option:</p>
-<div class="highlight"><pre><span></span><code>$ ./spatula reformat-fastqs --help
-[./spatula reformat-fastqs] -- Reformat FASTQs to be ready for STARsolo alignment
+<p>The full usage of <code>spatula draw-sge</code> can be viewed with the <code>--help</code> option:</p>
+<div class="highlight"><pre><span></span><code>$ ./spatula draw-sge --help
+[./spatula draw-sge] -- Draw the image of spatial gene expression (SGE) data
 
  Copyright (c) 2022-2024 by Hyun Min Kang
  Licensed under the Apache License v2.0 http://www.apache.org/licenses/
@@ -1185,21 +1225,22 @@ Detailed instructions of parameters are available. Ones with &quot;[]&quot; are 
 
 Available Options:
 
-== Input options ==
-   --fq1       [STR: ]             : FASTQ file for read 1
-   --fq2       [STR: ]             : FASTQ file for read 2
+== Input files ==
+   --manifest        [STR: ]             : Manifest file from combine-sbcds. xmin/xmax/ymin/ymax will be automatically detected
+   --sge             [STR: ]             : SGE directory
+   --bcd             [STR: barcodes.tsv.gz] : Barcode file name
+   --ftr             [STR: features.tsv.gz] : Feature file name
+   --mtx             [STR: matrix.mtx.gz] : Matrix file name
 
-== Filtering options ==
-   --match-tsv [V_STR: ]           : .matched.tsv.gz file(s) to filter FASTQ file based on spatial barcodes
-   --len-match [INT: 27]           : Length of perfect match required with 2nd-seq FASTQ (27 or less)
+== Genes to visualize ==
+   --color-gene      [V_STR: ]           : [color_code]:[gene1],[gene2],... as a visualization unit. Adding :[idx] at the end is optional
+   --color-list      [V_STR: ]           : [color_code]:[list_file] as a visualization unit
+
+== Output options ==
+   --coord-per-pixel [FLT: 1000.00]      : Number of coordinate units per pixel
 
 == Output Options ==
-   --out1      [STR: ]             : Output FASTQ file for read1
-   --out2      [STR: ]             : Output FASTQ file for read2
-   --skip-sbcd [INT: 0]            : Skip first bases of spatial barcode (Read 1)
-   --len-sbcd  [INT: 30]           : Length of spatial barcode (Read 1)
-   --len-umi   [INT: 9]            : Length of UMI or randomer (Read 2)
-   --len-r2    [INT: 101]          : Length of Read 2 to trim (including randomers)
+   --out             [STR: ]             : Output file name
 
 
 NOTES:
