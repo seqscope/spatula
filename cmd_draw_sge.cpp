@@ -22,10 +22,18 @@ struct _color_gene_unit_t
     }
     bool set_rgb(const char *s_color)
     {
-        if (s_color[0] != '#' || strlen(s_color) != 7)
+        if (s_color[0] == '#' && strlen(s_color) == 7) {
+            sscanf(s_color + 1, "%02x%02x%02x", &rgb[0], &rgb[1], &rgb[2]);
+            return true;
+        }
+        else if ( strlen(s_color) == 6 ) {
+            sscanf(s_color, "%02x%02x%02x", &rgb[0], &rgb[1], &rgb[2]);
+            return true;
+        }
+        else {
+            error("Invalid color code %s", s_color);
             return false;
-        sscanf(s_color + 1, "%02x%02x%02x", &rgb[0], &rgb[1], &rgb[2]);
-        return true;
+        }
     }
 };
 typedef struct _color_gene_unit_t color_gene_unit_t;
