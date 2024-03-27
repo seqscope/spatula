@@ -88,6 +88,7 @@ nav:
     - Miscellaneous Tools: 
       - draw-xy: tools/draw_xy.md
       - draw-3way: tools/draw_3way.md
+      - draw-sge: tools/draw_sge.md
 
 markdown_extensions:
   # - abbr

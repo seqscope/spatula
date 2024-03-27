@@ -112,7 +112,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
         notice("Setting the height = %d", height);
     }
 
-    cimg_library::CImg<unsigned char> image(width, height, 1, 3, 255);
+    cimg_library::CImg<unsigned char> image(width, height, 1, 3, 0);
     
     for(int32_t ix=0; ix < width; ++ix) {
         if ( imbufs[ix] == NULL ) {
