@@ -143,6 +143,7 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
         else
         { // otherwise, parse the gene names
             split(v2, ",", v1[1]);
+            int32_t ngenes = 0;
             for (int32_t j = 0; j < v2.size(); ++j)
             {
                 auto range = ftr_name2idx.equal_range(v2[j]);
@@ -154,6 +155,7 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
                         error("Cannot recognize %s as gene name or ID", v2[j].c_str());
                     }
                     igenes.push_back(ftr_id2idx[v2[j]]);
+            
                 }
                 else
                 {
@@ -164,12 +166,16 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
                     if (igenes.size() > 1)
                         warning("Gene name %s have %d matching gene ID", v2[j].c_str(), (int32_t)igenes.size());
                 }
+                ngenes += igenes.size();
                 for (int32_t j = 0; j < igenes.size(); ++j)
                 {
                     cgu.igene2col[igenes[j]] = idx;
                     igene2icgus[igenes[j]].push_back(i);
                 }
             }
+            if (ngenes == 0)
+                error("No gene is found from the gene list: %s", v1[1].c_str());
+            notice("Identified %d genes from the gene list: %s", ngenes, v1[1].c_str());
         }
         color_gene_units.push_back(cgu);
     }
@@ -229,6 +235,22 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
         color_gene_units.push_back(cgu);
     }
 
+    notice("Parsed color-gene units:");
+    for (int32_t i = 0; i < color_gene_units.size(); ++i)
+    {
+        notice("Color gene unit %d: RGB(%x,%x,%x)", i, color_gene_units[i].rgb[0], color_gene_units[i].rgb[1], color_gene_units[i].rgb[2]);
+        if ( color_gene_units[i].igene2col.size() < 10 ) {
+            for (auto it = color_gene_units[i].igene2col.begin(); it != color_gene_units[i].igene2col.end(); ++it)
+            {
+                notice("  Gene %d : %s (%s) -> Color index %d", it->first, ftr_ids[it->first].c_str(), ftr_names[it->first].c_str(), it->second);
+            }
+        }
+        else {
+            notice("  ... %d genes (too many to show all genes)", (int32_t)color_gene_units[i].igene2col.size());
+        }
+    }
+
+
     int32_t height = (int32_t)(ceil((double)(ymax - ymin + 1) / coord_per_pixel));
     int32_t width = (int32_t)(ceil((double)(xmax - xmin + 1) / coord_per_pixel));
     cimg_library::CImg<unsigned char> image(width, height, 1, 3, 0);
@@ -252,12 +274,13 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
             py = (ssr.cur_sbcd.py - ymin) / coord_per_pixel;
         }
         // check if the gene is relevant
-        if (igene2icgus.find(ssr.cur_iftr) != igene2icgus.end())
+        if (igene2icgus.find(ssr.cur_iftr-1) != igene2icgus.end())
         {
-            for (int32_t i = 0; i < igene2icgus[ssr.cur_iftr].size(); ++i)
+            //notice("%llu %llu", ssr.cur_sbcd.nid, ssr.cur_iftr);
+            for (int32_t i = 0; i < igene2icgus[ssr.cur_iftr-1].size(); ++i)
             {
-                int32_t icgu = igene2icgus[ssr.cur_iftr][i]; // color gene unit index
-                int32_t cnt = (int32_t)ssr.cur_cnts[color_gene_units[icgu].igene2col[ssr.cur_iftr]];
+                int32_t icgu = igene2icgus[ssr.cur_iftr-1][i]; // color gene unit index
+                int32_t cnt = (int32_t)ssr.cur_cnts[color_gene_units[icgu].igene2col[ssr.cur_iftr-1]];
                 if (cnt > 0)
                 {
                     // update the color at the pixel

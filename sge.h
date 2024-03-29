@@ -146,7 +146,7 @@ public:
 struct _sge_sbcd_t
 {
   std::string strid;
-  uint64_t nid;
+  uint64_t nid; // 1-based ID
   uint64_t gid;
   uint32_t lane;
   uint32_t tile;
@@ -230,7 +230,7 @@ public:
   uint64_t nlines; // number of lines in the mtx hreader
 
   sge_sbcd_t cur_sbcd; // current barcode cursor
-  uint64_t cur_iftr;   // current index of feature in mtx cursor
+  uint64_t cur_iftr;   // current index of feature in mtx cursor (1-based)
   uint64_t cur_line;   // current line number in mtx file
   bool is_bcd_new;
   std::vector<uint64_t> cur_cnts; // current counts in the mtx file
