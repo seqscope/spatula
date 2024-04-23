@@ -3,7 +3,7 @@
 #include "qgenlib/tsv_reader.h"
 #include "qgenlib/qgen_error.h"
 #include "seq_utils.h"
-#include "sge.h"
+#include "tiles.h"
 #include <ctime>
 #include <set>
 #include <sys/stat.h>

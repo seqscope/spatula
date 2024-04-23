@@ -58,9 +58,12 @@ set(SOURCE_FILES
     cmd_reformat_fastqs.cpp
     cmd_reformat_fastqs_mt.cpp
     cmd_dge2sdge.cpp
+    cmd_sge2tsv.cpp
     multiproc_compressor.h
     sge.cpp
     sge.h
+    tiles.cpp
+    tiles.h
     fastq_utils.cpp
     fastq_utils.h
     seq_utils.cpp

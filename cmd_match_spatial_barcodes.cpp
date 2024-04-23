@@ -3,7 +3,7 @@
 #include "qgenlib/tsv_reader.h"
 #include "qgenlib/qgen_error.h"
 #include "seq_utils.h"
-#include "sge.h"
+#include "tiles.h"
 #include <ctime>
 #include <set>
 #include <sys/stat.h>
@@ -11,7 +11,7 @@
 #include <algorithm>
 
 /////////////////////////////////////////////////////////////////////////
-// match-sbceds : Match spatial barcodes
+// match-sbcds : Match spatial barcodes
 ////////////////////////////////////////////////////////////////////////
 int32_t cmdMatchSpatialBarcodes(int32_t argc, char** argv) {
   std::string fastqf;
