@@ -121,7 +121,7 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
     notice("Analysis started");
 
     // read the manifest file and determine the xmin/xmax/ymin/ymax
-    uint64_t xmin = UINT64_MAX, xmax = 0, ymin = 0, ymax = UINT64_MAX;
+    uint64_t xmin = UINT64_MAX, xmax = 0, ymin = UINT64_MAX, ymax = 0;
     if ( !manifestf.empty() ) {
         read_minmax(manifestf.c_str(), xmin, xmax, ymin, ymax);
     }
@@ -368,6 +368,10 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
             color_gene_units[i].rgb[1] = rgb[1];
             color_gene_units[i].rgb[2] = rgb[2];
         }
+    }
+
+    if ( auto_adjust_intensity && manifestf.empty() ) {
+        notice("Calculated bounding box: xmin = %llu, xmax = %llu, ymin = %llu, ymax = %llu", xmin, xmax, ymin, ymax);
     }
 
     int32_t height = (int32_t)(ceil((double)(ymax - ymin + 1) / coord_per_pixel));
