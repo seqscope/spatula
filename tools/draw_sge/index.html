@@ -1155,12 +1155,12 @@
                   --color-gene 320000:_all_:1 \ 
                   --color-gene 003200:Glul,Cyp2e1:1 \
                   --color-list 000064:/path/to/custom/gene_list.tsv \
-                  --out      /path/to/output/image.png                
+                  --out      /path/to/output/image.png
+                  --auto-adjust                
 </code></pre></div>
 <p>See below for a more detailed usage description.</p>
 <h2 id="required-options">Required options<a class="headerlink" href="#required-options" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>--manifest</code> : The <code>manifest.tsv</code> file from the <code>combine-sbcds</code> file that contains the summary of the spatial coordinate of a Seq-Scope Chip. It must contain <code>xmin</code>, <code>xmax</code>, <code>ymin</code>, and <code>ymax</code> columns.</li>
 <li><code>--sge</code> : The directory containing SGE matrix, typically from <code>dge2sge</code> command.</li>
 <li><code>--out</code> : The output filename of the image. Currently, <code>.png</code> is supported. </li>
 </ul>
@@ -1173,39 +1173,44 @@
 <li>For example, <code>--color-gene 003200:Glul,Cyp2e1:1</code> will color <em>Glul</em> and <em>Cyp2e1</em> genes with green (increasing intensity by 50 for each observation).</li>
 </ul>
 </li>
-<li><code>--color-list</code> : (Allows multiple uses) A string formatted as [RGB_Hex_Code]:[path_to_gene_list]:[default_idx].<ul>
+<li><code>--color-regex</code> : (Allows multiple uses) A string formatted as [RGB_Hex_Code]:[regex_pattern]:[idx]. <ul>
 <li>The <code>[RGB_Hex_Code]</code> is the RGB hex color code (<code>RRGGBB</code> format) for each observation of the specified genes.</li>
-<li>The <code>[path_to_gene_list]</code> is the path to the gene list file. The file should be a tab-separated file with following columns (with header):<ul>
-<li><code>id</code> column contains unique gene ID (e.g. <code>ENSMUSG00000026473</code>)</li>
-<li><code>name</code> column contains gene symbol (e.g. <code>Glul</code>), which does not have to be unique.</li>
-<li><code>idx</code> column index (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto).</li>
-<li>Either <code>id</code> and <code>name</code> column must be present. <code>idx</code> column is optional.</li>
+<li>The <code>[regex_pattern</code> is the regulat expression pattern to specify the list of genes. Here are some examples:</li>
+<li>You can specify multiple genes like <code>^(Glul|Cyp2e1)$</code> </li>
+<li>You can specify genes with a common prefix like <code>^mt-.*$</code> (for mitochondrial genes)</li>
+<li>The <code>[idx]</code> is optional field to specify the index of the gene expression in the SGE matrix. (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto). The default is 1.</li>
+<li>For example, <code>--color-gene 003200:^(Glul|Cyp2e1):1</code> will color <em>Glul</em> and <em>Cyp2e1</em> genes with green (increasing intensity by 50 for each observation).</li>
 </ul>
 </li>
+<li><code>--color-list</code> : (Allows multiple uses) A string formatted as [RGB_Hex_Code]:[path_to_gene_list]:[default_idx].<ul>
+<li>The <code>[RGB_Hex_Code]</code> is the RGB hex color code (<code>RRGGBB</code> format) for each observation of the specified genes.</li>
+<li>The <code>[path_to_gene_list]</code> is the path to the gene list file. The file should contain a list of gene names of gene IDs (without headers)</li>
 <li>The <code>[default_idx]</code> is optional field to specify the index of the gene expression in the SGE matrix. (e.g. 1: Gene, 2: GeneFull, 3: Spliced, 4: Unspliced, 5: Velocyto). This is only in effect when <code>idx</code> column is not present in the <code>[path_to_gene_list]</code> file.</li>
-<li>If neither <code>idx</code> column nor <code>[default_idx]</code> is present, the default is 1.</li>
+<li>If <code>[default_idx]</code> is absent, it will be defaulted to 1 (Gene)</li>
 <li>For example, <code>--color-list 000064:/path/to/custom/gene_list.tsv</code> will color genes in the <code>/path/to/custom/gene_list.tsv</code> file with blue, with <code>default_idx=1</code>, increasing intensity by 100 for each observation.</li>
 <li>Here is an example content of the gene list file <code>mt-genes.tsv</code>, which contains gene ID for mitochondrial genes in mouse:
-<div class="highlight"><pre><span></span><code>id
-ENSMUSG00000064341
-ENSMUSG00000064345
-ENSMUSG00000064351
-ENSMUSG00000064354
-ENSMUSG00000064356
-ENSMUSG00000064357
-ENSMUSG00000064358
-ENSMUSG00000064360
-ENSMUSG00000065947
-ENSMUSG00000064363
-ENSMUSG00000064367
-ENSMUSG00000064368
-ENSMUSG00000064370
+<div class="highlight"><pre><span></span><code>mt-Nd1
+mt-Nd2
+mt-Co1
+mt-Co2
+mt-Atp8
+mt-Atp6
+mt-Co3
+mt-Nd3
+mt-Nd4l
+mt-Nd4
+mt-Nd5
+mt-Nd6
+mt-Cytb
 </code></pre></div></li>
 </ul>
 </li>
 </ul>
 <h2 id="additional-options">Additional Options<a class="headerlink" href="#additional-options" title="Permanent link">&para;</a></h2>
 <ul>
+<li><code>--manifest</code> : The <code>manifest.tsv</code> file from the <code>combine-sbcds</code> file that contains the summary of the spatial coordinate of a Seq-Scope Chip. It must contain <code>xmin</code>, <code>xmax</code>, <code>ymin</code>, and <code>ymax</code> columns. This option is REQUIRED unless <code>--auto-adjust</code> is used.</li>
+<li><code>--auto-adjust</code> : Automatically adjust the intensity of the color based on the maximum count. The default is OFF.</li>
+<li><code>--adjust-quantile</code> : The quantile of pixel to use for auto-adjustment among non-zero pixels. The default is 0.99.</li>
 <li><code>--coord-per-pixel</code> : The number of coordinates to be collapsed into a pixel as a factor to divide the input coordinate with. The default is 1000.0.</li>
 <li><code>--bcd</code> : The barcode file name in the SGE directory. The default is <code>barcodes.tsv.gz</code>.</li>
 <li><code>--ftr</code> : The feature file name in the SGE directory. The default is <code>features.tsv.gz</code>.</li>
@@ -1226,7 +1231,7 @@ Detailed instructions of parameters are available. Ones with &quot;[]&quot; are 
 Available Options:
 
 == Input files ==
-   --manifest        [STR: ]             : Manifest file from combine-sbcds. xmin/xmax/ymin/ymax will be automatically detected
+   --minmax          [STR: ]             : Bounding box information. Expects xmin/xmax/ymin/ymax (tall or wide format)
    --sge             [STR: ]             : SGE directory
    --bcd             [STR: barcodes.tsv.gz] : Barcode file name
    --ftr             [STR: features.tsv.gz] : Feature file name
@@ -1234,14 +1239,16 @@ Available Options:
 
 == Genes to visualize ==
    --color-gene      [V_STR: ]           : [color_code]:[gene1],[gene2],... as a visualization unit. Adding :[idx] at the end is optional
-   --color-list      [V_STR: ]           : [color_code]:[list_file] as a visualization unit
+   --color-regex     [V_STR: ]           : [color_code]:[regex](:[idx]) as a visualization unit. [regex] is a regulat expression. Adding :[idx] at the end is optional
+   --color-list      [V_STR: ]           : [color_code]:[list_file](:[idx]) as a visualization unit
 
 == Output options ==
    --coord-per-pixel [FLT: 1000.00]      : Number of coordinate units per pixel
+   --auto-adjust     [FLG: OFF]          : Automatically adjust the intensity of the color based on the maximum count
+   --adjust-quantile [FLT: 0.99]         : Quantile of pixel to use for auto-adjustment among non-zero pixels
 
 == Output Options ==
    --out             [STR: ]             : Output file name
-
 
 NOTES:
 When --help was included in the argument. The program prints the help message but do not actually run
