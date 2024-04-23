@@ -230,8 +230,7 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
         color_gene_units.push_back(cgu);
     }
 
-    // parse color-genes list
-    // possible headers are [id] [name] [idx]
+    // parse color-genes list, containing gene names of IDs
     for (int32_t i = 0; i < color_lists.size(); ++i)
     {
         color_gene_unit_t cgu;
@@ -240,56 +239,85 @@ int32_t cmdDrawSGE(int32_t argc, char **argv)
         if (v1.size() < 2)
             error("Invalid color-list argument: %s", color_lists[i].c_str());
         cgu.set_rgb(v1[0].c_str());
-        dataframe_t df(v1[1].c_str());
         int32_t default_idx = v1.size() > 2 ? atoi(v1[2].c_str()) - 1 : 0;
-        int32_t icol_id = df.get_colidx("id");
-        int32_t icol_name = df.get_colidx("name");
-        int32_t icol_idx = df.get_colidx("idx");
-        if ((icol_id < 0) && (icol_name < 0))
-        {
-            error("Cannot find the column 'id' or 'name' in %s", v1[1].c_str());
-        }
-        for (int32_t j = 0; j < df.nrows; ++j)
-        {
-            bool warning_no_match = false;
+        tsv_reader tr(v1[1].c_str());
+        while( tr.read_line() ) {
             std::vector<uint32_t> igenes;
-            if (icol_id >= 0) // gene id is available
-            {
-                const std::string& gid = df.get_str_elem(j, icol_id);
-                // if gene name is NOT recognized, then pass. Spit error only when no gene is recognized
-                if (ftr_id2idx.find(gid) == ftr_id2idx.end())
-                {
-                    //do nothing, just skip this gene
-                    //error("Cannot find gene ID %s from the SGE matrix", gid.c_str());
-                    warning_no_match = true;
-                }
-                else {
-                    igenes.push_back(ftr_id2idx[gid]);
-                }
-            }
-            else
-            {
-                const std::string& gname = df.get_str_elem(j, icol_name);
-                auto range = ftr_name2idx.equal_range(gname);
+            const char* name = tr.str_field_at(0);
+            auto it = ftr_id2idx.find(name);
+            if ( it == ftr_id2idx.end() ) {
+                // no matching ID, search for gene name
+                auto range = ftr_name2idx.equal_range(name);
                 if (range.first == range.second)
                 {   // gene name is not recognized
-                    warning_no_match = true;
-                    // error("Cannot recognize gene name %s from the SGE matrix", gname.c_str());
+                    notice("Cannot recognize gene name %s from the gene list %s; ignoring...", name, v1[1].c_str());
                 }
                 for (auto it = range.first; it != range.second; ++it)
                 {
                     igenes.push_back(it->second);
                 }
                 if (igenes.size() > 1)
-                    warning("Gene name %s have %d matching gene ID", gname.c_str(), (int32_t)igenes.size());
+                    notice("Gene name %s have multiple (%d) matching gene ID; using all...", name, (int32_t)igenes.size());
             }
-            int32_t idx = icol_idx >= 0 ? df.get_int_elem(j, icol_idx) - 1 : default_idx;
+            else { // there is a matching ID
+                igenes.push_back(ftr_id2idx[name]);
+            }
             for (int32_t j = 0; j < igenes.size(); ++j)
             {
-                cgu.igene2col[igenes[j]] = idx;
+                cgu.igene2col[igenes[j]] = default_idx;
                 igene2icgus[igenes[j]].push_back(i + color_genes.size() + color_regexes.size());
             }
         }
+        tr.close();
+        // dataframe_t df(v1[1].c_str());
+        // int32_t icol_id = df.get_colidx("id");
+        // int32_t icol_name = df.get_colidx("name");
+        // int32_t icol_idx = df.get_colidx("idx");
+        // if ((icol_id < 0) && (icol_name < 0))
+        // {
+        //     error("Cannot find the column 'id' or 'name' in %s", v1[1].c_str());
+        // }
+        // for (int32_t j = 0; j < df.nrows; ++j)
+        // {
+        //     bool warning_no_match = false;
+        //     std::vector<uint32_t> igenes;
+        //     if (icol_id >= 0) // gene id is available
+        //     {
+        //         const std::string& gid = df.get_str_elem(j, icol_id);
+        //         // if gene name is NOT recognized, then pass. Spit error only when no gene is recognized
+        //         if (ftr_id2idx.find(gid) == ftr_id2idx.end())
+        //         {
+        //             //do nothing, just skip this gene
+        //             //error("Cannot find gene ID %s from the SGE matrix", gid.c_str());
+        //             warning_no_match = true;
+        //         }
+        //         else {
+        //             igenes.push_back(ftr_id2idx[gid]);
+        //         }
+        //     }
+        //     else
+        //     {
+        //         const std::string& gname = df.get_str_elem(j, icol_name);
+        //         auto range = ftr_name2idx.equal_range(gname);
+        //         if (range.first == range.second)
+        //         {   // gene name is not recognized
+        //             warning_no_match = true;
+        //             // error("Cannot recognize gene name %s from the SGE matrix", gname.c_str());
+        //         }
+        //         for (auto it = range.first; it != range.second; ++it)
+        //         {
+        //             igenes.push_back(it->second);
+        //         }
+        //         if (igenes.size() > 1)
+        //             warning("Gene name %s have %d matching gene ID", gname.c_str(), (int32_t)igenes.size());
+        //     }
+        //     int32_t idx = icol_idx >= 0 ? df.get_int_elem(j, icol_idx) - 1 : default_idx;
+        //     for (int32_t j = 0; j < igenes.size(); ++j)
+        //     {
+        //         cgu.igene2col[igenes[j]] = idx;
+        //         igene2icgus[igenes[j]].push_back(i + color_genes.size() + color_regexes.size());
+        //     }
+        //}
         color_gene_units.push_back(cgu);
     }
 
