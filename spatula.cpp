@@ -13,6 +13,8 @@ int32_t cmdFilterFASTQs(int32_t argc, char **argv);
 int32_t cmdReformatFASTQsMT(int32_t argc, char **argv);
 int32_t cmdDGE2SDGE(int32_t argc, char **argv);
 int32_t cmdSGE2TSV(int32_t argc, char **argv);
+int32_t cmdConvertSGE(int32_t argc, char **argv);
+int32_t cmdSegmentSGE(int32_t argc, char **argv);
 int32_t cmdDrawSGE(int32_t argc, char **argv);
 int32_t cmdSubsetSGE(int32_t argc, char **argv);
 int32_t cmdCombineSGE(int32_t argc, char **argv);
@@ -44,6 +46,8 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("dge2sdge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SGE format (same as dge2sge)")
   LONG_COMMAND("dge2sge", &cmdDGE2SDGE, "Convert DGE (from STARsolo) into SGE format (same as dge2sdge)")
   LONG_COMMAND("sge2tsv", &cmdSGE2TSV, "Convert SGE (from sge2sdge) into plain TSV format (unsorted)")
+  LONG_COMMAND("convert-sge", &cmdConvertSGE, "Convert SGE into plain various formats")
+  LONG_COMMAND("segment-sge", &cmdSegmentSGE, "Segment SGE based on custom, grid, or hexagonal masks")
   LONG_COMMAND("subset-sge", &cmdSubsetSGE, "Subset Spatial SGE based on bounding box")
   LONG_COMMAND("combine-sge", &cmdCombineSGE, "Combine multiple SGE files")
   LONG_COMMAND("match-tag", &cmdMatchTag, "Match tags from FASTQ")

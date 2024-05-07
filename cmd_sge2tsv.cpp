@@ -11,8 +11,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <algorithm>
-#define cimg_display 0 // remove the need for X11 library
-#include "cimg/CImg.h"
 
 /////////////////////////////////////////////////////////////////////////
 // convert-sge : Convert SGE format to a TSV format
