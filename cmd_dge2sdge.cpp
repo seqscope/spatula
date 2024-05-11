@@ -93,10 +93,12 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
     tsv_reader* tr = new tsv_reader(mtxfs[i].c_str());
     mtx_trs.push_back(tr);
     while(tr->read_line() > 0) {
+      //notice("foo %llu %s %d %d", tr->nlines, tr->str.s, tr->nfields, i);
       if ( tr->str.s[0] == '%' ) {
           continue;
       }
       else {
+        notice("bar %d", tr->str.s[0]);
         if ( i == 0 ) {
           nftrs = tr->uint64_field_at(0);
           nbcds = tr->uint64_field_at(1);
@@ -112,6 +114,10 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
       }
     }
   }
+
+  //notice("nfields=%d\tfields=%x", mtx_trs[0]->nfields, mtx_trs[0]->fields);
+  notice("nftrs=%llu\tnbcds=%llu", nftrs, nbcds);
+
 
   // create the output directory first
   if ( makePath(outdir) ) {
@@ -151,6 +157,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
       x = mtx_trs[i]->uint64_field_at(0);
       y = mtx_trs[i]->uint64_field_at(1);
       c = mtx_trs[i]->int_field_at(2);
+      //notice("%d %llu %llu %d", i, x, y, c);
       if ( y < ibcd ) { // replace
         ibcd = y;
         iftr = x;
@@ -270,7 +277,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
     }
   }
   write_sbcd(ssr, cur_ibcd, cur_bcd_cnts, bcd_tw, sbcds_counter, n_mtx);
-  
+
   ssr.close();
   bcd_tw.close();
   mtx_tw.close();
@@ -325,7 +332,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
 
   // write header files
   tile_writer hdr_tw(outdir.c_str(), ".tmp.matrix.hdr", false);
-  std::string hdr_str("%%MatrixMarket matrix coordinate integer general\n%\n");
+  std::string hdr_str("%%MatrixMarket matrix coordinate integer general\n%%\n");
   // write combined file
   outstr.clear();
   catprintf(outstr,"%s%d %llu %llu\n", hdr_str.c_str(), nftrs, sbcds_counter.all_cnts[0], sbcds_counter.all_cnts[1]);

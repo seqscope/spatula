@@ -269,7 +269,7 @@ bool sge_stream_writer::flush_mtx()
     char buf[65535];
     snprintf(buf, 65535, "%s.hdr", fn_mtx.c_str());
     htsFile *wh_hdr = hts_open(buf, "w"); // write the contents of the matrix file first without the header
-    hprintf(wh_hdr, "%%MatrixMarket matrix coordinate integer general\n%\n");
+    hprintf(wh_hdr, "%%MatrixMarket matrix coordinate integer general\n%%\n");
     hprintf(wh_hdr, "%d %llu %llu\n", (int32_t)ftr_cnts.size(), cur_sbcd.nid, nlines);
     hts_close(wh_hdr);
 
