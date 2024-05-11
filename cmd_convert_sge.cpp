@@ -278,11 +278,12 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     while (ssr.read_mtx())
     {
         if (nlines % intervals == 0)
-            notice("Processing %llu lines... from %s/%s", nlines, in_sgedir.c_str(), tsv_mtxf.c_str());
+            notice("Processing %llu lines... from %s/%s", nlines, in_sgedir.c_str(), sge_mtxf.c_str());
         // remove lane and tile info and create global coordinates
         if (ssr.is_bcd_new)
         { // new barcode
             // calculate the new pixel coordinatex
+            //notice("foo");
             um_x = ssr.cur_sbcd.px / units_per_um;
             um_y = ssr.cur_sbcd.py / units_per_um;
 
@@ -313,7 +314,9 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
             }
         }
         ftr_cnts[ssr.cur_iftr-1] += ssr.cur_cnts[in_icol_mtx-1];
-        pssw->add_mtx(ssr.cur_iftr, ssr.cur_cnts);
+        if ( out_sge ) {
+            pssw->add_mtx(ssr.cur_iftr, ssr.cur_cnts);
+        }
         ++nlines;
     }
     if ( wh_tsv != NULL ) {

@@ -332,7 +332,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
 
   // write header files
   tile_writer hdr_tw(outdir.c_str(), ".tmp.matrix.hdr", false);
-  std::string hdr_str("%%MatrixMarket matrix coordinate integer general\n%%\n");
+  std::string hdr_str("%%MatrixMarket matrix coordinate integer general\n%\n");
   // write combined file
   outstr.clear();
   catprintf(outstr,"%s%d %llu %llu\n", hdr_str.c_str(), nftrs, sbcds_counter.all_cnts[0], sbcds_counter.all_cnts[1]);
