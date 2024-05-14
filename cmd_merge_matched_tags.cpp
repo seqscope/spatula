@@ -297,7 +297,7 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
   hts_close(wbcd);
 
   htsFile* whdr = hts_open((outdir + "/.tmp.matrix.hdr").c_str(), "w");
-  hprintf(whdr,"%%MatrixMarket matrix coordinate integer general\n%%\n");
+  hprintf(whdr,"%%%%MatrixMarket matrix coordinate integer general\n%%\n");
   hprintf(whdr, "%zu %llu %llu\n", tag_ids.size(), ibcd, ilines);
   hts_close(whdr);
 

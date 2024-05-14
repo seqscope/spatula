@@ -345,6 +345,50 @@ bool sge2_stream_writer::add_mtx(uint64_t iftr, std::vector<uint64_t> &cnts)
     return true;
 }
 
+bool sge2_stream_writer::add_mtx(uint64_t iftr, std::vector<uint64_t> &cnts, std::vector<int32_t>& icols)
+{
+    if (nfields == 0)
+    {
+        nfields = (int32_t)icols.size();
+        cur_sbcd.cnts.resize(nfields, 0);
+    }
+    else if (nfields != (int32_t)icols.size())
+    {
+        error("The number of fields in the mtx file is not consistent: %d vs %d", nfields, (int32_t)icols.size());
+    }
+
+    hprintf(wh_tmp, "%llu %llu", iftr, cur_sbcd.nid);
+    for(int32_t i = 0; i < nfields; ++i) {
+        if ( icols[i] < 0 || icols[i] >= (int32_t)cnts.size() ) {
+            error("Invalid column index %d", icols[i]);
+        }
+        hprintf(wh_tmp, " %llu", cnts[icols[i]]);
+    }
+    hprintf(wh_tmp, "\n");
+
+    // std::string strcnt;
+    // cat_join_uint64(strcnt, cnts, " ");
+    // hprintf(wh_tmp, "%llu %llu %s\n", iftr, cur_sbcd.nid, strcnt.c_str());
+
+    // update ftr_cnts
+    if (iftr > ftr_cnts.size() + 1)
+        ftr_cnts.resize(iftr);
+    if (ftr_cnts[iftr - 1].empty())
+        ftr_cnts[iftr - 1].resize(nfields, 0);
+    if ((ftr_cnts[iftr - 1].size() != nfields) || (icols.size() != nfields))
+        error("The number of fields in the mtx file is not consistent: %d vs %d vs %d", nfields, (int32_t)icols.size(), (int32_t)ftr_cnts[iftr - 1].size());
+    for (int32_t i = 0; i < nfields; ++i)
+        ftr_cnts[iftr - 1][i] += cnts[icols[i]];
+
+    // update sbcd_cnts
+    // assert(cur_sbcd.cnts.size() == nfields);
+    for (int32_t i = 0; i < nfields; ++i)
+        cur_sbcd.cnts[i] += cnts[icols[i]];
+
+    ++nlines;
+    return true;
+}
+
 // combine header and contents for mtx to a single compressed mtx.gz file
 bool sge2_stream_writer::flush_mtx()
 {

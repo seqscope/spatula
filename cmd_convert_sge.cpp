@@ -31,8 +31,8 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     std::string sge_bcdf("barcodes.tsv.gz");
     std::string sge_ftrf("features.tsv.gz");
     std::string sge_mtxf("matrix.mtx.gz");
-    std::string tsv_mtxf("transcripts.tsv.gz");
-    std::string tsv_ftrf("features.clean.tsv.gz");
+    std::string tsv_mtxf("transcripts.unsorted.tsv.gz");
+    std::string tsv_ftrf("features.tsv.gz");
     std::string tsv_minmaxf("minmax.tsv");
 
     // input column indices
@@ -41,15 +41,20 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     int32_t in_icol_bcd_py = 7; // 1-based column index in the barcode file to use as the Y coordinate
     int32_t in_icol_ftr_id = 1;
     int32_t in_icol_ftr_name = 2;
-    int32_t in_icol_mtx = 1;
+    // int32_t in_icol_mtx = 1;
+    std::string str_icols_mtx("1,2,3,4,5");
+    std::vector<int32_t> v_icols_mtx;
 
     // output column names for tsv files
     std::string colname_gene_name("gene");
-    std::string colname_gene_id("MoleculeID");
-    std::string colname_count("Count");
+    std::string colname_gene_id("gene_id");
+    //std::string colname_count("Count");
+    std::string colnames_count("gn,gt,spl,unspl,ambig");
+    std::vector<std::string> v_colnames_count;
     std::string colname_x("X");
     std::string colname_y("Y");
     bool print_feature_id = false;
+    bool allow_duplicate_gene_names = false;
 
     // common output options
     double units_per_um = 1.0;  // Output conversion factor 
@@ -84,7 +89,7 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     LONG_STRING_PARAM("tsv-minmax", &tsv_minmaxf, "Minmax file name in TSV directory")
 
     LONG_PARAM_GROUP("Expected column index in SGE input", NULL)
-    LONG_INT_PARAM("icol-mtx", &in_icol_mtx, "1-based column index in the matrix file to use as the count")
+    LONG_STRING_PARAM("icols-mtx", &str_icols_mtx, "Comma-separated 1-based column indices use as the count")
     LONG_INT_PARAM("icol-bcd-barcode", &in_icol_bcd_barcode, "1-based column index of barcode in the barcode file")
     LONG_INT_PARAM("icol-bcd-x", &in_icol_bcd_px, "1-based column index of x coordinate in the barcode file")
     LONG_INT_PARAM("icol-bcd-y", &in_icol_bcd_py, "1-based column index of y coordinate in the barcode file")
@@ -112,9 +117,10 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
 
     LONG_PARAM_GROUP("Auxilary Output Options for TSV output", NULL)
     LONG_PARAM("print-feature-id", &print_feature_id, "Print feature ID in output file")
+    LONG_PARAM("allow-duplicate-gene-names", &allow_duplicate_gene_names, "Allow duplicate gene names in the output file")
     LONG_STRING_PARAM("colname-feature-name", &colname_gene_name, "Column name for feature/gene name")
     LONG_STRING_PARAM("colname-feature-id", &colname_gene_id, "Column name for feature/gene ID")
-    LONG_STRING_PARAM("colname-count", &colname_count, "Column name for Count")
+    LONG_STRING_PARAM("colnames-count", &colnames_count, "Comma-separate column names for Count")
     LONG_STRING_PARAM("colname-x", &colname_x, "Column name for X")
     LONG_STRING_PARAM("colname-y", &colname_y, "Column name for Y")
     END_LONG_PARAMS();
@@ -157,6 +163,17 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     else if ( include_sum > 0 && exclude_sum > 0 )
         warning("Both --include.. and --exclude.. filters applied. If both filters are matched, the feature will be excluded");
 
+    // parse the column indices
+    std::vector<std::string> v_str_icols_mtx;
+    split(v_str_icols_mtx, ",", str_icols_mtx);
+    split(v_colnames_count, ",", colnames_count);
+    if ( v_str_icols_mtx.size() != v_colnames_count.size() )
+        error("--icols-mtx [%s] and --colnames-count [%s] has different number of entries", str_icols_mtx.c_str(), colnames_count.c_str());
+    for (int32_t i = 0; i < v_str_icols_mtx.size(); ++i)
+    {
+        v_icols_mtx.push_back(atoi(v_str_icols_mtx[i].c_str())-1);
+    }
+    int32_t n_colnames = (int32_t)v_colnames_count.size();
 
     // load the exclude and include gene lists
     std::set<std::string> include_ftr_set;
@@ -179,7 +196,7 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     std::vector<std::string> ftr_ids;
     std::vector<std::string> ftr_names;
     std::vector<bool> ftr_passes;
-    std::vector<uint64_t> ftr_cnts;
+    std::vector< std::vector<uint64_t> > ftr_cnts;
     std::regex regex_include(include_ftr_regex);
     std::regex regex_exclude(exclude_ftr_regex);
     while (ftr_tr.read_line() > 0)
@@ -226,7 +243,39 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
         ftr_ids.push_back(ftr_tr.str_field_at(0));
         ftr_names.push_back(ftr_tr.str_field_at(1));
         ftr_passes.push_back(include && !exclude);
-        ftr_cnts.push_back(0);
+        ftr_cnts.resize(ftr_cnts.size() + 1);
+        ftr_cnts.back().resize(n_colnames, 0);
+    }
+
+    // ensure that feature IDs are unique
+    std::set<std::string> ftr_id_set;
+    for (int32_t i = 0; i < ftr_ids.size(); ++i)
+    {
+        if (ftr_id_set.find(ftr_ids[i]) != ftr_id_set.end())
+            error("Feature ID %s is not unique", ftr_ids[i].c_str());
+        ftr_id_set.insert(ftr_ids[i]);
+    }
+
+    if ( !allow_duplicate_gene_names ) {
+        // force the feature name to be unique
+        std::map<std::string, std::vector<int32_t> > ftr_name_indices;
+        for (int32_t i = 0; i < ftr_names.size(); ++i)
+        {
+            ftr_name_indices[ftr_names[i]].push_back(i);
+        }
+
+        // resolve duplicate feature names
+        for (std::map<std::string, std::vector<int32_t> >::iterator it = ftr_name_indices.begin(); it != ftr_name_indices.end(); ++it)
+        {
+            if (it->second.size() > 1)
+            {
+                for (int32_t i = 0; i < it->second.size(); ++i)
+                {
+                    notice("Feature name %s is not unique. Resolving the conflict by appending the feature ID %s", it->first.c_str(), ftr_ids[it->second[i]].c_str());
+                    ftr_names[it->second[i]] = ftr_names[it->second[i]] + "_" + ftr_ids[it->second[i]];
+                }
+            }
+        }
     }
 
     // read the SGE matrix
@@ -262,12 +311,14 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
 
     // print the header
     if ( wh_tsv != NULL ) {
+        hprintf(wh_tsv, "%s\t%s\t%s", colname_x.c_str(), colname_y.c_str(), colname_gene_name.c_str());
         if (print_feature_id)
-            hprintf(wh_tsv, "%s\t%s\t%s\t%s\t%s\t%s\n", colname_x.c_str(), colname_y.c_str(),
-                colname_gene_name.c_str(), colname_gene_id.c_str(), colname_count.c_str());
-        else
-            hprintf(wh_tsv, "%s\t%s\t%s\t%s\n", colname_x.c_str(), colname_y.c_str(),
-                colname_gene_name.c_str(), colname_count.c_str());
+            hprintf(wh_tsv, "\t%s", colname_gene_id.c_str());
+        for (int32_t i = 0; i < n_colnames; ++i)
+        {
+            hprintf(wh_tsv, "\t%s", v_colnames_count[i].c_str());
+        }
+        hprintf(wh_tsv, "\n");
     }
 
     // read each line of the matrix file
@@ -310,12 +361,21 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
                     hprintf(wh_tsv, "\t%s", ftr_ids[ssr.cur_iftr-1].c_str());
 
                 // print the count information
-                hprintf(wh_tsv, "\t%llu\n", ssr.cur_cnts[in_icol_mtx-1]);
+                //hprintf(wh_tsv, "\t%llu\n", ssr.cur_cnts[in_icol_mtx-1]);
+                for (int32_t i = 0; i < n_colnames; ++i)
+                {
+                    hprintf(wh_tsv, "\t%llu", ssr.cur_cnts[v_icols_mtx[i]]);
+                }
+                hprintf(wh_tsv, "\n");
             }
         }
-        ftr_cnts[ssr.cur_iftr-1] += ssr.cur_cnts[in_icol_mtx-1];
+        //ftr_cnts[ssr.cur_iftr-1] += ssr.cur_cnts[in_icol_mtx-1];
+        for (int32_t i = 0; i < n_colnames; ++i)
+        {
+            ftr_cnts[ssr.cur_iftr-1][i] += ssr.cur_cnts[v_icols_mtx[i]];
+        }
         if ( out_sge ) {
-            pssw->add_mtx(ssr.cur_iftr, ssr.cur_cnts);
+            pssw->add_mtx(ssr.cur_iftr, ssr.cur_cnts, v_icols_mtx);
         }
         ++nlines;
     }
@@ -327,11 +387,32 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
         htsFile* wh_ftr = hts_open((outdir + "/" + tsvdir + "/" + tsv_ftrf).c_str(), "wz");
         if ( wh_ftr == NULL )
             error("Failed to open %s/%s/%s for writing", outdir.c_str(), tsvdir.c_str(), tsv_ftrf.c_str());
-        hprintf(wh_ftr, "%s\t%s\t%s\n", colname_gene_name.c_str(), colname_gene_id.c_str(), colname_count.c_str());
+
+        hprintf(wh_ftr, "%s\t%s", colname_gene_name.c_str(), colname_gene_id.c_str());
+        for (int32_t i = 0; i < n_colnames; ++i)
+        {
+            hprintf(wh_ftr, "\t%s", v_colnames_count[i].c_str());
+        }
+        hprintf(wh_ftr, "\n");
+
         for (int32_t i = 0; i < ftr_ids.size(); ++i)
         {
-            if (ftr_passes[i] && ftr_cnts[i] > 0)
-                hprintf(wh_ftr, "%s\t%s\t%llu\n", ftr_names[i].c_str(), ftr_ids[i].c_str(), ftr_cnts[i]);
+            bool print_gene = false;
+            if ( ftr_passes[i] ) {
+                for(int32_t j = 0; j < n_colnames; ++j) {
+                    if (ftr_cnts[i][j] > 0) {
+                        print_gene = true;
+                        break;
+                    }
+                }
+            }
+            if (print_gene) {
+                hprintf(wh_ftr, "%s\t%s", ftr_names[i].c_str(), ftr_ids[i].c_str());
+                for(int32_t j = 0; j < n_colnames; ++j) {
+                    hprintf(wh_ftr, "\t%llu", ftr_cnts[i][j]);
+                }
+                hprintf(wh_ftr, "\n");
+            }
         }
         hts_close(wh_ftr);
 

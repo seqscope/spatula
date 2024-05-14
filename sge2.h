@@ -135,7 +135,7 @@ public:
   sge2_sbcd_t cur_sbcd;
   uint64_t nlines;
   int32_t bcd_precision;
-  std::vector<std::vector<uint64_t>> ftr_cnts;
+  std::vector< std::vector<uint64_t> > ftr_cnts;
 
   void open(const char *bcdf, const char *ftrf, const char *mtxf);
   void close();
@@ -149,6 +149,7 @@ public:
 
   bool add_sbcd(const char *strid, double px, double py);
   bool add_mtx(uint64_t iftr, std::vector<uint64_t> &cnts);
+  bool add_mtx(uint64_t iftr, std::vector<uint64_t> &cnts, std::vector<int32_t> &icols);
   bool flush_cur_sbcd();
 
   bool write_ftr(const char *id, const char *name, uint64_t nid, std::vector<uint64_t> &cnts);
