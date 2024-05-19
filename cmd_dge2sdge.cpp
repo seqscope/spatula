@@ -20,6 +20,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   std::string bcdf; // barcodes.tsv
   std::string ftrf; // features.tsv
   std::vector<std::string> mtxfs; // matrix.mtx files
+  int32_t n_mtx_cols = 0; // number of mtx columns - can be greater than # of mtx files
 
   paramList pl;
   BEGIN_LONG_PARAMS(longParameters)
@@ -29,6 +30,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
     LONG_STRING_PARAM("bcd", &bcdf, "Shared barcode file path (e.g. barcodes.tsv.gz)")
     LONG_STRING_PARAM("ftr", &ftrf, "Shared feature file path (e.g. features.tsv.gz)")
     LONG_MULTI_STRING_PARAM("mtx", &mtxfs, "Shared matrix file path (e.g. matrix.mtx.gz)")
+    LONG_INT_PARAM("n-mtx-cols", &n_mtx_cols, "Number of columns in the matrix.mtx files (if padding zero is needed)")
     
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out",&outdir,"Output directory")
@@ -42,6 +44,10 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
 
   if ( bcdf.empty() || ftrf.empty() || mtxfs.empty() || outdir.empty() ) {
     error("Missing required options --bcd, --ftr, --mtx --out");
+  }
+
+  if ( n_mtx_cols < mtxfs.size() ) {
+    error("n-mtx-cols : %d must be equal of larger than the number of mtx files : %zu", n_mtx_cols, mtxfs.size());
   }
 
   if ( !sbcddir.empty() ) {
@@ -82,7 +88,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   while( ftr_tr.read_line() > 0 ) {
     ftr_ids.push_back(ftr_tr.str_field_at(0));
     ftr_names.push_back(ftr_tr.str_field_at(1));
-    ftr_cnts.push_back(new tile_counter(n_mtx));
+    ftr_cnts.push_back(new tile_counter(n_mtx_cols));
   }
 
   // open all matrix.mtx files
@@ -98,7 +104,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
           continue;
       }
       else {
-        notice("bar %d", tr->str.s[0]);
+        //notice("bar %d", tr->str.s[0]);
         if ( i == 0 ) {
           nftrs = tr->uint64_field_at(0);
           nbcds = tr->uint64_field_at(1);
@@ -131,7 +137,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   tile_writer bcd_tw(outdir.c_str(), "barcodes.tsv.gz", true);  
 
   // barcode cursors
-  std::vector<int32_t> cur_bcd_cnts(n_mtx, 0); // counter for the current barcode
+  std::vector<int32_t> cur_bcd_cnts(n_mtx_cols, 0); // counter for the current barcode
 
   //notice("foo1");
 
@@ -140,8 +146,8 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
   int32_t i, j, c;
   uint64_t ibcd, iftr, x, y;
   uint64_t cur_ibcd = 0;
-  std::vector<int32_t> vals(n_mtx, 0);
-  std::vector<bool> empty(n_mtx, false);
+  std::vector<int32_t> vals(n_mtx_cols, 0);
+  std::vector<bool> empty(n_mtx_cols, false);
   tile_counter sbcds_counter(2); 
   std::string outstr;
   while( hasValid ) {
@@ -200,7 +206,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
       if ( cur_ibcd < ibcd ) {
         if ( cur_ibcd > 0 ) { // flush out current barcode
           // print the current barcode
-          write_sbcd(ssr, cur_ibcd, cur_bcd_cnts, bcd_tw, sbcds_counter, n_mtx);
+          write_sbcd(ssr, cur_ibcd, cur_bcd_cnts, bcd_tw, sbcds_counter, n_mtx_cols);
           /*          tsv_reader* p = ssr.move_to_ibcd(cur_ibcd);
           int32_t lane = p == NULL ? 0 : p->int_field_at(1);
           int32_t tile = p == NULL ? 0 : p->int_field_at(2);
@@ -276,7 +282,7 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
       }
     }
   }
-  write_sbcd(ssr, cur_ibcd, cur_bcd_cnts, bcd_tw, sbcds_counter, n_mtx);
+  write_sbcd(ssr, cur_ibcd, cur_bcd_cnts, bcd_tw, sbcds_counter, n_mtx_cols);
 
   ssr.close();
   bcd_tw.close();

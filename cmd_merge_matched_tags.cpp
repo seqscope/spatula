@@ -213,6 +213,7 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
   htsFile* wftr = hts_open((outdir + "/features.tsv.gz").c_str(), "wz");
   htsFile* wread = hts_open((outdir + "/.tmp.reads.mtx").c_str(), "w");
   htsFile* wumi = hts_open((outdir + "/.tmp.umis.mtx").c_str(), "w");  
+  htsFile* wpix = hts_open((outdir + "/.tmp.pixels.mtx").c_str(), "w");  
 
   for(int32_t i=0; i < (int32_t)tag_ids.size(); ++i) {
     hprintf(wftr, "%s\t%s\tAntibody_Tag\n", tag_ids[i].c_str(), tag_names[i].c_str());
@@ -236,6 +237,7 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
       else {
         hprintf(wread, "%d %lld %d\n", prev_min_tag + 1, ibcd, nreads);
         hprintf(wumi, "%d %lld %d\n", prev_min_tag + 1, ibcd, numis+1);      
+        hprintf(wpix, "%d %lld 1\n", prev_min_tag + 1, ibcd);      
         ++ilines;
         nreads = numis = 0;
       }
@@ -290,10 +292,12 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
   if ( ibcd < UINT64_MAX ) {
     hprintf(wread, "%d %lld %d\n", prev_min_tag + 1, ibcd, nreads);
     hprintf(wumi, "%d %lld %d\n", prev_min_tag + 1, ibcd, numis+1); 
+    hprintf(wpix, "%d %lld 1\n", prev_min_tag + 1, ibcd); 
   }
 
   hts_close(wread);
   hts_close(wumi);  
+  hts_close(wpix);
   hts_close(wbcd);
 
   htsFile* whdr = hts_open((outdir + "/.tmp.matrix.hdr").c_str(), "w");
@@ -302,18 +306,31 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
   hts_close(whdr);
 
   notice("Generating the merged matrix.mtx.gz file");  
+
+  // create reads.mtx.gz
   std::string cmd;
   catprintf(cmd, "cat %s %s | gzip -c > %s", (outdir + "/.tmp.matrix.hdr").c_str(), (outdir + "/.tmp.reads.mtx").c_str(), (outdir + "/reads.mtx.gz").c_str());  
   int32_t ret = system(cmd.c_str()); // run the commnad
   if ( (ret == -1) || (WEXITSTATUS(ret) == 127) ) {
     error("Error in running %s", cmd.c_str());
   }
+
+  // create umis.mtx.gz
   cmd.clear();
   catprintf(cmd, "cat %s %s | gzip -c > %s", (outdir + "/.tmp.matrix.hdr").c_str(), (outdir + "/.tmp.umis.mtx").c_str(), (outdir + "/umis.mtx.gz").c_str());  
   ret = system(cmd.c_str()); // run the commnad
   if ( (ret == -1) || (WEXITSTATUS(ret) == 127) ) {
     error("Error in running %s", cmd.c_str());
   }  
+
+  // create pixels.mtx.gz
+  cmd.clear();
+  catprintf(cmd, "cat %s %s | gzip -c > %s", (outdir + "/.tmp.matrix.hdr").c_str(), (outdir + "/.tmp.pixels.mtx").c_str(), (outdir + "/pixels.mtx.gz").c_str());  
+  ret = system(cmd.c_str()); // run the commnad
+  if ( (ret == -1) || (WEXITSTATUS(ret) == 127) ) {
+    error("Error in running %s", cmd.c_str());
+  }  
+
   if ( remove((outdir + "/.tmp.matrix.hdr").c_str()) != 0 )
     error("Cannot remove %s", (outdir + "/.tmp.matrix.hdr").c_str());
   if ( remove((outdir + "/.tmp.reads.mtx").c_str()) != 0 )
