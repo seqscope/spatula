@@ -46,7 +46,10 @@ int32_t cmdDGE2SDGE(int32_t argc, char** argv) {
     error("Missing required options --bcd, --ftr, --mtx --out");
   }
 
-  if ( n_mtx_cols < mtxfs.size() ) {
+  if ( n_mtx_cols == 0 ) {
+    n_mtx_cols = (int32_t)mtxfs.size();
+  }
+  else if ( n_mtx_cols < mtxfs.size() ) {
     error("n-mtx-cols : %d must be equal of larger than the number of mtx files : %zu", n_mtx_cols, mtxfs.size());
   }
 
