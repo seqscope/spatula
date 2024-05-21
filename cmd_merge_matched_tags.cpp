@@ -337,6 +337,8 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
     error("Cannot remove %s", (outdir + "/.tmp.reads.mtx").c_str());
   if ( remove((outdir + "/.tmp.umis.mtx").c_str()) != 0 )
     error("Cannot remove %s", (outdir + "/.tmp.umis.mtx").c_str());  
+  if ( remove((outdir + "/.tmp.pixels.mtx").c_str()) != 0 )
+    error("Cannot remove %s", (outdir + "/.tmp.pixels.mtx").c_str());  
 
   notice("Analysis finished");
   
