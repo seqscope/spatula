@@ -108,6 +108,20 @@ void seq_revcomp(char *seq, int32_t l)
     seq[l >> 1] = comp_tab[(int)seq[l >> 1]];
 }
 
+// reverse the sequence without taking complement (useful for quality strings)
+void seq_revonly(char *seq, int32_t l)
+{
+  int32_t i;
+  char c0, c1;
+  for (i = 0; i < l >> 1; ++i)
+  { // reverse the characters
+    c0 = seq[i];
+    c1 = seq[l - 1 - i];
+    seq[i] = c1;
+    seq[l - 1 - i] = c0;
+  }
+}
+
 // count the number of mismatches compared to IUPAC pattern
 int32_t seq_iupac_mismatch(const char *seq, const char *pattern, int32_t len)
 {
