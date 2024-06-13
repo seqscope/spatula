@@ -127,14 +127,15 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
       hprintf(wf1, "%s\n", name1.s);
       hprintf(wf2, "%s\n", name2.s);
 
+      str2.s[lenR2] = '\0';
+      if ( revcomp_R2 ) seq_revcomp(str2.s, lenR2);
+
       // write modified sequence reads
       strncpy(buf1, str1.s + skipSBCD, lenSBCD);
       strncpy(buf1 + lenSBCD, str2.s, lenUMI);
       buf1[lenSBCD+lenUMI] = '\0';
-      str2.s[lenR2] = '\0';
 
       if ( revcomp_R1 ) seq_revcomp(buf1, lenSBCD+lenUMI);
-      if ( revcomp_R2 ) seq_revcomp(str2.s, lenR2);
 
       hprintf(wf1,"%s\n", buf1);
       hprintf(wf2,"%s\n", str2.s);
@@ -158,13 +159,14 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
     if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
     if ( !skip ) {
+      if ( revcomp_R2 ) seq_revonly(str2.s, lenR2);
+      str2.s[lenR2] = '\0';
+      
       strncpy(buf1, str1.s + skipSBCD, lenSBCD);
       strncpy(buf1 + lenSBCD, str2.s, lenUMI);
       buf1[lenSBCD+lenUMI] = '\0';
-      str2.s[lenR2] = '\0';
 
       if ( revcomp_R1 ) seq_revonly(buf1, lenSBCD+lenUMI);
-      if ( revcomp_R2 ) seq_revonly(str2.s, lenR2);
 
       hprintf(wf1,"%s\n", buf1);
       hprintf(wf2,"%s\n", str2.s);
