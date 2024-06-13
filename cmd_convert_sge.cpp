@@ -20,9 +20,11 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
 {
     // core input files
     std::string in_sgedir;
-    std::string outdir;
-    bool out_sge = false;
-    bool out_tsv = false;
+    //std::string outdir;
+    std::string out_sgedir;
+    std::string out_tsvdir;
+    //bool out_sge = false;
+    //bool out_tsv = false;
     std::string posf;   // external position files
 
     // SGE and TSV file names
@@ -76,9 +78,8 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Key Input/Output Options", NULL)
     LONG_STRING_PARAM("in-sge", &in_sgedir, "Input SGE directory")
-    LONG_STRING_PARAM("out-dir", &outdir, "Output directory")
-    LONG_PARAM("out-sge", &out_sge, "Generate SGE output")
-    LONG_PARAM("out-tsv", &out_tsv, "Generate TSV output")
+    LONG_STRING_PARAM("out-sge", &out_sgedir, "Path of SGE output directory")
+    LONG_STRING_PARAM("out-tsv", &out_tsvdir, "Path of TSV output directory")
 
     LONG_PARAM_GROUP("File names for SGE/TSV input/output", NULL)
     LONG_STRING_PARAM("sge-bcd", &sge_bcdf, "Barcode file name in SGE directory")
@@ -129,22 +130,39 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     pl.Read(argc, argv);
     pl.Status();
 
-    if ( in_sgedir.empty() && outdir.empty() )
+    if ( in_sgedir.empty() || ( out_tsvdir.empty() && out_sgedir.empty() ) )
         error("Input/output directory --in-sge and --out-dir must be specified");
 
-    if ( !( out_sge || out_tsv ) )
-        error("At least one of --out-sge or --out-tsv must specified");
+    if ( out_sgedir.empty() && out_tsvdir.empty() )
+        error("At least one of --out-sge or --out-tsv must be specified");
 
+    // strip the trailing slash
+    if ( ( !in_sgedir.empty() ) && ( in_sgedir.back() == '/' ) )
+        in_sgedir.pop_back();
 
-    // remove trailing slash if exists
-    if ( outdir[outdir.size()-1] == '/' )
-        outdir = outdir.substr(0, outdir.size()-1);
+    if ( ( !out_sgedir.empty()) && ( out_sgedir.back() == '/' ) )
+        out_sgedir.pop_back();
 
-    if ( out_sge ) { // create sge directory
-        makePath((outdir + "/" + sgedir).c_str());
+    if ( ( !out_tsvdir.empty() ) && ( out_tsvdir.back() == '/' ) )
+        out_tsvdir.pop_back();
+
+    if ( !out_sgedir.empty() ) { // create sge directory
+        if ( isDirExist(out_sgedir) ) {
+            notice("Output directory %s already exists.", out_sgedir.c_str());
+        }
+        else {   
+            notice("Creating the directory %s....", out_sgedir.c_str());
+            makePath(out_sgedir);
+        }
     }
-    if ( out_tsv ) { // create tsv directory
-        makePath((outdir + "/" + tsvdir).c_str());
+    if ( !out_tsvdir.empty() ) {   // create tsv directory
+        if ( isDirExist(out_tsvdir) ) {
+            notice("Output directory %s already exists.", out_tsvdir.c_str());
+        }
+        else {   
+            notice("Creating the directory %s....", out_tsvdir.c_str());
+            makePath(out_tsvdir);
+        }
     }
 
     notice("Analysis started");
@@ -271,8 +289,9 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
             {
                 for (int32_t i = 0; i < it->second.size(); ++i)
                 {
-                    notice("Feature name %s is not unique. Resolving the conflict by appending the feature ID %s", it->first.c_str(), ftr_ids[it->second[i]].c_str());
-                    ftr_names[it->second[i]] = ftr_names[it->second[i]] + "_" + ftr_ids[it->second[i]];
+                    notice("Feature name %s (ID : %s) is not unique. Resolving the conflict by appending the suffix v%d", it->first.c_str(), ftr_ids[it->second[i]].c_str(), i + 1);
+                    ftr_names[it->second[i]] = ftr_names[it->second[i]] + "_v" + std::to_string(i + 1);
+                    //ftr_names[it->second[i]] = ftr_names[it->second[i]] + "_" + ftr_ids[it->second[i]];
                 }
             }
         }
@@ -298,15 +317,15 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     ssr.icol_ftr_name = in_icol_ftr_name - 1;
     ssr.open((in_sgedir + "/" + sge_bcdf).c_str(), (in_sgedir + "/" + sge_ftrf).c_str(), (in_sgedir + "/" + sge_mtxf).c_str());
 
-    htsFile* wh_tsv = out_tsv ? hts_open((outdir + "/" + tsvdir + "/" + tsv_mtxf).c_str(), "wz") : NULL;
-    if ( ( out_tsv ) && ( wh_tsv == NULL ) ) 
-        error("Failed to open %s/%s/%s for writing", outdir.c_str(), tsvdir.c_str(), tsv_mtxf.c_str());
+    htsFile* wh_tsv = out_tsvdir.empty() ? NULL : hts_open((out_tsvdir + "/" + tsv_mtxf).c_str(), "wz");
+    if ( ( !out_tsvdir.empty() ) && ( wh_tsv == NULL ) ) 
+        error("Failed to open %s/%s/ for writing", out_tsvdir.c_str(), tsv_mtxf.c_str());
     
     sge2_stream_writer* pssw = NULL;
-    if ( out_sge ) {
-        pssw = new sge2_stream_writer((outdir + "/" + sgedir + "/" + sge_bcdf).c_str(), 
-            (outdir + "/" + sgedir + "/" + sge_ftrf).c_str(), 
-            (outdir + "/" + sgedir + "/" + sge_mtxf).c_str());
+    if ( !out_sgedir.empty() ) {
+        pssw = new sge2_stream_writer((out_sgedir + "/" + sge_bcdf).c_str(), 
+            (out_sgedir + "/" + sge_ftrf).c_str(), 
+            (out_sgedir + "/" + sge_mtxf).c_str());
     }
 
     // print the header
@@ -344,7 +363,7 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
             xmin = xmin < um_x ? xmin : um_x;
             ymin = ymin < um_y ? ymin : um_y;
 
-            if ( out_sge ) {
+            if ( pssw != NULL ) {
                 pssw->add_sbcd(ssr.cur_sbcd.strid.c_str(), um_x, um_y);
             }
         }
@@ -362,6 +381,9 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
 
                 // print the count information
                 //hprintf(wh_tsv, "\t%llu\n", ssr.cur_cnts[in_icol_mtx-1]);
+                if ( n_colnames > ssr.cur_cnts.size() )
+                    error("Number of columns in the count %d file is less than the number of columns in the matrix file %zu", n_colnames, ssr.cur_cnts.size());
+
                 for (int32_t i = 0; i < n_colnames; ++i)
                 {
                     hprintf(wh_tsv, "\t%llu", ssr.cur_cnts[v_icols_mtx[i]]);
@@ -374,7 +396,7 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
         {
             ftr_cnts[ssr.cur_iftr-1][i] += ssr.cur_cnts[v_icols_mtx[i]];
         }
-        if ( out_sge ) {
+        if ( pssw != NULL) {
             pssw->add_mtx(ssr.cur_iftr, ssr.cur_cnts, v_icols_mtx);
         }
         ++nlines;
@@ -383,10 +405,10 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
         hts_close(wh_tsv);
     }
 
-    if ( out_tsv ) {
-        htsFile* wh_ftr = hts_open((outdir + "/" + tsvdir + "/" + tsv_ftrf).c_str(), "wz");
+    if ( !out_tsvdir.empty() ) {
+        htsFile* wh_ftr = hts_open((out_tsvdir + "/" + tsv_ftrf).c_str(), "wz");
         if ( wh_ftr == NULL )
-            error("Failed to open %s/%s/%s for writing", outdir.c_str(), tsvdir.c_str(), tsv_ftrf.c_str());
+            error("Failed to open %s/%s for writing", out_tsvdir.c_str(), tsv_ftrf.c_str());
 
         hprintf(wh_ftr, "%s\t%s", colname_gene_name.c_str(), colname_gene_id.c_str());
         for (int32_t i = 0; i < n_colnames; ++i)
@@ -416,16 +438,16 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
         }
         hts_close(wh_ftr);
 
-        htsFile* wh_minmax = hts_open((outdir + "/" + tsvdir + "/" + tsv_minmaxf).c_str(), "w");
+        htsFile* wh_minmax = hts_open((out_tsvdir + "/" + tsv_minmaxf).c_str(), "w");
         if ( wh_minmax == NULL )
-            error("Failed to open %s/%s/%s for writing", outdir.c_str(), tsvdir.c_str(), tsv_minmaxf.c_str());
+            error("Failed to open %s/%s for writing", out_tsvdir.c_str(), tsv_minmaxf.c_str());
         hprintf(wh_minmax, "xmin\t%.*f\n", precision_um, xmin);
         hprintf(wh_minmax, "xmax\t%.*f\n", precision_um, xmax);
         hprintf(wh_minmax, "ymin\t%.*f\n", precision_um, ymin);
         hprintf(wh_minmax, "ymax\t%.*f\n", precision_um, ymax);
         hts_close(wh_minmax);
     }
-    if ( out_sge ) {
+    if ( pssw != NULL) {
         int32_t nftrs = ssr.load_features();
         pssw->ftr_cnts.resize(nftrs);
         for (int32_t j = 0; j < nftrs; ++j)
