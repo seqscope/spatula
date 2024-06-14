@@ -55,12 +55,25 @@ public:
     }
     uint64_t new_bcd = bcd_seq ? seq2nt5(bcd_seq, nt5_bcd_len) : UINT64_MAX;
     uint64_t new_umi = umi_seq ? seq2nt5(umi_seq, nt5_umi_len) : UINT64_MAX;
+
     bool ret = ((nt5_bcds[ibatch] != new_bcd) || (int_tags[ibatch] != int_tag) || (nt5_umis[ibatch] != new_umi));
+
+    //if ( strcmp(bcd_seq, "AAAAAAGACAAAATAAAAAGGGGCACC") == 0 ) {
+    // if ( strcmp(bcd_seq, "AAAAAACTACGGACGCAGGAGGAAGAG") == 0 ) {
+    //   notice("*******************************************************");
+    //   notice("**** %d %s %d %s", ibatch, bcd_seq, int_tag, umi_seq);
+    //   notice("**** %llu %llu", nt5_bcds[ibatch], new_bcd);
+    //   notice("**** %d %d", int_tags[ibatch], int_tag);
+    //   notice("**** %llu %llu", nt5_umis[ibatch], new_umi);
+    //   notice("**** ret = %d", ret);
+    // }
+
     if ( ret ) { // if anything was changed, update.
       nt5_bcds[ibatch] = new_bcd; 
       int_tags[ibatch] = int_tag;
       nt5_umis[ibatch] = new_umi;
     }
+
     return ret;
   }
 
@@ -75,10 +88,10 @@ public:
       if ( nt5_bcds[i] < min_bcd ) { // update min_bcd
         min_bcd = nt5_bcds[i];
         imin_bcds.clear();
-        imin_bcds.push_back(i);
+        imin_bcds.push_back(i); // imin_bcds only contains a single entry
       }
       else if ( nt5_bcds[i] == min_bcd ) { // ties
-        imin_bcds.push_back(i);
+        imin_bcds.push_back(i); // imin_bcds contains multiple entries that have ties
       }
     }
     bcd_updated = old_bcd != min_bcd;
@@ -89,17 +102,17 @@ public:
   bool update_imin_tags() {
     int32_t old_tag = min_tag;
     // assuming imin_bcds were identified, identy minimum tags
-    min_tag = int_tags[imin_bcds[0]];
+    min_tag = int_tags[imin_bcds[0]]; // starts with the tag that has minimum barcodes
     imin_tags.clear();
     imin_tags.push_back(imin_bcds[0]);
-    for(int32_t i=1; i < (int32_t)imin_bcds.size(); ++i) {
+    for(int32_t i=1; i < (int32_t)imin_bcds.size(); ++i) { // iterate only among minimum barcodes
       if ( int_tags[imin_bcds[i]] < min_tag ) { // update min_tag
         min_tag = int_tags[imin_bcds[i]];
         imin_tags.clear();
-        imin_tags.push_back(imin_bcds[i]);
+        imin_tags.push_back(imin_bcds[i]); // imin_tags only contains a single entry
       }
-      else if ( int_tags[imin_bcds[i]] < min_tag ) {
-        imin_tags.push_back(imin_bcds[i]);        
+      else if ( int_tags[imin_bcds[i]] == min_tag ) {
+        imin_tags.push_back(imin_bcds[i]); // imin_tags contains multiple entries that have ties     
       }
     }
     tag_updated = old_tag != min_tag;
@@ -110,16 +123,16 @@ public:
   bool update_imin_umis() {
     uint64_t old_umi = min_umi;
     // assuming imin_bcds were identified, identy minimum umis
-    min_umi = nt5_umis[imin_tags[0]];
+    min_umi = nt5_umis[imin_tags[0]]; // starts with the umi that has minimum tags
     imin_umis.clear();
     imin_umis.push_back(imin_tags[0]);
-    for(int32_t i=1; i < (int32_t)imin_tags.size(); ++i) {
+    for(int32_t i=1; i < (int32_t)imin_tags.size(); ++i) { // iterate only among minimum tags
       if ( nt5_umis[imin_tags[i]] < min_umi ) { // update min_tag
         min_umi = nt5_umis[imin_tags[i]];
         imin_umis.clear();
         imin_umis.push_back(imin_tags[i]);
       }
-      else if ( nt5_umis[imin_tags[i]] < min_umi ) {
+      else if ( nt5_umis[imin_tags[i]] == min_umi ) {
         imin_umis.push_back(imin_tags[i]);  
       }
     }
@@ -200,17 +213,36 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
   htsFile* wftr = hts_open((outdir + "/features.tsv.gz").c_str(), "wz");
   htsFile* wread = hts_open((outdir + "/.tmp.reads.mtx").c_str(), "w");
   htsFile* wumi = hts_open((outdir + "/.tmp.umis.mtx").c_str(), "w");  
+  htsFile* wpix = hts_open((outdir + "/.tmp.pixels.mtx").c_str(), "w");  
 
   for(int32_t i=0; i < (int32_t)tag_ids.size(); ++i) {
     hprintf(wftr, "%s\t%s\tAntibody_Tag\n", tag_ids[i].c_str(), tag_names[i].c_str());
   }
   hts_close(wftr);
 
-  int32_t nreads = 0, numis = 0;
+  int32_t nreads = 0, numis = 0, prev_min_tag = -1;
   bool updated = false;
   uint64_t ibcd = 0, ilines = 0;
   char bcd_seq[255], umi_seq[255];
+  uint64_t nloop = 0;
   while ( btus.update_imins() ) { // keep reading as long as EOF has not reached yet
+    // if either barcode or tag was updated, there are no UMI ties, and should be written
+    if ( ibcd > 0 ) {
+      // if ( ibcd <= 20 ) {
+      //   notice("---- %llu %d %lld %d %d %d %d %d", nloop, btus.min_tag + 1, ibcd, nreads, numis, btus.bcd_updated, btus.tag_updated, btus.umi_updated);
+      // }
+      if (!btus.bcd_updated && !btus.tag_updated) { // only UMI were updated. Do not write yet
+        ++numis;
+      }
+      else {
+        hprintf(wread, "%d %lld %d\n", prev_min_tag + 1, ibcd, nreads);
+        hprintf(wumi, "%d %lld %d\n", prev_min_tag + 1, ibcd, numis+1);      
+        hprintf(wpix, "%d %lld 1\n", prev_min_tag + 1, ibcd);      
+        ++ilines;
+        nreads = numis = 0;
+      }
+    }
+
     // keep reading ties
     for(int32_t i=0; i < (int32_t)btus.imin_umis.size(); ++i) {
       int32_t j = btus.imin_umis[i];
@@ -226,55 +258,87 @@ int32_t cmdMergeMatchedTags(int32_t argc, char** argv) {
         }
       }      
       updated = false;
-      while ( !updated ) {
+      while ( !updated ) { // keep reading until the entry is updated
         ++nreads;
-        if ( batch_trs[j]->read_line() ) {
+        if ( ( batch_trs[j]->nfields > 0 ) && ( batch_trs[j]->read_line() ) ) {
+        //if ( batch_trs[j]->read_line() ) { // if the batch has remaining lines
           updated = btus.set_entry(j, batch_trs[j]->str_field_at(0), batch_trs[j]->int_field_at(1), batch_trs[j]->str_field_at(2));
         }
         else {
           updated = btus.set_entry(j, NULL, INT32_MAX, NULL);
         }
+        // if ( ibcd <= 20 ) {
+        //   notice("==== %llu %lld %d %d %d %d %zu", nloop, ibcd, i, j, nreads, numis, btus.imin_umis.size());
+        // }
       }
     }
-    // if either barcode or tag was updated, there are no UMI ties, and should be written
-    if (!btus.bcd_updated && !btus.tag_updated) { // only UMI were updated. Do not write yet
-      ++numis;
-    }
-    else {
-      hprintf(wread, "%d %lld %d\n", btus.min_tag + 1, ibcd, nreads);
-      hprintf(wumi, "%d %lld %d\n", btus.min_tag + 1, ibcd, numis+1);      
-      ++ilines;
-      nreads = numis = 0;
-    }
+
+    // if ( ibcd <= 20 ) {
+    //   notice("---- %llu %d %lld %d %d %d %d %d", nloop, btus.min_tag + 1, ibcd, nreads, numis, btus.bcd_updated, btus.tag_updated, btus.umi_updated);
+    // }
+    prev_min_tag = btus.min_tag;
+    // if (!btus.bcd_updated && !btus.tag_updated) { // only UMI were updated. Do not write yet
+    //   ++numis;
+    // }
+    // else {
+    //   hprintf(wread, "%d %lld %d\n", btus.min_tag + 1, ibcd, nreads);
+    //   hprintf(wumi, "%d %lld %d\n", btus.min_tag + 1, ibcd, numis+1);      
+    //   ++ilines;
+    //   nreads = numis = 0;
+    // }
+
+    ++nloop;
   }
+  if ( ibcd < UINT64_MAX ) {
+    hprintf(wread, "%d %lld %d\n", prev_min_tag + 1, ibcd, nreads);
+    hprintf(wumi, "%d %lld %d\n", prev_min_tag + 1, ibcd, numis+1); 
+    hprintf(wpix, "%d %lld 1\n", prev_min_tag + 1, ibcd); 
+  }
+
   hts_close(wread);
   hts_close(wumi);  
+  hts_close(wpix);
   hts_close(wbcd);
 
   htsFile* whdr = hts_open((outdir + "/.tmp.matrix.hdr").c_str(), "w");
-  hprintf(whdr,"%%MatrixMarket matrix coordinate integer general\n%\n");
+  hprintf(whdr,"%%%%MatrixMarket matrix coordinate integer general\n%%\n");
   hprintf(whdr, "%zu %llu %llu\n", tag_ids.size(), ibcd, ilines);
   hts_close(whdr);
 
   notice("Generating the merged matrix.mtx.gz file");  
+
+  // create reads.mtx.gz
   std::string cmd;
   catprintf(cmd, "cat %s %s | gzip -c > %s", (outdir + "/.tmp.matrix.hdr").c_str(), (outdir + "/.tmp.reads.mtx").c_str(), (outdir + "/reads.mtx.gz").c_str());  
   int32_t ret = system(cmd.c_str()); // run the commnad
   if ( (ret == -1) || (WEXITSTATUS(ret) == 127) ) {
     error("Error in running %s", cmd.c_str());
   }
+
+  // create umis.mtx.gz
   cmd.clear();
   catprintf(cmd, "cat %s %s | gzip -c > %s", (outdir + "/.tmp.matrix.hdr").c_str(), (outdir + "/.tmp.umis.mtx").c_str(), (outdir + "/umis.mtx.gz").c_str());  
   ret = system(cmd.c_str()); // run the commnad
   if ( (ret == -1) || (WEXITSTATUS(ret) == 127) ) {
     error("Error in running %s", cmd.c_str());
   }  
+
+  // create pixels.mtx.gz
+  cmd.clear();
+  catprintf(cmd, "cat %s %s | gzip -c > %s", (outdir + "/.tmp.matrix.hdr").c_str(), (outdir + "/.tmp.pixels.mtx").c_str(), (outdir + "/pixels.mtx.gz").c_str());  
+  ret = system(cmd.c_str()); // run the commnad
+  if ( (ret == -1) || (WEXITSTATUS(ret) == 127) ) {
+    error("Error in running %s", cmd.c_str());
+  }  
+
   if ( remove((outdir + "/.tmp.matrix.hdr").c_str()) != 0 )
     error("Cannot remove %s", (outdir + "/.tmp.matrix.hdr").c_str());
   if ( remove((outdir + "/.tmp.reads.mtx").c_str()) != 0 )
     error("Cannot remove %s", (outdir + "/.tmp.reads.mtx").c_str());
   if ( remove((outdir + "/.tmp.umis.mtx").c_str()) != 0 )
     error("Cannot remove %s", (outdir + "/.tmp.umis.mtx").c_str());  
+  if ( remove((outdir + "/.tmp.pixels.mtx").c_str()) != 0 )
+    error("Cannot remove %s", (outdir + "/.tmp.pixels.mtx").c_str());  
 
   notice("Analysis finished");
   

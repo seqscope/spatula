@@ -2,7 +2,7 @@
 #include "qgenlib/dataframe.h"
 #include "qgenlib/tsv_reader.h"
 #include "qgenlib/qgen_error.h"
-#include "sge.h"
+#include "tiles.h"
 #include "seq_utils.h"
 #include "file_utils.h"
 #include <ctime>
@@ -85,6 +85,29 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
         error("Only one option should be set between --layout and --offset");
     }
 
+    // read the layout/offset file first to determine valid IDs
+    std::set<std::string> valid_ids;
+    {
+        dataframe_t any_df(layoutf.empty() ? offsetf.c_str() : layoutf.c_str());     // open the layout/offset file
+        int32_t i_id = any_df.get_colidx("id");
+        int32_t i_lane = any_df.get_colidx("lane");
+        int32_t i_tile = any_df.get_colidx("tile");
+        if ( i_id < 0 && ( i_lane < 0 || i_tile < 0 ) ) {
+            error("[id] or [lane]/[tile] column is required in the layout file %s", layoutf.c_str());
+        }
+        for (int32_t i = 0; i < any_df.nrows; ++i)
+        {
+            if ( i_id >= 0 ) {
+                valid_ids.insert(any_df.get_str_elem(i, i_id));
+            }
+            else {
+                char buf_id[255];
+                snprintf(buf_id, 255, "%d_%d", any_df.get_int_elem(i, i_lane), any_df.get_int_elem(i, i_tile));
+                valid_ids.insert(buf_id);
+            }
+        }
+    }
+
     dataframe_t manifest_df(manifestf.c_str()); // open the manifest file
 
     // layout file is expected to have [lane] [tile] [row] [col], and optionally [rowshift] [colshift]
@@ -107,33 +130,39 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     for (int32_t i = 0; i < manifest_df.nrows; ++i)
     {
         std::string sid(manifest_df.get_str_elem(i, 0));
-        snprintf(buf_filepath, 65535, "%s/%s", sbcddir.c_str(), manifest_df.get_str_elem(i, 1).c_str());
-        uint64_t xmin = manifest_df.get_uint64_elem(i, i_xmin);
-        uint64_t xmax = manifest_df.get_uint64_elem(i, i_xmax);
-        uint64_t ymin = manifest_df.get_uint64_elem(i, i_ymin);
-        uint64_t ymax = manifest_df.get_uint64_elem(i, i_ymax);
-        if (xmax - xmin + 1 > max_xdiff)
-            max_xdiff = xmax - xmin + 1;
-        if (ymax - ymin + 1 > max_ydiff)
-            max_ydiff = ymax - ymin + 1;
-        if (xmax - xmin + 1 < min_xdiff)
-            min_xdiff = xmax - xmin + 1;
-        if (ymax - ymin + 1 < min_ydiff)
-            min_ydiff = ymax - ymin + 1;
+        if ( valid_ids.find(sid) != valid_ids.end() ) { // valid ID found
+            snprintf(buf_filepath, 65535, "%s/%s", sbcddir.c_str(), manifest_df.get_str_elem(i, 1).c_str());
+            uint64_t xmin = manifest_df.get_uint64_elem(i, i_xmin);
+            uint64_t xmax = manifest_df.get_uint64_elem(i, i_xmax);
+            uint64_t ymin = manifest_df.get_uint64_elem(i, i_ymin);
+            uint64_t ymax = manifest_df.get_uint64_elem(i, i_ymax);
+            if (xmax - xmin + 1 > max_xdiff)
+                max_xdiff = xmax - xmin + 1;
+            if (ymax - ymin + 1 > max_ydiff)
+                max_ydiff = ymax - ymin + 1;
+            if (xmax - xmin + 1 < min_xdiff)
+                min_xdiff = xmax - xmin + 1;
+            if (ymax - ymin + 1 < min_ydiff)
+                min_ydiff = ymax - ymin + 1;
 
-        // set attribute for the tile
-        if ( tile_info_map.find(sid) == tile_info_map.end() ) {
-            tile_info_t* pti = new tile_info_t;
-            pti->xmin = xmin;
-            pti->xmax = xmax;
-            pti->ymin = ymin;
-            pti->ymax = ymax;
-            pti->sbcdf = buf_filepath;
-            tile_info_map[sid] = pti;
+            // set attribute for the tile
+            if ( tile_info_map.find(sid) == tile_info_map.end() ) {
+                tile_info_t* pti = new tile_info_t;
+                pti->xmin = xmin;
+                pti->xmax = xmax;
+                pti->ymin = ymin;
+                pti->ymax = ymax;
+                pti->sbcdf = buf_filepath;
+                tile_info_map[sid] = pti;
+            }
+            else {
+                error("Duplicate lane_tile %s exists in the manifest file %s", buf_id, manifestf.c_str());
+            }
         }
-        else {
-            error("Duplicate lane_tile %s exists in the manifest file %s", buf_id, manifestf.c_str());
-        }
+    }
+
+    if ( tile_info_map.empty() ) {
+        error("No overlapping tiles are found between the layout/offset file and manifest file");
     }
 
     // add a column to indicate the full path
@@ -142,7 +171,6 @@ int32_t cmdCombineSBCD(int32_t argc, char **argv)
     for(int32_t i=0; i < manifest_df.nrows; ++i) {
         manifest_df.set_str_elem((sbcddir + "/" + manifest_df.get_str_elem(i, jcol)).c_str(), i, icol);
     }
-
 
     notice("Finished reading the manifest file across %d tiles", manifest_df.nrows);
     notice("max_xdiff = %llu, min_xdiff = %llu, difference = %llu", max_xdiff, min_xdiff, max_xdiff-min_xdiff);

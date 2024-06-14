@@ -20,6 +20,8 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
   int32_t lenSBCD = 30;  // length of spatial barcode
   int32_t lenUMI = 9;  // length of UMI barcode in R2 (copied into R1)
   int32_t lenR2 = 101; // length of Read 2 after trimming.
+  bool revcomp_R1 = false; // reverse complement read 1
+  bool revcomp_R2 = false; // reverse complement read 2
   std::string suffixR1(".R1.fasta.gz"); // suffix for read 1
   std::string suffixR2(".R2.fasta.gz"); // suffix for read 2
   std::vector<std::string> matchTsvs;  // restrict to the matched spatial barcode
@@ -42,6 +44,8 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     LONG_INT_PARAM("len-sbcd", &lenSBCD, "Length of spatial barcode (Read 1)")
     LONG_INT_PARAM("len-umi", &lenUMI, "Length of UMI or randomer (Read 2)")
     LONG_INT_PARAM("len-r2", &lenR2, "Length of Read 2 to trim (including randomers)")    
+    LONG_PARAM("revcomp-r1", &revcomp_R1, "Reverse complement Read 1")
+    LONG_PARAM("revcomp-r2", &revcomp_R2, "Reverse complement Read 2")
   END_LONG_PARAMS();
 
   pl.Add(new longParams("Available Options", longParameters));
@@ -123,11 +127,16 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
       hprintf(wf1, "%s\n", name1.s);
       hprintf(wf2, "%s\n", name2.s);
 
+      str2.s[lenR2] = '\0';
+      if ( revcomp_R2 ) seq_revcomp(str2.s, lenR2);
+
       // write modified sequence reads
       strncpy(buf1, str1.s + skipSBCD, lenSBCD);
       strncpy(buf1 + lenSBCD, str2.s, lenUMI);
       buf1[lenSBCD+lenUMI] = '\0';
-      str2.s[lenR2] = '\0';
+
+      if ( revcomp_R1 ) seq_revcomp(buf1, lenSBCD+lenUMI);
+
       hprintf(wf1,"%s\n", buf1);
       hprintf(wf2,"%s\n", str2.s);
     }
@@ -150,10 +159,15 @@ int32_t cmdReformatFASTQs(int32_t argc, char** argv) {
     lstr2 = hts_getline(hf2, KS_SEP_LINE, &str2);
     if ( lstr2 == 0 ) error("Unexpected EOF in FASTQ file %s", out2f.c_str());
     if ( !skip ) {
+      if ( revcomp_R2 ) seq_revonly(str2.s, lenR2);
+      str2.s[lenR2] = '\0';
+      
       strncpy(buf1, str1.s + skipSBCD, lenSBCD);
       strncpy(buf1 + lenSBCD, str2.s, lenUMI);
       buf1[lenSBCD+lenUMI] = '\0';
-      str2.s[lenR2] = '\0';
+
+      if ( revcomp_R1 ) seq_revonly(buf1, lenSBCD+lenUMI);
+
       hprintf(wf1,"%s\n", buf1);
       hprintf(wf2,"%s\n", str2.s);
     }

@@ -49,3 +49,5 @@ htslib
 bin
 
 .DS_Store
+site/
+site/*
