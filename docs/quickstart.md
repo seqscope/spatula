@@ -2,25 +2,25 @@
 
 ## Installing spatula
 
-Before installing `spatula`, you need to install
-[htslib](https://github.com/samtools/htslib) and 
-[qgenlib](https://github.com/hyunminkang/qgenlib) 
-in the **same directory** you
-want to install `spatula` (i.e. `spatula`, `qgenlib`, and `htslib` should be
-siblings directories). You also need [cmake](https://cmake.org/) installed in your system.
-
-After installing `htslib` and `qgenlib`, you can clone the current snapshot of this repository to install as well
+Please follow the instruction below to install `spatula`
 
 ```sh
-$ git clone https://github.com/seqscope/spatula.git
-$ cd spatula
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
+git clone --recursive https://github.com/seqscope/spatula.git
+cd spatula
+cd submodules
+sh -x build.sh
+cd ..
+mkdir build
+cmake ..
+make
+```
 
-## List the available tools
-$ ../bin/spatula --help
+## List available tools
+
+To list the available tools, run the following command:
+
+```sh
+../bin/spatula --help
 ```
 
 If you encounter any difficulties, see [Install](install.md) for more details.

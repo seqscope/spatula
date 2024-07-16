@@ -11,3 +11,26 @@ These tools are under active development, so they may change frequently.
 
 A detailed documentation, including installation guide and description of individual tools, can be found at 
 [https://seqscope.github.io/spatula/](https://seqscope.github.io/spatula/)
+
+## Installation
+
+You can install `spatula` by following the instructions below:
+
+```bash
+## clone the repository
+git clone --recursive https://github.com/seqscope/spatula.git
+cd spatula
+
+## build the submodules
+cd submodules
+sh -x build.sh
+cd ..
+
+## build spatula
+mkdir build
+cmake ..
+make
+
+## list available package
+../bin/spatula --help
+```
