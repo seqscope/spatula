@@ -419,6 +419,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#list-available-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      List available tools
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1015,6 +1024,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#list-available-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      List available tools
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1035,22 +1053,19 @@
 
 <h1 id="quickstart-for-spatula">Quickstart for spatula<a class="headerlink" href="#quickstart-for-spatula" title="Permanent link">&para;</a></h1>
 <h2 id="installing-spatula">Installing spatula<a class="headerlink" href="#installing-spatula" title="Permanent link">&para;</a></h2>
-<p>Before installing <code>spatula</code>, you need to install
-<a href="https://github.com/samtools/htslib">htslib</a> and 
-<a href="https://github.com/hyunminkang/qgenlib">qgenlib</a> 
-in the <strong>same directory</strong> you
-want to install <code>spatula</code> (i.e. <code>spatula</code>, <code>qgenlib</code>, and <code>htslib</code> should be
-siblings directories). You also need <a href="https://cmake.org/">cmake</a> installed in your system.</p>
-<p>After installing <code>htslib</code> and <code>qgenlib</code>, you can clone the current snapshot of this repository to install as well</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/seqscope/spatula.git
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>spatula
-$<span class="w"> </span>mkdir<span class="w"> </span>build
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
-$<span class="w"> </span>cmake<span class="w"> </span>..
-$<span class="w"> </span>make
-
-<span class="c1">## List the available tools</span>
-$<span class="w"> </span>../bin/spatula<span class="w"> </span>--help
+<p>Please follow the instruction below to install <code>spatula</code></p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>--recursive<span class="w"> </span>https://github.com/seqscope/spatula.git
+<span class="nb">cd</span><span class="w"> </span>spatula
+<span class="nb">cd</span><span class="w"> </span>submodules
+sh<span class="w"> </span>-x<span class="w"> </span>build.sh
+<span class="nb">cd</span><span class="w"> </span>..
+mkdir<span class="w"> </span>build
+cmake<span class="w"> </span>..
+make
+</code></pre></div>
+<h2 id="list-available-tools">List available tools<a class="headerlink" href="#list-available-tools" title="Permanent link">&para;</a></h2>
+<p>To list the available tools, run the following command:</p>
+<div class="highlight"><pre><span></span><code>../bin/spatula<span class="w"> </span>--help
 </code></pre></div>
 <p>If you encounter any difficulties, see <a href="../install/">Install</a> for more details.</p>
 
