@@ -6,28 +6,28 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -std=c++11")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
-find_path(HTS_INCLUDE_DIRS htslib/bgzf.h ../htslib/bgzf.h HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../htslib)
+find_path(HTS_INCLUDE_DIRS htslib/bgzf.h ../htslib/bgzf.h HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/htslib ../htslib)
 if(NOT HTS_INCLUDE_DIRS )
     message(FATAL_ERROR "libhts HTS_INCLUDE_DIRS not found")
 endif()
 
 message(STATUS ${HTS_INCLUDE_DIRS})
 
-find_library(HTS_LIBRARIES libhts.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../htslib/)
+find_library(HTS_LIBRARIES libhts.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/htslib/ ../htslib/)
 if(NOT HTS_LIBRARIES)
     message(FATAL_ERROR "libhts HTS_LIBRARIES not found")
 endif()
 
 message(STATUS ${HTS_LIBRARIES})
 
-find_path(QGEN_INCLUDE_DIRS qgenlib/qgen_error.h  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../qgenlib)
+find_path(QGEN_INCLUDE_DIRS qgenlib/qgen_error.h  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/qgenlib ../qgenlib)
 if(NOT QGEN_INCLUDE_DIRS )
     message(FATAL_ERROR "libqgen QGEN_INCLUDE_DIRS not found")
 endif()
 
 message(STATUS ${QGEN_INCLUDE_DIRS})
 
-find_library(QGEN_LIBRARIES libqgen.a  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../qgenlib/lib/)
+find_library(QGEN_LIBRARIES libqgen.a  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/qgenlib/lib ../qgenlib/lib/)
 if(NOT QGEN_LIBRARIES)
     message(FATAL_ERROR "libqgen QGEN_LIBRARIES not found")
 endif()
