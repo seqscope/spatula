@@ -1,0 +1,6 @@
+[submodule "submodules/htslib"]
+	path = submodules/htslib
+	url = https://github.com/samtools/htslib
+[submodule "hyunminkang/qgenlib"]
+	path = hyunminkang/qgenlib
+	url = https://github.com/hyunminkang/qgenlib
