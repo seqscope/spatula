@@ -1,55 +1,43 @@
 # Installing spatula
 
-## Directory structure
-
-Before installing `spatula`, it is recommended to install
-[htslib](https://github.com/samtools/htslib) and
-[qgenlib](https://github.com/hyunminkang/qgenlib) 
-in the same directory you
-want to install `spatula` (i.e. `spatula`, `qgenlib`, and `htslib` should be
-siblings directories). 
-
-To visualize the directory structure of the installation, it should look like this: 
-
-```sh
-/path/to/install
-|-- htslib
-|   `-- libhts.a
-|-- qgenlib
-|   `-- lib/
-|       `--libqgen.a
-`-- spatula
-```
-
-If you need assistance in installing `htslib` and `qgenlib`, see the documentation of [htslib](https://www.htslib.org/download/) and  [qgenlib](https://hyunminkang.github.io/qgenlib/)
-
 ## Installing spatula
 
-After installing `htslib` and `qgenlib`, you can clone the current snapshot of this repository to install as follows
+Spatula contains `htslib` and `qgenlib` as submodules, so you need to clone the repository recursively to install the required libraries, and build the submodules before building the `spatula` package. An example instruction is given below.
 
 ```sh
+## STEP 1 : CLONE THE REPOSITORY
 ## clone the current snapshot of this repository
-$ git clone https://github.com/seqscope/spatula.git
+git clone --recursive https://github.com/seqscope/spatula.git
 
 ## move to the spatula directory
-$ cd spatula
+cd spatula
 
+## STEP 2 : BUILD THE SUBMODULES
+## move to the submodules directory
+cd submodules
+
+## build the submodules using build.sh script
+sh -x build.sh
+
+## move to the spatula directory
+cd ..
+
+## STEP 3 : BUILD SPATULA
 ## create a build directory
-$ mkdir build
+mkdir build
 
-## move to the build directory
-$ cd build
+## Run cmake to configure the build
+cmake ..
 
-## run cmake to configure the build
-$ cmake ..
+## Build the spatula package
+make
 ```
 
 If `cmake` is not found, you need to install [cmake](https://cmake.org/) in your system.
 
 ## (Optional) Customized specification of the library path
 
-In case any required libraries is missing, you may specify customized installing path by replacing "cmake .." with the following options:
-
+In case any required libraries is missing in `cmake`, you may specify customized installing path by replacing "cmake .." with the following options:
 
 ```sh
 ## If qgenlib is missing or installed in a different directory
@@ -72,14 +60,7 @@ $ cmake -DLZMA_INCLUDE_DIRS=/lzma_absolute_path/include/ \
 ## Other missing libraries can be handled in a similar way.
 ```
 
-## Building the library
-
-Once `cmake` is run successfully without errors, you can build the library by typing:
-
-```sh
-## Current directory: /path/to/install/spatula/build
-$ make
-```
+## Testing spatula
 
 To test whether build was successful, you can run the following command:
 
