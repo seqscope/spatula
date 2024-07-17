@@ -11,6 +11,7 @@ cd submodules
 sh -x build.sh
 cd ..
 mkdir build
+cd build
 cmake ..
 make
 ```

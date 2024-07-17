@@ -28,6 +28,7 @@ cd ..
 
 ## build spatula
 mkdir build
+cd build
 cmake ..
 make
 

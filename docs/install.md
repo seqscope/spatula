@@ -25,6 +25,7 @@ cd ..
 ## STEP 3 : BUILD SPATULA
 ## create a build directory
 mkdir build
+cd build
 
 ## Run cmake to configure the build
 cmake ..
