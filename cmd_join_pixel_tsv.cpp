@@ -255,8 +255,8 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         }
     }
     else {
-        if ( v_mol_icols.size() != v_mol_colnames.size() ) {
-            error("Unrecognized or duplicate columns in --csv-mol-einclude parameter or %s: %s", csv_colnames_include.c_str(), in_mol_tsv.c_str());
+        if ( v_mol_icols.size() != mol_colnames_set.size() ) {
+            error("Unrecognized or duplicate columns in --csv-mol-include parameter or %s: %s", csv_colnames_include.c_str(), in_mol_tsv.c_str());
         }
     }
 
