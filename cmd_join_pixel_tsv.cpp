@@ -294,6 +294,8 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
     notice("Started parsing the input file %s", in_mol_tsv.c_str());
 
     uint64_t n_match = 0, n_mol = 0;
+    double sum_match_dist = 0.0; 
+    
     while( mol_tr.read_line() ) {
         mol_x = mol_tr.double_field_at(idx_mol_x);
         mol_y = mol_tr.double_field_at(idx_mol_y);
@@ -418,10 +420,14 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         ++dist2cnt[hist_key];
 
         ++n_mol;
-        if ( best_ppf ) ++n_match;
+        //if ( best_ppf ) ++n_match;
+        if ( best_dist <= thres_dist ) {
+            sum_match_dist += sqrt(best_dist);
+            ++n_match;
+        }
 
         if ( n_mol % 1000000 == 0 ) {
-            notice("Processed %llu transcripts and identified %llu with matching factors", n_mol, n_match);
+            notice("Processed %llu transcripts and identified %llu with matching factors, with average matching distance of %lf", n_mol, n_match, sum_match_dist / n_match);
         }
     }
     hts_close(wh_tsv);
