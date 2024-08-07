@@ -24,7 +24,8 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     double coord_per_pixel = 1.0; // 1 pixel = 1 coordinate unit
     int32_t width = 0;
     int32_t height = 0;
-    int32_t intensity_per_obs = 1; // intensity per observation
+    int32_t intensity_per_obs = 1;  // intensity per observation
+    int32_t verbose_freq = 1000000; // report frequency of input reading
     std::string outf;
 
     paramList pl;
@@ -61,6 +62,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
 
     tsv_reader tf(tsvf.c_str());
 
+    uint64_t nlines = 0;
     while ( tf.read_line() ) {
         if ( tf.nfields <= icolx || tf.nfields <= icoly )
             error("Input file %s does not have enough columns - only %d", tsvf.c_str(), tf.nfields);
@@ -101,6 +103,12 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
             imbufs[ix][iy] += (uint8_t)intensity_per_obs;
         else
             imbufs[ix][iy] = 255;    
+
+	++nlines;
+
+	if ( nlines % verbose_freq == 0 ) {
+	    notice("Reading %llu input lines... max_y = %d, cur_height = %d", nlines, max_y, cur_height);
+	}
     }
 
     if ( width == 0 ) {
@@ -112,6 +120,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
         notice("Setting the height = %d", height);
     }
 
+    notice("Creating an image in memory");
     cimg_library::CImg<unsigned char> image(width, height, 1, 3, 0);
     
     for(int32_t ix=0; ix < width; ++ix) {
@@ -132,8 +141,10 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
         }
     }
 
+    notice("Saving the png file to %s", outf.c_str());
     image.save_png(outf.c_str());
 
+    notice("Freeing up the memory..");
     for(int32_t ix=0; ix < width; ++ix) {
         if ( imbufs[ix] != NULL ) 
             free(imbufs[ix]);
