@@ -175,7 +175,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         double offset_y = DBL_MAX;
         double scale = DBL_MAX;
         int32_t topk = 0;
-        bool block_axis_checked = false;
+        bool index_axis_checked = false;
         int32_t idx_pix_x = -1, idx_pix_y = -1, idx_pix_k1 = -1, idx_pix_p1 = -1;
         tsv_reader* p_pix_tr = pix_trs[i];
         while( p_pix_tr->read_line() ) {
@@ -191,12 +191,12 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
                         if ( keyvals.size() != 2 ) {
                             error("Cannot parse %s in the meta line in %s", meta_toks[i].c_str(), pix_tsvs[i].c_str());
                         }
-                        if ( keyvals[0].compare("BLOCK_AXIS") == 0 ) {
+                        if ( keyvals[0].compare("INDEX_AXIS") == 0 ) {
                             // make sure that the axis is consistent
                             if ( keyvals[1].compare(sort_axis) != 0 ) {
-                                error("BLOCK_AXIS=%s in %s, but sort_axis=%s", keyvals[1].c_str(), pix_tsvs[i].c_str(), sort_axis.c_str());
+                                error("INDEX_AXIS=%s in %s, but sort_axis=%s", keyvals[1].c_str(), pix_tsvs[i].c_str(), sort_axis.c_str());
                             }
-                            block_axis_checked = true;
+                            index_axis_checked = true;
                         }
                         else if ( keyvals[0].compare("OFFSET_X") == 0 ) {
                             offset_x = atof(keyvals[1].c_str());
@@ -251,7 +251,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         if ( scale == DBL_MAX ) error("Cannot find SCALE field in the meta line of %s", pix_tsvs[i].c_str());
         if ( offset_x == DBL_MAX ) error("Cannot find OFFSET_X field in the meta line of %s", pix_tsvs[i].c_str());
         if ( offset_y == DBL_MAX ) error("Cannot find OFFSET_Y field in the meta line of %s", pix_tsvs[i].c_str());
-        if ( !block_axis_checked ) error("Cannot find BLOCK_AXIS field in the meta line of %s", pix_tsvs[i].c_str());
+        if ( !index_axis_checked ) error("Cannot find INDEX_AXIS field in the meta line of %s", pix_tsvs[i].c_str());
         if ( idx_pix_x < 0 ) error("Cannot find %s in the header line of %s", colname_X.c_str(), pix_tsvs[i].c_str());
         if ( idx_pix_y < 0 ) error("Cannot find %s in the header line of %s", colname_Y.c_str(), pix_tsvs[i].c_str());
         if ( idx_pix_k1 < 0 ) error("Cannot find K1 in the header line of %s", pix_tsvs[i].c_str());
