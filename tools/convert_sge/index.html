@@ -1,0 +1,1828 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://seqscope.github.io/spatula/tools/convert_sge/">
+      
+      
+        <link rel="prev" href="../subset_sge/">
+      
+      
+        <link rel="next" href="../join_pixel_tsv/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.11">
+    
+    
+      
+        <title>convert-sge - spatula</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e359304.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#spatula-convert-sge" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="spatula" class="md-header__button md-logo" aria-label="spatula" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            spatula
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              convert-sge
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8v2m9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1 0 1.71-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/seqscope/spatula" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    seqscope/spatula
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../quickstart/" class="md-tabs__link">
+        
+  
+    
+  
+  Quickstart
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../install/" class="md-tabs__link">
+        
+  
+    
+  
+  Install
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+    
+  
+  Tools
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="spatula" class="md-nav__button md-logo" aria-label="spatula" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    spatula
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/seqscope/spatula" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    seqscope/spatula
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quickstart
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Install
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Tools
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Analysis of Spatial Barcodes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Analysis of Spatial Barcodes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_sbcds/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    build-sbcds
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eval_dups_sbcds/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    eval-dups-sbcds
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../combine_sbcds/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    combine-sbcds
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../match_sbcds/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    match-sbcds
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Analysis of Spatial Gene Expression (SGE)
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Analysis of Spatial Gene Expression (SGE)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dge2sge/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dge2sge
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subset_sge/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    subset-sge
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    FICTURE Analysis
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            FICTURE Analysis
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    convert-sge
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    convert-sge
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#converting-seq-scopenovascope-feature-barcode-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Converting Seq-Scope/NovaScope Feature Barcode Matrix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting Seq-Scope/NovaScope Feature Barcode Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Run spatula convert-sge to transform the input files into a generic TSV file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-sort-the-generic-tsv-file-by-a-spatial-coordinate" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Sort the generic TSV file by a spatial coordinate.
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-10x-genomics-visium-hd-feature-barcode-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Converting 10x Genomics Visium HD Feature Barcode Matrix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting 10x Genomics Visium HD Feature Barcode Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-obtain-units-per-um-parameter-from-the-scalefactors_jsonjson-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Obtain units-per-um parameter from the scalefactors_json.json file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-convert-tissue_positionsparquet-into-a-csv-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Convert tissue_positions.parquet into a CSV file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Run spatula convert-sge to transform the input files into a generic TSV file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-sort-the-generic-tsv-file-by-a-spatial-coordinate" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Sort the generic TSV file by a spatial coordinate.
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command line arguments
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command line arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gene-filtering-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gene filtering options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Full Usage
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../join_pixel_tsv/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    join-pixel-tsv
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    FASTQ Processing
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            FASTQ Processing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reformat_fastqs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    reformat-fastqs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom_demux_fastq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    custom-demux-fastq
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Miscellaneous Tools
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_6">
+            <span class="md-nav__icon md-icon"></span>
+            Miscellaneous Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../draw_xy/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    draw-xy
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../draw_3way/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    draw-3way
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../draw_sge/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    draw-sge
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#converting-seq-scopenovascope-feature-barcode-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Converting Seq-Scope/NovaScope Feature Barcode Matrix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting Seq-Scope/NovaScope Feature Barcode Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Run spatula convert-sge to transform the input files into a generic TSV file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-sort-the-generic-tsv-file-by-a-spatial-coordinate" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Sort the generic TSV file by a spatial coordinate.
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-10x-genomics-visium-hd-feature-barcode-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Converting 10x Genomics Visium HD Feature Barcode Matrix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting 10x Genomics Visium HD Feature Barcode Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-obtain-units-per-um-parameter-from-the-scalefactors_jsonjson-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Obtain units-per-um parameter from the scalefactors_json.json file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-convert-tissue_positionsparquet-into-a-csv-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Convert tissue_positions.parquet into a CSV file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Run spatula convert-sge to transform the input files into a generic TSV file.
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-sort-the-generic-tsv-file-by-a-spatial-coordinate" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Sort the generic TSV file by a spatial coordinate.
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command line arguments
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command line arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gene-filtering-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gene filtering options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Full Usage
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="spatula-convert-sge">spatula convert-sge<a class="headerlink" href="#spatula-convert-sge" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p><code>spatula convert-sge</code> convert digital gene expression (DGE) data following the <a href="https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/outputs/cr-outputs-mex-matrices">10x Genomics Cell Ranger Feature Barcode Matrix format</a> into a generic spatial gene expression TSV file format that can be analyzed by <a href="https://github.com/seqscope/ficture">FICTURE</a>. It can also convert spatial gene expression (SGE) data generated by the <a href="https://github.com/seqscope/novascope">NovaScope</a> pipeline into the same generic spatial gene expression TSV file format.</p>
+<p>Here is a summary of the main features:</p>
+<ul>
+<li>Input: Takes (a) <code>barcode.tsv.gz</code> file containing spatial barcodes, (b) <code>features.tsv.gz</code> file containing gene names, and &copy; <code>matrix.mtx.gz</code> file containing the sparsely encoded gene expression matrix following the <a href="https://math.nist.gov/MatrixMarket/formats.html">MatrixMarket</a> format. If the spatial barcodes do not contain the spatial coordinates (e.g. 10x Visium HD), additional barcode position files must be provided separately in CSV format. </li>
+<li>Output: A TSV file containing the spatial gene expression data in the format of <code>gene</code>, <code>barcode</code>, <code>x</code>, <code>y</code>, and <code>count</code>. The spatial coordinates are converted to micrometer scale. Note that the output file is NOT sorted by the spatial coordinates.</li>
+</ul>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="converting-seq-scopenovascope-feature-barcode-matrix">Converting Seq-Scope/NovaScope Feature Barcode Matrix<a class="headerlink" href="#converting-seq-scopenovascope-feature-barcode-matrix" title="Permanent link">&para;</a></h3>
+<p>The standard output from the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11014489/">SeqScope Protocol</a> using the <a href="https://github.com/seqscope/novascope">NovaScope</a> pipeline generates the following set of output files, assuming <code>${SGEDIR}</code> is the directory containing the SGE output from NovaScope. </p>
+<ul>
+<li><code>${SGEDIR}/barcodes.tsv.gz</code> : The barcode file containing the spatial barcodes.</li>
+<li><code>${SGEDIR}/features.tsv.gz</code> : The feature file containing the gene names.</li>
+<li><code>${SGEDIR}/matrix.mtx.gz</code> : The matrix file containing the gene expression matrix in the MatrixMarket format.</li>
+</ul>
+<p>Note that the <code>barcodes.tsv.gz</code> file contains spatial coordinates in their output. For example, in NovaScope 1.0, the X/Y coordinates of each spatial barcode is located in the 6<sup>th</sup> and 7<sup>th</sup> columns in nanometer scale, respectively.</p>
+<p>You may obtain the example output of the NovaScope output at our <a href="https://zenodo.org/records/12773392">Zenodo repository</a>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## Show the first few lines of the barcode file</span>
+$<span class="w"> </span>gzip<span class="w"> </span>-cd<span class="w"> </span><span class="si">${</span><span class="nv">SGEDIR</span><span class="si">}</span>/barcodes.tsv.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+
+AAAAAAAATAGTTCTGCTAGCTGGTAAGCT<span class="w">  </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">7124822</span><span class="w"> </span><span class="m">2906042</span><span class="w"> </span><span class="m">1</span>,1,1,0,0
+AAAAAAAGTGATCAGAGGTGATATTATGCT<span class="w">  </span><span class="m">2</span><span class="w">       </span><span class="m">2</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">7382402</span><span class="w"> </span><span class="m">2717083</span><span class="w"> </span><span class="m">3</span>,3,3,0,0
+AAAAAAAGTTCGCACTATACGAACAGGGAT<span class="w">  </span><span class="m">3</span><span class="w">       </span><span class="m">3</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">8634969</span><span class="w"> </span><span class="m">2839091</span><span class="w"> </span><span class="m">1</span>,1,1,0,0
+AAAAAAGGTACCCGCAGTGCGGACAAACGA<span class="w">  </span><span class="m">4</span><span class="w">       </span><span class="m">4</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">4994894</span><span class="w"> </span><span class="m">2666443</span><span class="w"> </span><span class="m">1</span>,1,1,0,0
+AAAAACGCTCCCCGTTGTGAATGGGGTCGT<span class="w">  </span><span class="m">5</span><span class="w">       </span><span class="m">5</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">8575635</span><span class="w"> </span><span class="m">3991700</span><span class="w"> </span><span class="m">1</span>,1,1,0,0
+AAAAACTCTCAGAAGAGAAAGTAATAGTCG<span class="w">  </span><span class="m">6</span><span class="w">       </span><span class="m">6</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">6747424</span><span class="w"> </span><span class="m">2860446</span><span class="w"> </span><span class="m">1</span>,0,0,0,0
+AAAAAGAGAACCACAGGTAATCCACCTACA<span class="w">  </span><span class="m">7</span><span class="w">       </span><span class="m">7</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">5771532</span><span class="w"> </span><span class="m">3028677</span><span class="w"> </span><span class="m">5</span>,4,3,0,0
+AAAAAGAGGTGAGGGTCGCCTGCATATTAG<span class="w">  </span><span class="m">8</span><span class="w">       </span><span class="m">8</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">6614008</span><span class="w"> </span><span class="m">3251930</span><span class="w"> </span><span class="m">2</span>,2,2,0,0
+AAAAAGGGGTCTAGAGGAGACAATGAAGTG<span class="w">  </span><span class="m">9</span><span class="w">       </span><span class="m">10</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">4634991</span><span class="w"> </span><span class="m">4060530</span><span class="w"> </span><span class="m">2</span>,2,2,0,0
+AAAAATTATGGACGACCTACTTCTCGGTGG<span class="w">  </span><span class="m">10</span><span class="w">      </span><span class="m">15</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">5358763</span><span class="w"> </span><span class="m">4389131</span><span class="w"> </span><span class="m">1</span>,1,1,0,0
+</code></pre></div>
+<p>To convert Seq-Scope/NovaScope output to a FICTURE-compatible format, the following two steps are needed.</p>
+<h4 id="1-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file">1. Run <code>spatula convert-sge</code> to transform the input files into a generic TSV file.<a class="headerlink" href="#1-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file" title="Permanent link">&para;</a></h4>
+<p>Note that you need to install the <code>spatula</code> tool before running the following command.
+Because the spatial coordinates are in nanometer scale, the <code>--units-per-um</code> parameter should be set to 1000 to convert the coordinates to micrometer scale.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## Run spatula convert-sge, assuming that output_dir is the output directory</span>
+$<span class="w"> </span>spatula<span class="w"> </span>convert-sge<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--in-sge<span class="w"> </span><span class="si">${</span><span class="nv">SGEDIR</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--units-per-um<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--colnames-count<span class="w"> </span>Count<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span>output_dir<span class="w"> </span>
+<span class="c1">## Uncomment the following line if you want to exclude commonly ignored features</span>
+<span class="c1">#   --exclude-feature-regex &#39;^(BLANK|NegCon|NegPrb|mt-|MT-|Gm\d+$$)&#39;</span>
+<span class="c1">## The following parameters follow the default values (unnecessary to specify)</span>
+<span class="c1">#   --sge-bcd barcode.tsv.gz \</span>
+<span class="c1">#   --sge-ftr features.tsv.gz \</span>
+<span class="c1">#   --sge-mtx matrix.mtx.gz \</span>
+<span class="c1">#   --icols-mtx 1 \</span>
+<span class="c1">#   --icol-bcd-barcode 1 \</span>
+<span class="c1">#   --icol-bcd-x 6 \</span>
+<span class="c1">#   --icol-bcd-y 7 \</span>
+<span class="c1">#   --icol-ftr-id 1 \</span>
+<span class="c1">#   --icol-ftr-name 2 \</span>
+<span class="c1">#   --colname-x X \</span>
+<span class="c1">#   --colname-y Y \</span>
+<span class="c1">#   --colname-feature-name gene </span>
+</code></pre></div>
+<p>Make sure that the output file is generated in the expected format. </p>
+<div class="highlight"><pre><span></span><code>$ gzip -cd out_dir/transcripts.unsorted.tsv.gz | head
+
+X       Y       gene    Count
+7124.82 2906.04 Pmpcb   1
+7382.40 2717.08 Acin1   1
+7382.40 2717.08 Slc35b1 1
+8634.97 2839.09 Marchf7 1
+4994.89 2666.44 Exosc9  1
+8575.64 3991.70 Gpld1   1
+6747.42 2860.45 Serpina1d       1
+5771.53 3028.68 Ccnl2   1
+5771.53 3028.68 Ugt2b34 1
+</code></pre></div>
+<h4 id="2-sort-the-generic-tsv-file-by-a-spatial-coordinate">2. Sort the generic TSV file by a spatial coordinate.<a class="headerlink" href="#2-sort-the-generic-tsv-file-by-a-spatial-coordinate" title="Permanent link">&para;</a></h4>
+<p>You may sort the output file by the spatial coordinates using the <code>sort</code> command. For example, to sort the file by the first column (X-coordinate), you may run the following command.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## Sort the unsorted output file by the X-coordinate</span>
+<span class="c1">## Note that this step will take a while for a large file</span>
+<span class="o">(</span>gzip<span class="w"> </span>-cd<span class="w"> </span>output_dir/transcripts.unsorted.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="p">;</span><span class="w"> </span>gzip<span class="w"> </span>-cd<span class="w"> </span>output_dir/transcripts.unsorted.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span>+2<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-S<span class="w"> </span>1G<span class="w"> </span>-gk1<span class="o">)</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>-c<span class="w"> </span>&gt;<span class="w"> </span>output_dir/transcripts.sorted.tsv.gz
+</code></pre></div>
+<h3 id="converting-10x-genomics-visium-hd-feature-barcode-matrix">Converting 10x Genomics Visium HD Feature Barcode Matrix<a class="headerlink" href="#converting-10x-genomics-visium-hd-feature-barcode-matrix" title="Permanent link">&para;</a></h3>
+<p>The standard output from the 10x Genomics Visium HD pipeline contains many files. Typically, the following files are used for the conversion, assuming <code>${DATADIR}</code> is the directory containing the Visium HD data. </p>
+<ul>
+<li><code>${DATADIR}/square_002um/raw_feature_bc_matrix/barcodes.tsv.gz</code> : The barcode file containing the spatial barcodes.</li>
+<li><code>${DATADIR}/square_002um/raw_feature_bc_matrix/features.tsv.gz</code> : The feature file containing the gene names and IDs.</li>
+<li><code>${DATADIR}/square_002um/raw_feature_bc_matrix/matrix.mtx.gz</code> : The matrix file containing the gene expression matrix in the MatrixMarket format.</li>
+<li><code>${DATADIR}/square_002um/spatial/tissue_positions.parquet</code> : The barcode position file containing the spatial coordinates of the barcodes in parquet format.</li>
+<li><code>${DATADIR}/square_002um/spatial/scalefactors_json.json</code> : The scale factor file containing the pixel-to-micrometer conversion factor <code>microns_per_pixel</code>.</li>
+</ul>
+<p>In this example, we used the FFPE mouse brain data
+downloaded at <a href="https://www.10xgenomics.com/datasets/visium-hd-cytassist-gene-expression-libraries-of-mouse-brain-he">10x Genomics website</a>.</p>
+<p>Instead of using <code>raw_feature_bc_matrix</code> directory <code>filtered_feature_bc_matrix</code> directory may be used if the filtered gene expression matrix is preferred. </p>
+<p>To convert Visium HD data to a FICTURE-compatible format, the following four steps are needed.</p>
+<h4 id="1-obtain-units-per-um-parameter-from-the-scalefactors_jsonjson-file">1. Obtain <code>units-per-um</code> parameter from the <code>scalefactors_json.json</code> file.<a class="headerlink" href="#1-obtain-units-per-um-parameter-from-the-scalefactors_jsonjson-file" title="Permanent link">&para;</a></h4>
+<p>For example, if you may find the <code>microns_per_pixel</code> value as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## Find microns_per_pixel value from the scalefactors_json.json file</span>
+$<span class="w"> </span>grep<span class="w"> </span>-w<span class="w"> </span>microns_per_pixel<span class="w"> </span><span class="si">${</span><span class="nv">DATADIR</span><span class="si">}</span>/square_002um/spatial/scalefactors_json.json<span class="w"> </span>
+<span class="w">    </span><span class="s2">&quot;microns_per_pixel&quot;</span>:<span class="w"> </span><span class="m">0</span>.2738242950835738,
+</code></pre></div>
+<p>In this case, the <code>units-per-um</code> value is <code>1/0.2738242950835738 = 3.652</code>.</p>
+<h4 id="2-convert-tissue_positionsparquet-into-a-csv-file">2. Convert <code>tissue_positions.parquet</code> into a CSV file.<a class="headerlink" href="#2-convert-tissue_positionsparquet-into-a-csv-file" title="Permanent link">&para;</a></h4>
+<p>The <code>tissue_positions.parquet</code> file can be converted into a CSV file using the <code>parquet-tools</code> command. 
+Please install <a href="https://pypi.org/project/parquet-tools/">parquet-tools</a> before running the following command.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## Convert tissue_positions.parquet into a CSV file</span>
+$<span class="w"> </span>parquet-tools<span class="w"> </span>csv<span class="w"> </span><span class="si">${</span><span class="nv">DATADIR</span><span class="si">}</span>/square_002um/spatial/tissue_positions.parquet<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>-c<span class="w"> </span>&gt;<span class="w"> </span><span class="si">${</span><span class="nv">DATADIR</span><span class="si">}</span>/square_002um/spatial/tissue_positions.csv.gz
+
+<span class="c1">## Check the first few lines of the CSV file</span>
+$<span class="w"> </span>gzip<span class="w"> </span>-cd<span class="w"> </span>10x_visium_hd/raw/tissue_positions.csv.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+
+barcode,in_tissue,array_row,array_col,pxl_row_in_fullres,pxl_col_in_fullres
+s_002um_00000_00000-1,0,0,0,44.1895274751605,21030.743287971593
+s_002um_00000_00001-1,0,0,1,44.30210038790203,21023.440348914042
+s_002um_00000_00002-1,0,0,2,44.4146732713411,21016.137411757423
+s_002um_00000_00003-1,0,0,3,44.52724612547773,21008.83447650175
+s_002um_00000_00004-1,0,0,4,44.639818950311934,21001.531543147008
+s_002um_00000_00005-1,0,0,5,44.7523917458437,20994.228611693197
+s_002um_00000_00006-1,0,0,6,44.86496451207307,20986.92568214033
+s_002um_00000_00007-1,0,0,7,44.977537249000044,20979.622754488388
+s_002um_00000_00008-1,0,0,8,45.09010995662463,20972.319828737378
+</code></pre></div>
+<h4 id="3-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file">3. Run <code>spatula convert-sge</code> to transform the input files into a generic TSV file.<a class="headerlink" href="#3-run-spatula-convert-sge-to-transform-the-input-files-into-a-generic-tsv-file" title="Permanent link">&para;</a></h4>
+<p>Note that you need to install the <code>spatula</code> tool before running the following command.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## Run spatula convert-sge, assuming that output_dir is the output directory</span>
+$<span class="w"> </span>spatula<span class="w"> </span>convert-sge<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--in-sge<span class="w"> </span><span class="si">${</span><span class="nv">DATADIR</span><span class="si">}</span>/square_002um/raw_feature_bc_matrix<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pos<span class="w"> </span><span class="si">${</span><span class="nv">DATADIR</span><span class="si">}</span>/square_002um/spatial/tissue_positions.csv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--units-per-um<span class="w"> </span><span class="m">3</span>.652<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--colnames-count<span class="w"> </span>Count<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out<span class="w"> </span>output_dir<span class="w"> </span>
+<span class="c1">## Uncomment the following line if you want to exclude commonly ignored features</span>
+<span class="c1">#   --exclude-feature-regex &#39;^(BLANK|NegCon|NegPrb|mt-|MT-|Gm\d+$$)&#39;</span>
+<span class="c1">## The following parameters follow the default values (unnecessary to specify)</span>
+<span class="c1">#   --sge-bcd barcode.tsv.gz \</span>
+<span class="c1">#   --sge-ftr features.tsv.gz \</span>
+<span class="c1">#   --sge-mtx matrix.mtx.gz \</span>
+<span class="c1">#   --icols-mtx 1 \</span>
+<span class="c1">#   --icol-bcd-barcode 1 \</span>
+<span class="c1">#   --icol-ftr-id 1 \</span>
+<span class="c1">#   --icol-ftr-name 2 \</span>
+<span class="c1">#   --pos-colname-barcode barcode \</span>
+<span class="c1">#   --pos-colname-x pxl_row_in_fullres \</span>
+<span class="c1">#   --pos-colname-y pxl_col_in_fullres \</span>
+<span class="c1">#   --pos-delim , \</span>
+<span class="c1">#   --colname-x X \</span>
+<span class="c1">#   --colname-y Y \</span>
+<span class="c1">#   --colname-feature-name gene </span>
+</code></pre></div>
+<p>Make sure that the output file is generated in the expected format. </p>
+<div class="highlight"><pre><span></span><code>$ gzip -cd output_dir/transcripts.unsorted.tsv.gz | head
+
+X       Y       gene    Count
+13.58   5662.74 Ctps2   1
+14.04   5632.75 Rab28   1
+14.19   5752.76 Omg     1
+14.19   5752.76 Prnp    1
+14.99   5700.77 Sorbs1  1
+15.70   5654.77 Myoc    1
+15.89   5642.78 Fgfr1op2        1
+16.53   5600.78 Hmgcr   1
+18.32   5484.80 Stmn1   1
+</code></pre></div>
+<h4 id="4-sort-the-generic-tsv-file-by-a-spatial-coordinate">4. Sort the generic TSV file by a spatial coordinate.<a class="headerlink" href="#4-sort-the-generic-tsv-file-by-a-spatial-coordinate" title="Permanent link">&para;</a></h4>
+<p>You may sort the output file by the spatial coordinates using the <code>sort</code> command. For example, to sort the file by the first column (X-coordinate), you may run the following command.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## Sort the unsorted output file by the X-coordinate</span>
+<span class="c1">## Note that this step will take a while for a large file</span>
+<span class="o">(</span>gzip<span class="w"> </span>-cd<span class="w"> </span>output_dir/transcripts.unsorted.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="p">;</span><span class="w"> </span>gzip<span class="w"> </span>-cd<span class="w"> </span>output_dir/transcripts.unsorted.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span>+2<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-S<span class="w"> </span>1G<span class="w"> </span>-gk1<span class="o">)</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>-c<span class="w"> </span>&gt;<span class="w"> </span>output_dir/transcripts.sorted.tsv.gz
+</code></pre></div>
+<h2 id="command-line-arguments">Command line arguments<a class="headerlink" href="#command-line-arguments" title="Permanent link">&para;</a></h2>
+<h3 id="key-options">Key options<a class="headerlink" href="#key-options" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>--in-sge</code> : The path to the directory containing spatial barcode files.</li>
+<li><code>--out-tsv</code> : The path to the directory to store the output files.</li>
+<li><code>--icols-mtx</code> : Comma-separated 1-based column indices use as the count in the <code>matrix.mtx.gz</code> file.</li>
+<li><code>--colnames-count</code> : Comma-separate column names for Count for each column in the output file. The order should match to <code>--icols-mtx</code>.</li>
+<li><code>--icol-bcd-barcode</code> : The 1-based column index of the barcode in the <code>barcodes.tsv.gz</code> file.</li>
+<li><code>--icol-bcd-x</code> : 1-based column index of X coordinate in the <code>barcodes.tsv.gz</code> file (when <code>--pos</code> is not provided).</li>
+<li><code>--icol-bcd-y</code> : 1-based column index of Y coordinate in the <code>barcodes.tsv.gz</code> file (when <code>--pos</code> is not provided).</li>
+<li><code>--icol-ftr-id</code> : 1-based column index of the feature (gene) ID in the <code>features.tsv.gz</code> file.</li>
+<li><code>--icol-ftr-name</code> : 1-based column index of the feature name (gene symbol) in the <code>features.tsv.gz</code> file.</li>
+<li><code>--pos</code> : The path to the barcode position file (typically used for Visium HD input in CSV format).</li>
+<li><code>--units-per-um</code> : The number of units (i.e. pixels) per micrometer for the spatial coordinates.</li>
+</ul>
+<h3 id="gene-filtering-options">Gene filtering options<a class="headerlink" href="#gene-filtering-options" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>--include-feature-list</code> ; A file containing a list of input genes to be included (feature name of IDs)</li>
+<li><code>--exclude-feature-list</code> ; A file containing a list of input genes to be excluded (feature name of IDs)</li>
+<li><code>--include-feature-substr</code> : A substring of feature/gene names to be included</li>
+<li><code>--exclude-feature-substr</code> : A substring of feature/gene names to be excluded</li>
+<li><code>--include-feature-regex</code> : A regular expression of feature/gene names to be included</li>
+<li><code>--exclude-feature-regex</code> : A regular expression of feature/gene names to be excluded</li>
+</ul>
+<h3 id="additional-options">Additional options<a class="headerlink" href="#additional-options" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>--out-sge</code> : The path to the directory to store the output files in the barcode-feature-matrix format (<em>still experimental</em>).</li>
+<li><code>--sge-bcd</code> : The name of the barcode file in the barcode-feature-matrix format. Default is <code>barcodes.tsv.gz</code>.</li>
+<li><code>--sge-ftr</code> : The name of the feature file in the barcode-feature-matrix format. Default is <code>features.tsv.gz</code>.</li>
+<li><code>--sge-mtx</code> : The name of the matrix file in the barcode-feature-matrix format. Default is <code>matrix.mtx.gz</code>.</li>
+<li><code>--tsv-mtx</code> : The name of the matrix file in the generic TSV format. Default is <code>transcripts.unsorted.tsv.gz</code>.</li>
+<li><code>--tsv-ftr</code> : The name of the feature file in the generic TSV format. Default is <code>features.tsv.gz</code>.</li>
+<li><code>--tsv-minmax</code> : The name of the minmax coordinate file in the generic TSV format. Default is <code>minmax.tsv</code>.</li>
+<li><code>--pos-colname-barcode</code> : The column name of the barcode in the barcode position file.</li>
+<li><code>--pos-colname-x</code> : The column name of the X coordinate in the barcode position file.</li>
+<li><code>--pos-colname-y</code> : The column name of the Y coordinate in the barcode position file.</li>
+<li><code>--pos-delim</code> : The delimiter used in the barcode position file. Default is <code>,</code>.</li>
+<li><code>--precision-um</code> : Output precision below the decimal point.</li>
+<li><code>--print-feature-id</code> : Turn on to print feature ID in addition to feature name.</li>
+<li><code>--allow-duplicate-gene-names</code> : Turn on to allow duplicate gene names in the output file.</li>
+<li><code>--colname-feature-name</code> : Column name for feature/gene name in the ouput file (default is <code>gene</code>).</li>
+<li><code>--colname-feature-id</code> : Column name for feature/gene ID (default is <code>gene_id</code>).</li>
+<li><code>--colname-x</code> : Column name for X-coordinate in the output file (default is <code>X</code>).</li>
+<li><code>--colname-y</code> : Column name for Y-coordinate in the output file (default is <code>Y</code>).</li>
+</ul>
+<h2 id="expected-output">Expected Output<a class="headerlink" href="#expected-output" title="Permanent link">&para;</a></h2>
+<p>In the output directory <code>[outdir]</code>, the following files will be created.</p>
+<ul>
+<li><code>[outdir]/transcript.unsorted.tsv.gz</code> : A generic TSV file that contains individual spatial coordinates and transcript counts. Each column in the tsv file contains the following information. The column names may vary depending on the input arguments.<ul>
+<li><code>X</code> : The X-coordinate of the spatial barcode / molecule in micrometer.</li>
+<li><code>Y</code> : The Y-coordinate of the spatial barcode / molecule in micrometer.</li>
+<li><code>gene</code> : The gene name of the transcript.</li>
+<li><code>Count</code> : The number of transcripts detected in the spatial barcode. May be named as <code>gn</code>, <code>gt</code> or other names depending on the <code>--colnames-count</code> argument. </li>
+</ul>
+</li>
+<li><code>[outdir]/feature.tsv.gz</code> : A TSV containing the list of gene names, possibly gene IDs, and overall counts per each gene.</li>
+<li><code>[outdir]/minmax.tsv</code> : A TSV containing the minimum and maximum coordinates of the spatial barcodes.<ul>
+<li><code>xmin</code> : The minimum X-coordinate of the spatial barcodes in micrometer.</li>
+<li><code>xmax</code> : The maximum X-coordinate of the spatial barcodes in micrometer.</li>
+<li><code>ymin</code> : The minimum Y-coordinate of the spatial barcodes in micrometer.</li>
+<li><code>ymax</code> : The maximum Y-coordinate of the spatial barcodes in micrometer.</li>
+</ul>
+</li>
+</ul>
+<h2 id="full-usage">Full Usage<a class="headerlink" href="#full-usage" title="Permanent link">&para;</a></h2>
+<p>The full usage of the software tool is as follows:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./spatula<span class="w"> </span>convert-sge<span class="w"> </span>--help
+<span class="o">[</span>./spatula<span class="w"> </span>convert-sge<span class="o">]</span><span class="w"> </span>--<span class="w"> </span>Convert<span class="w"> </span>SGE<span class="w"> </span>into<span class="w"> </span>plain<span class="w"> </span>various<span class="w"> </span>formats
+
+<span class="w"> </span>Copyright<span class="w"> </span><span class="o">(</span>c<span class="o">)</span><span class="w"> </span><span class="m">2022</span>-2024<span class="w"> </span>by<span class="w"> </span>Hyun<span class="w"> </span>Min<span class="w"> </span>Kang
+<span class="w"> </span>Licensed<span class="w"> </span>under<span class="w"> </span>the<span class="w"> </span>Apache<span class="w"> </span>License<span class="w"> </span>v2.0<span class="w"> </span>http://www.apache.org/licenses/
+
+Detailed<span class="w"> </span>instructions<span class="w"> </span>of<span class="w"> </span>parameters<span class="w"> </span>are<span class="w"> </span>available.<span class="w"> </span>Ones<span class="w"> </span>with<span class="w"> </span><span class="s2">&quot;[]&quot;</span><span class="w"> </span>are<span class="w"> </span><span class="k">in</span><span class="w"> </span>effect:
+
+Available<span class="w"> </span>Options:
+
+<span class="o">==</span><span class="w"> </span>Key<span class="w"> </span>Input/Output<span class="w"> </span><span class="nv">Options</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--in-sge<span class="w">                     </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Input<span class="w"> </span>SGE<span class="w"> </span>directory
+<span class="w">   </span>--out-sge<span class="w">                    </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Path<span class="w"> </span>of<span class="w"> </span>SGE<span class="w"> </span>output<span class="w"> </span>directory
+<span class="w">   </span>--out-tsv<span class="w">                    </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Path<span class="w"> </span>of<span class="w"> </span>TSV<span class="w"> </span>output<span class="w"> </span><span class="nv">directory</span>
+
+<span class="o">==</span><span class="w"> </span>File<span class="w"> </span>names<span class="w"> </span><span class="k">for</span><span class="w"> </span>SGE/TSV<span class="w"> </span>input/output<span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--sge-bcd<span class="w">                    </span><span class="o">[</span>STR:<span class="w"> </span>barcodes.tsv.gz<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Barcode<span class="w"> </span>file<span class="w"> </span>name<span class="w"> </span><span class="k">in</span><span class="w"> </span>SGE<span class="w"> </span>directory
+<span class="w">   </span>--sge-ftr<span class="w">                    </span><span class="o">[</span>STR:<span class="w"> </span>features.tsv.gz<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Feature<span class="w"> </span>file<span class="w"> </span>name<span class="w"> </span><span class="k">in</span><span class="w"> </span>SGE<span class="w"> </span>directory
+<span class="w">   </span>--sge-mtx<span class="w">                    </span><span class="o">[</span>STR:<span class="w"> </span>matrix.mtx.gz<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Matrix<span class="w"> </span>file<span class="w"> </span>name<span class="w"> </span><span class="k">in</span><span class="w"> </span>SGE<span class="w"> </span>directory
+<span class="w">   </span>--tsv-mtx<span class="w">                    </span><span class="o">[</span>STR:<span class="w"> </span>transcripts.unsorted.tsv.gz<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Transcript<span class="w"> </span>file<span class="w"> </span>name<span class="w"> </span><span class="k">in</span><span class="w"> </span>TSV<span class="w"> </span>directory
+<span class="w">   </span>--tsv-ftr<span class="w">                    </span><span class="o">[</span>STR:<span class="w"> </span>features.tsv.gz<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Feature<span class="w"> </span>file<span class="w"> </span>name<span class="w"> </span><span class="k">in</span><span class="w"> </span>TSV<span class="w"> </span>directory
+<span class="w">   </span>--tsv-minmax<span class="w">                 </span><span class="o">[</span>STR:<span class="w"> </span>minmax.tsv<span class="o">]</span><span class="w">   </span>:<span class="w"> </span>Minmax<span class="w"> </span>file<span class="w"> </span>name<span class="w"> </span><span class="k">in</span><span class="w"> </span>TSV<span class="w"> </span><span class="nv">directory</span>
+
+<span class="o">==</span><span class="w"> </span>Expected<span class="w"> </span>column<span class="w"> </span>index<span class="w"> </span><span class="k">in</span><span class="w"> </span>SGE<span class="w"> </span><span class="nv">input</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--icols-mtx<span class="w">                  </span><span class="o">[</span>STR:<span class="w"> </span><span class="m">1</span>,2,3,4,5<span class="o">]</span><span class="w">    </span>:<span class="w"> </span>Comma-separated<span class="w"> </span><span class="m">1</span>-based<span class="w"> </span>column<span class="w"> </span>indices<span class="w"> </span>use<span class="w"> </span>as<span class="w"> </span>the<span class="w"> </span>count
+<span class="w">   </span>--icol-bcd-barcode<span class="w">           </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">1</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span><span class="m">1</span>-based<span class="w"> </span>column<span class="w"> </span>index<span class="w"> </span>of<span class="w"> </span>barcode<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>barcode<span class="w"> </span>file
+<span class="w">   </span>--icol-bcd-x<span class="w">                 </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">6</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span><span class="m">1</span>-based<span class="w"> </span>column<span class="w"> </span>index<span class="w"> </span>of<span class="w"> </span>x<span class="w"> </span>coordinate<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>barcode<span class="w"> </span>file
+<span class="w">   </span>--icol-bcd-y<span class="w">                 </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">7</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span><span class="m">1</span>-based<span class="w"> </span>column<span class="w"> </span>index<span class="w"> </span>of<span class="w"> </span>y<span class="w"> </span>coordinate<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>barcode<span class="w"> </span>file
+<span class="w">   </span>--icol-ftr-id<span class="w">                </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">1</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span><span class="m">1</span>-based<span class="w"> </span>column<span class="w"> </span>index<span class="w"> </span>of<span class="w"> </span>feature<span class="w"> </span>ID<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>barcode<span class="w"> </span>file
+<span class="w">   </span>--icol-ftr-name<span class="w">              </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">2</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span><span class="m">1</span>-based<span class="w"> </span>column<span class="w"> </span>index<span class="w"> </span>of<span class="w"> </span>feature<span class="w"> </span>name<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>barcode<span class="w"> </span><span class="nv">file</span>
+
+<span class="o">==</span><span class="w"> </span>Additional<span class="w"> </span>Barcode<span class="w"> </span>Position<span class="w"> </span><span class="nv">File</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--pos<span class="w">                        </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Position<span class="w"> </span>file<span class="w"> </span>name<span class="w"> </span>that<span class="w"> </span>contains<span class="w"> </span>separate<span class="w"> </span>X<span class="w"> </span>and<span class="w"> </span>Y<span class="w"> </span>coordinates
+<span class="w">   </span>--pos-colname-barcode<span class="w">        </span><span class="o">[</span>STR:<span class="w"> </span>barcode<span class="o">]</span><span class="w">      </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>barcode<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>position<span class="w"> </span>file
+<span class="w">   </span>--pos-colname-x<span class="w">              </span><span class="o">[</span>STR:<span class="w"> </span>pxl_row_in_fullres<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>X-axis<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>position<span class="w"> </span>file
+<span class="w">   </span>--pos-colname-y<span class="w">              </span><span class="o">[</span>STR:<span class="w"> </span>pxl_col_in_fullres<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>Y-axis<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>position<span class="w"> </span>file
+<span class="w">   </span>--pos-delim<span class="w">                  </span><span class="o">[</span>STR:<span class="w"> </span>,<span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Delimiter<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>position<span class="w"> </span>file<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span><span class="s2">&quot;,&quot;</span><span class="o">)</span>
+
+<span class="o">==</span><span class="w"> </span>Input<span class="w"> </span>Filtering<span class="w"> </span><span class="nv">Options</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--include-feature-list<span class="w">       </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>A<span class="w"> </span>file<span class="w"> </span>containing<span class="w"> </span>a<span class="w"> </span>list<span class="w"> </span>of<span class="w"> </span>input<span class="w"> </span>genes<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>included<span class="w"> </span><span class="o">(</span>feature<span class="w"> </span>name<span class="w"> </span>of<span class="w"> </span>IDs<span class="o">)</span>
+<span class="w">   </span>--exclude-feature-list<span class="w">       </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>A<span class="w"> </span>file<span class="w"> </span>containing<span class="w"> </span>a<span class="w"> </span>list<span class="w"> </span>of<span class="w"> </span>input<span class="w"> </span>genes<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>excluded<span class="w"> </span><span class="o">(</span>feature<span class="w"> </span>name<span class="w"> </span>of<span class="w"> </span>IDs<span class="o">)</span>
+<span class="w">   </span>--include-feature-substr<span class="w">     </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>A<span class="w"> </span>substring<span class="w"> </span>of<span class="w"> </span>feature/gene<span class="w"> </span>names<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>included
+<span class="w">   </span>--exclude-feature-substr<span class="w">     </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>A<span class="w"> </span>substring<span class="w"> </span>of<span class="w"> </span>feature/gene<span class="w"> </span>names<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>excluded
+<span class="w">   </span>--include-feature-regex<span class="w">      </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>A<span class="w"> </span>regex<span class="w"> </span>pattern<span class="w"> </span>of<span class="w"> </span>feature/gene<span class="w"> </span>names<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>included
+<span class="w">   </span>--exclude-feature-regex<span class="w">      </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>A<span class="w"> </span>regex<span class="w"> </span>pattern<span class="w"> </span>of<span class="w"> </span>feature/gene<span class="w"> </span>names<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span><span class="nv">excluded</span>
+
+<span class="o">==</span><span class="w"> </span>Key<span class="w"> </span>Output<span class="w"> </span><span class="nv">Options</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--units-per-um<span class="w">               </span><span class="o">[</span>FLT:<span class="w"> </span><span class="m">1</span>.00<span class="o">]</span><span class="w">         </span>:<span class="w"> </span>Coordinate<span class="w"> </span>unit<span class="w"> </span>per<span class="w"> </span>um<span class="w"> </span><span class="o">(</span>conversion<span class="w"> </span>factor<span class="o">)</span>
+<span class="w">   </span>--precision-um<span class="w">               </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">3</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Output<span class="w"> </span>precision<span class="w"> </span>below<span class="w"> </span>the<span class="w"> </span>decimal<span class="w"> </span><span class="nv">point</span>
+
+<span class="o">==</span><span class="w"> </span>Auxilary<span class="w"> </span>Output<span class="w"> </span>Options<span class="w"> </span><span class="k">for</span><span class="w"> </span>TSV<span class="w"> </span><span class="nv">output</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--print-feature-id<span class="w">           </span><span class="o">[</span>FLG:<span class="w"> </span>OFF<span class="o">]</span><span class="w">          </span>:<span class="w"> </span>Print<span class="w"> </span>feature<span class="w"> </span>ID<span class="w"> </span><span class="k">in</span><span class="w"> </span>output<span class="w"> </span>file
+<span class="w">   </span>--allow-duplicate-gene-names<span class="w"> </span><span class="o">[</span>FLG:<span class="w"> </span>OFF<span class="o">]</span><span class="w">          </span>:<span class="w"> </span>Allow<span class="w"> </span>duplicate<span class="w"> </span>gene<span class="w"> </span>names<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>file
+<span class="w">   </span>--colname-feature-name<span class="w">       </span><span class="o">[</span>STR:<span class="w"> </span>gene<span class="o">]</span><span class="w">         </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>feature/gene<span class="w"> </span>name
+<span class="w">   </span>--colname-feature-id<span class="w">         </span><span class="o">[</span>STR:<span class="w"> </span>gene_id<span class="o">]</span><span class="w">      </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>feature/gene<span class="w"> </span>ID
+<span class="w">   </span>--colnames-count<span class="w">             </span><span class="o">[</span>STR:<span class="w"> </span>gn,gt,spl,unspl,ambig<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Comma-separate<span class="w"> </span>column<span class="w"> </span>names<span class="w"> </span><span class="k">for</span><span class="w"> </span>Count
+<span class="w">   </span>--colname-x<span class="w">                  </span><span class="o">[</span>STR:<span class="w"> </span>X<span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>X
+<span class="w">   </span>--colname-y<span class="w">                  </span><span class="o">[</span>STR:<span class="w"> </span>Y<span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>Y
+
+
+NOTES:
+When<span class="w"> </span>--help<span class="w"> </span>was<span class="w"> </span>included<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>argument.<span class="w"> </span>The<span class="w"> </span>program<span class="w"> </span>prints<span class="w"> </span>the<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>but<span class="w"> </span><span class="k">do</span><span class="w"> </span>not<span class="w"> </span>actually<span class="w"> </span>run
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.indexes", "navigation.sections"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.8fd75fb4.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://seqscope.github.io/spatula/tools/match_sbcds/">
+        <link rel="canonical" href="https://seqscope.github.io/spatula/tools/join_pixel_tsv/">
       
       
-        <link rel="prev" href="../combine_sbcds/">
+        <link rel="prev" href="../convert_sge/">
       
       
-        <link rel="next" href="../dge2sge/">
+        <link rel="next" href="../reformat_fastqs/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>match-sbcds - spatula</title>
+        <title>join-pixel-tsv - spatula</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#spatula-match-sbcds" class="md-skip">
+        <a href="#spatula-join-pixel-tsv" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              match-sbcds
+              join-pixel-tsv
             
           </span>
         </div>
@@ -482,8 +482,6 @@
                 
   
   
-    
-  
   
   
     
@@ -508,11 +506,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
         
           
           <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
@@ -526,7 +524,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_2">
             <span class="md-nav__icon md-icon"></span>
             Analysis of Spatial Barcodes
@@ -600,30 +598,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    match-sbcds
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../match_sbcds/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -632,71 +610,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      Summary
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#required-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Required options
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#additional-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Additional options
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#expected-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Expected Output
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#full-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Full Usage
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -813,6 +726,8 @@
                 
   
   
+    
+  
   
   
     
@@ -833,11 +748,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
@@ -851,7 +766,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             FICTURE Analysis
@@ -883,10 +798,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../join_pixel_tsv/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    join-pixel-tsv
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -895,6 +830,119 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sorting-the-pixel-level-output-from-ficture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sorting the pixel-level output from FICTURE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-spatula-join-pixel-tsv-with-multiple-pixel-level-outputs-from-ficture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running spatula join-pixel-tsv with multiple pixel-level outputs from FICTURE
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command line arguments
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command line arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Full Usage
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1172,11 +1220,59 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#required-options" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
-      Required options
+      Usage
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sorting-the-pixel-level-output-from-ficture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sorting the pixel-level output from FICTURE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-spatula-join-pixel-tsv-with-multiple-pixel-level-outputs-from-ficture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running spatula join-pixel-tsv with multiple pixel-level outputs from FICTURE
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command line arguments
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command line arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key options
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1225,74 +1321,102 @@
   
 
 
-<h1 id="spatula-match-sbcds">spatula match-sbcds<a class="headerlink" href="#spatula-match-sbcds" title="Permanent link">&para;</a></h1>
+<h1 id="spatula-join-pixel-tsv">spatula join-pixel-tsv<a class="headerlink" href="#spatula-join-pixel-tsv" title="Permanent link">&para;</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
-<p><code>spatula match-sbcds</code> matches a 2<sup>nd</sup>-seq FASTQ file with the spatial barcodes map and 
-identifies matching barcodes and their spatial distribution. </p>
-<p>Here is a summary of the main features:</p>
+<p><code>spatula join-pixel-tsv</code> combines the raw input data used in <a href="https://github.com/seqscope/ficture">FICTURE</a> analysis with the 
+pixel-level output generated by <a href="https://github.com/seqscope/ficture">FICTURE</a> into a single TSV file.</p>
+<p>The main reason of creating this tool is related to the fact that the pixel-level output file (in TSV format) produced by <a href="https://github.com/seqscope/ficture">FICTURE</a> is quite complicated for users. 
+The image output (PNG file) generated by <a href="https://github.com/seqscope/ficture">FICTURE</a> is very straightforward to interpret, but the TSV file might not be due to the following reasons:</p>
 <ul>
-<li>Input: Takes (a) a spatial barcode directory from <code>build-sbcds</code> or <code>combined-sbcds</code>, and (b) a 2<sup>nd</sup>-seq FASTQ file (read 1 only).</li>
-<li>Output: Produces (a) a full list of matching barcodes and their spatial coordinates, (b) summary metrics of reads matching to the barcodes, and &copy; per-tile summary metrics of matching barcodes.</li>
+<li>The pixel-level output is sorted by two spatial coordinates (X and Y) in a complex way to navigate mini-batches efficiently.</li>
+<li>The X/Y coordinates in the pixel-level output needs to be transformed to be interpreted in the original spatial coordinate system.</li>
+<li>There can be duplicate information near the boundaries between mini-batches.</li>
+<li>Some spatial coordinates within certain distance (e.g. &lt;0.1um or &lt;0.01um) are collapsed together for efficient processing based on the parameter settings used.</li>
+<li>The pixel-level output do not provide the raw transcript information observed at the spatial position.</li>
+<li>Some of the spatial coordinates located in very sparse regions may have been filtered out in the pixel-level output.</li>
 </ul>
-<p>An example usage of the tool is as follows:</p>
-<p><div class="highlight"><pre><span></span><code>spatula<span class="w"> </span>match-sbcds<span class="w"> </span>--fq<span class="w"> </span>/path/to/second_seq.R1.fastq.gz<span class="w"> </span><span class="se">\</span>
-<span class="w">                    </span>--sbcd<span class="w"> </span>/path/to/sbcd/dir/<span class="w"> </span><span class="se">\</span>
-<span class="w">                    </span>--skip-sbcd<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">                    </span>--out<span class="w"> </span>/path/to/output_prefix
+<p>For these reasons, there have been requests to provide pixel-level inference from <a href="https://github.com/seqscope/ficture">FICTURE</a> by combining the raw input data with the pixel-level output. <code>spatula join-pixel-tsv</code> is intended to provide the information by post-processing the pixel-level output from <a href="https://github.com/seqscope/ficture">FICTURE</a>. While the tool relies on some heuristics, we believe that the output should be reasonable as long as FICTURE is run with typical settings.</p>
+<p>For each spatial coordinate in the raw input data, <code>spatula join-pixel-tsv</code> identifies the closest point in each pixel-level output
+(as long as the distance is within a certain threshold) and annotate individual pixels with corresponding factors inferred by FICTURE.
+Because FICTURE's pixel-level output is spatially smooth, this method should be almost identical to running FICTURE on individual 
+spatial coordinate without collapsing nearby points. This procedure should also remove any duplicate points between mini-batches in FICTURE's pixel-level output.</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="sorting-the-pixel-level-output-from-ficture">Sorting the pixel-level output from FICTURE<a class="headerlink" href="#sorting-the-pixel-level-output-from-ficture" title="Permanent link">&para;</a></h3>
+<p>The <code>spatula join-pixel-tsv</code> tool assumes that the pixel-level output is sorted by the major axis, in the consistent way to the input data used in FICTURE analysis. For example, if the input file (typically <code>transcripts.sorted.tsv.gz</code>) is sorted by the X-coordinate, the pixel-level output should be sorted by the X-coordinate as well. Typically, the pixel-level output TSV files generated by FICTURE are NOT sorted by a single coordinate, so you will need to sort the file based on the major axis used to sort the input data <code>transcripts.sorted.tsv.gz</code> using the following command, assuming <code>${PREFIX}.pixel.sorted.tsv.gz</code> is the pixel-level output from FICTURE</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># ${PREFIX}.pixel.sorted.tsv.gz is the pixel-level output from FICTURE</span>
+<span class="c1"># This example assumes that the major axis is X-axis</span>
+<span class="c1"># If the major axis is Y-axis, use -gk3 instead of -gk2.</span>
+<span class="o">(</span>gzip<span class="w"> </span>-cd<span class="w"> </span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span>.pixel.sorted.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>^#<span class="p">;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>gzip<span class="w"> </span>-cd<span class="w"> </span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span>.pixel.sorted.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span>^#<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-S<span class="w"> </span>1G<span class="w"> </span>-gk2<span class="o">)</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>-c<span class="w"> </span>&gt;<span class="w"> </span><span class="si">${</span><span class="nv">PREFIX</span><span class="si">}</span>.pixel.sorted_by_major_axis.tsv.gz
 </code></pre></div>
-See below for a more detailed usage description.</p>
-<h2 id="required-options">Required options<a class="headerlink" href="#required-options" title="Permanent link">&para;</a></h2>
+<h3 id="running-spatula-join-pixel-tsv-with-multiple-pixel-level-outputs-from-ficture">Running <code>spatula join-pixel-tsv</code> with multiple pixel-level outputs from FICTURE<a class="headerlink" href="#running-spatula-join-pixel-tsv-with-multiple-pixel-level-outputs-from-ficture" title="Permanent link">&para;</a></h3>
+<p>The <code>spatula join-pixel-tsv</code> tool can be run with multiple pixel-level outputs from FICTURE. The tool will combine the pixel-level outputs into a single TSV file. As an example, assume that there are two pixel-level outputs from FICTURE, namely
+<code>nF12.d_12.decode.prj_12.r_4_5.pixel.sorted.tsv.gz</code> and <code>nF24.d_12.decode.prj_12.r_4_5.pixel.sorted.tsv.gz</code>. Using the sorting procedure described above, you may sort the pixel-level outputs by the major axis with the name <code>nF12.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz</code> and <code>nF24.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz</code>.</p>
+<p>We assume that we want to combine the following three files together:
+* <code>transcripts.sorted.tsv.gz</code> : The generic TSV input file used in FICTURE analysis, sorted by the major axis.
+* <code>nF12.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz</code> : A pixel-level output from FICTURE, sorted by the major axis. We want to use a prefix <code>nF12__</code> in the output.
+* <code>nF24.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz</code> : Another pixel-level output from FICTURE, sorted by the major axis. We want to use a prefix <code>nF24__</code> in the output.</p>
+<p>To join these files together, you may run the following command:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">## assume that the output file names are transcripts_ficture_joined.tsv.gz</span>
+spatula<span class="w"> </span>join-pixel-tsv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--in-tsv<span class="w"> </span>transcripts.sorted.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pix-prefix-tsv<span class="w"> </span>nF12__,nF12.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pix-prefix-tsv<span class="w"> </span>nF24__,nF24.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--out-prefix<span class="w"> </span>transcripts_ficture_joined<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--max-dist-um<span class="w"> </span><span class="m">0</span>.2
+</code></pre></div>
+<p>Then <code>transcripts_ficture_joined.tsv.gz</code> and auxiliary files will be produced. </p>
+<p>Example output may look like this:</p>
+<div class="highlight"><pre><span></span><code>X   Y   gene    gn  nF12__K1    nF12__P1    nF24__K1    nF24__P1
+187.35  3904.17 Fmod    1   NA  NA  NA  NA
+187.37  3822.76 Aqp4    1   4   1   8   1
+187.39  3798.29 Gfap    1   NA  NA  NA  NA
+187.45  3866.88 Igfbp5  1   NA  NA  NA  NA
+187.46  3819.01 Igfbp5  1   NA  NA  NA  NA
+187.49  3820.90 Ntsr2   1   NA  NA  NA  NA
+187.62  3822.98 Igf2    1   4   1   8   1
+187.68  3946.95 Vat1l   1   4   1   8   1
+187.77  3822.63 Gng12   1   4   0.614   4   1
+187.81  3844.77 Angpt1  1   4   1   8   1
+187.81  3845.66 Carmn   1   4   1   8   1
+187.86  3823.45 Slc39a12    1   2   0.529   4   0.999
+...
+</code></pre></div>
+<p>Note that you may observe many lines with <code>NA</code> in the beginning of the files because they tend to be located in very sparse region excluded in the FICTURE analysis.</p>
+<h2 id="command-line-arguments">Command line arguments<a class="headerlink" href="#command-line-arguments" title="Permanent link">&para;</a></h2>
+<h3 id="key-options">Key options<a class="headerlink" href="#key-options" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>--fq</code> : The path to 2<sup>nd</sup>-seq FASTQ file (read 1) that contains the sequences that should match with the spatial barcode dictionary.</li>
-<li><code>--sbcds</code> : The path to the spatial barcode dictionary directory, generated by <code>build-sbcds</code> or <code>combined-sbcds</code>. It should contain <code>manifest.tsv</code> file and corresponding barcode map for each tile in the manifest file.</li>
-<li><code>--out</code> : The prefix for the output files. See <a href="#expected-output">Expected Output</a> for more details.</li>
+<li><code>--mol-tsv</code> : Genetic TSV file sorted by the major axis. Typically <code>transcripts.sorted.tsv.gz</code>.</li>
+<li><code>--pix-prefix-tsv</code> : (Can be used multiple times) A string in <code>[prefix],[filename]</code> format that specifies the prefix and the pixel-level output file (sorted by the major axis). The prefix will be used to annotate the columns in the output file.</li>
+<li><code>--out-prefix</code> : Prefix of output files.</li>
+<li><code>--max-dist-um</code> : The maximum theshold (in um) of distance between the spatial coordinates in transcripts and FICTURE's pixel-level decoding output to be considered as a match.</li>
+<li><code>--out-max-k</code> : The maximum number of pixel-level factors to be included in the joined output (default: 1)</li>
+<li><code>--out-max-p</code> : The maximum number of posterior probabilities to be included in the joined output (default: 1)</li>
+<li><code>--sort-axis</code> : The major axis used to sort the input data. Default is <code>X</code>. If the major axis is <code>Y</code>, use <code>Y</code> instead.</li>
 </ul>
 <h2 id="additional-options">Additional options<a class="headerlink" href="#additional-options" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>--batch</code> : The size of single batch for performing the matching process. Each batch will be processed and the output will be written to temporary files, and merged at the end. The default value is 300M (300000000).  </li>
-<li><code>--skip-sbcd</code> : The number of bases to be skipped in the beginning of the read. This is useful when insufficient bases are sequenced in the 1<sup>st</sup>-seq spatial barcode, which is reverse complemented.  </li>
-<li><code>--skip-duplicates</code> : Skip  barcodes that occurs multiple times in the barcode map. By default, one of the duplicate barcodes are arbitrarily selected and written to the output.</li>
-<li><code>--match-len</code> : The length of the spatial barcode to consider for a match. The default is 27, and the maximum possible value is 27. </li>
+<li><code>--bin-um</code> : The unit of binning (in um) to search for nearest match. Default value 1um is recommended.</li>
+<li><code>--colname-x</code> : Column name for X-coordinate in the output file (default is <code>X</code>).</li>
+<li><code>--colname-y</code> : Column name for Y-coordinate in the output file (default is <code>Y</code>).</li>
+<li><code>--colnames-include</code> : Comma-separated column names to include in the output TSV file.</li>
+<li><code>--colnames-exclude</code> : Comma-separated column names to exclude in the output TSV file.</li>
+<li><code>--out-suffix-tsv</code> : Suffix to stored the output TSV file</li>
+<li><code>--out-suffix-hist</code> : Suffix to stored the output histogram file of best matching distances.</li>
 </ul>
 <h2 id="expected-output">Expected Output<a class="headerlink" href="#expected-output" title="Permanent link">&para;</a></h2>
-<p>With <code>[out_prefix]</code> as the prefix, the following files will be created:</p>
+<p>If the output prefix is <code>${OUTPREFIX}</code>, the following files will be created.</p>
 <ul>
-<li><code>[out_prefix].match.sorted.uniq.tsv.gz</code> : A compressed tsv file containing the following entries in each row:<ol>
-<li>Spatial barcode (alphebetically sorted) </li>
-<li>Lane of spatial coordinate</li>
-<li>Tile of spatial coordinate</li>
-<li>X-coordinate of spatial coordinate</li>
-<li>Y-coordinate of spatial coordinate</li>
-<li>Number of bases that do not match the expected pattern defined by the format (0 is a perfect match).</li>
-<li>Number of occurrences in the 2<sup>nd</sup>-seq FASTQ file.</li>
-</ol>
-</li>
-<li><code>[out_prefix].summary.tsv</code> : A tab-delimited file summarizing the overall statistics of matching barcode<ul>
-<li><code>Type</code> : The type of statistics, including the following values:<ul>
-<li><code>Total</code> : All reads in the 2<sup>nd</sup>-seq FASTQ file.</li>
-<li><code>Miss</code> : Reads that do not contain matching spatial barcodes.</li>
-<li><code>Match</code> : Reads that match with a spatial barcode.</li>
-<li><code>Unique</code> : Unique spatial barcodes that has matches.</li>
-<li><code>Dup(Exact)</code> : Duplicate barcodes calculated as <code>Match</code> - <code>Unique</code>.</li>
-</ul>
-</li>
-<li><code>Reads</code> : The number of reads or barcodes that match the type.</li>
-<li><code>Fraction</code> : The fraction of the reads (among all reads) that match the type.</li>
-</ul>
-</li>
-<li><code>[out_prefix].counts.tsv</code> : A tab-delimited file summarizing the matching barcode statistics per tile. It contains the following entries in each row:<ul>
-<li><code>id</code> : The ID of the tile, in the format of <code>lane_tile</code>.</li>
-<li><code>filepath</code> : The name of the <code>tsv.gz</code> file containing spatial barcode map.</li>
-<li><code>barcodes</code> : The total number of spatial barcodes found in the tile.</li>
-<li><code>matches</code> : The number of barcodes that match the expected format.</li>
-<li><code>unique</code> : The number of unique barcodes that match the expected format.</li>
-</ul>
-</li>
+<li><code>${OUT_PREFIX}.tsv.gz</code> : A generic TSV file that has the same columns with the input files (unless some columns are excluded), and additional columns for each pixel-level output to represent the matching factor and posterior probability.</li>
+<li><code>${OUT_PREFIX}.hist.tsv</code> : A histogram file that shows the distribution of the best matching distances between the spatial coordinates in the input file and the pixel-level output from FICTURE.</li>
 </ul>
 <h2 id="full-usage">Full Usage<a class="headerlink" href="#full-usage" title="Permanent link">&para;</a></h2>
 <p>The full usage of the software tool is as follows:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./spatula<span class="w"> </span>match-sbcds<span class="w"> </span>--help<span class="w">    </span>
-<span class="o">[</span>./spatula<span class="w"> </span>match-sbcds<span class="o">]</span><span class="w"> </span>--<span class="w"> </span>Match<span class="w"> </span>the<span class="w"> </span>FASTQ<span class="w"> </span>file<span class="w"> </span>containing<span class="w"> </span>spatial<span class="w"> </span>barcodes<span class="w"> </span>with<span class="w"> </span>the<span class="w"> </span>spatial<span class="w"> </span>barcode<span class="w"> </span>dictionary
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./spatula<span class="w"> </span>join-pixel-tsv<span class="w"> </span>--help<span class="w">       </span>
+<span class="o">[</span>./spatula<span class="w"> </span>join-pixel-tsv<span class="o">]</span><span class="w"> </span>--<span class="w"> </span>Join<span class="w"> </span>pixel-level<span class="w"> </span>output<span class="w"> </span>from<span class="w"> </span>FICTURE<span class="w"> </span>with<span class="w"> </span>raw<span class="w"> </span>transcript-level<span class="w"> </span>TSV<span class="w"> </span>files
 
 <span class="w"> </span>Copyright<span class="w"> </span><span class="o">(</span>c<span class="o">)</span><span class="w"> </span><span class="m">2022</span>-2024<span class="w"> </span>by<span class="w"> </span>Hyun<span class="w"> </span>Min<span class="w"> </span>Kang
 <span class="w"> </span>Licensed<span class="w"> </span>under<span class="w"> </span>the<span class="w"> </span>Apache<span class="w"> </span>License<span class="w"> </span>v2.0<span class="w"> </span>http://www.apache.org/licenses/
@@ -1301,16 +1425,28 @@ Detailed<span class="w"> </span>instructions<span class="w"> </span>of<span clas
 
 Available<span class="w"> </span>Options:
 
-<span class="o">==</span><span class="w"> </span>Input<span class="w"> </span><span class="nv">options</span><span class="w"> </span><span class="o">==</span>
-<span class="w">   </span>--fq<span class="w">              </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>FASTQ<span class="w"> </span>file<span class="w"> </span><span class="nb">read</span><span class="w"> </span><span class="m">1</span><span class="w"> </span>containing<span class="w"> </span>2nd-seq<span class="w"> </span>spatial<span class="w"> </span>barcode
-<span class="w">   </span>--sbcd<span class="w">            </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Spatial<span class="w"> </span>barcode<span class="w"> </span>dictionary<span class="w"> </span>generated<span class="w"> </span>from<span class="w"> </span><span class="s1">&#39;build-sbcds&#39;</span><span class="w"> </span><span class="nb">command</span>
-<span class="w">   </span>--batch<span class="w">           </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">300000000</span><span class="o">]</span><span class="w">    </span>:<span class="w"> </span>Size<span class="w"> </span>of<span class="w"> </span>a<span class="w"> </span>single<span class="w"> </span>batch
-<span class="w">   </span>--skip-sbcd<span class="w">       </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">0</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Skip<span class="w"> </span>first<span class="w"> </span>bases<span class="w"> </span>of<span class="w"> </span>spatial<span class="w"> </span>barcode<span class="w"> </span><span class="o">(</span>Read<span class="w"> </span><span class="m">1</span><span class="o">)</span>
-<span class="w">   </span>--match-len<span class="w">       </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">27</span><span class="o">]</span><span class="w">           </span>:<span class="w"> </span>Length<span class="w"> </span>of<span class="w"> </span>HDMI<span class="w"> </span>spatial<span class="w"> </span>barcodes<span class="w"> </span>to<span class="w"> </span>require<span class="w"> </span>perfect<span class="w"> </span>matches
-<span class="w">   </span>--skip-duplicates<span class="w"> </span><span class="o">[</span>FLG:<span class="w"> </span>OFF<span class="o">]</span><span class="w">          </span>:<span class="w"> </span>Skip<span class="w"> </span>duplicate<span class="w"> </span>barcodes<span class="w"> </span>that<span class="w"> </span>occurs<span class="w"> </span>multiple<span class="w"> </span><span class="nb">times</span>
+<span class="o">==</span><span class="w"> </span>Key<span class="w"> </span>Input/Output<span class="w"> </span><span class="nv">Options</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--mol-tsv<span class="w">            </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>TSV<span class="w"> </span>file<span class="w"> </span>containing<span class="w"> </span>individual<span class="w"> </span>molecules
+<span class="w">   </span>--pix-prefix-tsv<span class="w">     </span><span class="o">[</span>V_STR:<span class="w"> </span><span class="o">]</span><span class="w">           </span>:<span class="w"> </span>TSV<span class="w"> </span>file<span class="w"> </span>containing<span class="w"> </span>pixel-level<span class="w"> </span>factors
+<span class="w">   </span>--out-prefix<span class="w">         </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Output<span class="w"> </span>prefix<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>joined<span class="w"> </span>TSV<span class="w"> </span><span class="nv">files</span>
 
-<span class="o">==</span><span class="w"> </span>Output<span class="w"> </span><span class="nv">Options</span><span class="w"> </span><span class="o">==</span>
-<span class="w">   </span>--out<span class="w">             </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Output<span class="w"> </span>prefix<span class="w"> </span><span class="o">(</span>index.tsv,<span class="w"> </span>matches.tsv.gz<span class="o">)</span>
+<span class="o">==</span><span class="w"> </span>Key<span class="w"> </span><span class="nv">Parameters</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--bin-um<span class="w">             </span><span class="o">[</span>FLT:<span class="w"> </span><span class="m">1</span>.00<span class="o">]</span><span class="w">         </span>:<span class="w"> </span>Bin<span class="w"> </span>size<span class="w"> </span><span class="k">for</span><span class="w"> </span>grouping<span class="w"> </span>the<span class="w"> </span>pixel-level<span class="w"> </span>output<span class="w"> </span><span class="k">for</span><span class="w"> </span>indexing
+<span class="w">   </span>--max-dist-um<span class="w">        </span><span class="o">[</span>FLT:<span class="w"> </span><span class="m">0</span>.50<span class="o">]</span><span class="w">         </span>:<span class="w"> </span>Maximum<span class="w"> </span>distance<span class="w"> </span><span class="k">in</span><span class="w"> </span>um<span class="w"> </span>to<span class="w"> </span>consider<span class="w"> </span>a<span class="w"> </span><span class="nv">match</span>
+
+<span class="o">==</span><span class="w"> </span>Expected<span class="w"> </span>columns<span class="w"> </span><span class="k">in</span><span class="w"> </span>input<span class="w"> </span>and<span class="w"> </span><span class="nv">output</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--colname-x<span class="w">          </span><span class="o">[</span>STR:<span class="w"> </span>X<span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>X-axis
+<span class="w">   </span>--colname-y<span class="w">          </span><span class="o">[</span>STR:<span class="w"> </span>Y<span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span><span class="k">for</span><span class="w"> </span>Y-axis
+<span class="w">   </span>--sort-axis<span class="w">          </span><span class="o">[</span>STR:<span class="w"> </span>X<span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Column<span class="w"> </span>name<span class="w"> </span>used<span class="w"> </span><span class="k">in</span><span class="w"> </span>sorting.<span class="w"> </span>Both<span class="w"> </span>files<span class="w"> </span>must<span class="w"> </span>be<span class="w"> </span>sorted<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>same<span class="w"> </span>axis<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span>X-axis<span class="o">)</span>
+<span class="w">   </span>--colnames-include<span class="w">   </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Comma-separated<span class="w"> </span>column<span class="w"> </span>names<span class="w"> </span>to<span class="w"> </span>include<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>TSV<span class="w"> </span>file
+<span class="w">   </span>--colnames-exclude<span class="w">   </span><span class="o">[</span>STR:<span class="w"> </span><span class="o">]</span><span class="w">             </span>:<span class="w"> </span>Comma-separated<span class="w"> </span>column<span class="w"> </span>names<span class="w"> </span>to<span class="w"> </span>exclude<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>TSV<span class="w"> </span>file
+<span class="w">   </span>--out-max-k<span class="w">          </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">1</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Maximum<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span>pixel-level<span class="w"> </span>factors<span class="w"> </span>to<span class="w"> </span>include<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>joined<span class="w"> </span>output.<span class="w"> </span><span class="o">(</span>Default<span class="w"> </span>:<span class="w"> </span><span class="m">1</span><span class="o">)</span>
+<span class="w">   </span>--out-max-p<span class="w">          </span><span class="o">[</span>INT:<span class="w"> </span><span class="m">1</span><span class="o">]</span><span class="w">            </span>:<span class="w"> </span>Maximum<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span>pixel-level<span class="w"> </span>posterior<span class="w"> </span>probabilities<span class="w"> </span>to<span class="w"> </span>include<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>joined<span class="w"> </span>output.<span class="w"> </span><span class="o">(</span>Default<span class="w"> </span>:<span class="w"> </span><span class="m">1</span><span class="o">)</span>
+
+<span class="o">==</span><span class="w"> </span>Output<span class="w"> </span>File<span class="w"> </span><span class="nv">suffixes</span><span class="w"> </span><span class="o">==</span>
+<span class="w">   </span>--out-suffix-tsv<span class="w">     </span><span class="o">[</span>STR:<span class="w"> </span>.tsv.gz<span class="o">]</span><span class="w">      </span>:<span class="w"> </span>Suffix<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>output<span class="w"> </span>TSV<span class="w"> </span>file
+<span class="w">   </span>--out-suffix-hist<span class="w">    </span><span class="o">[</span>STR:<span class="w"> </span>.dist.hist.tsv<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Suffix<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>histogram<span class="w"> </span>of<span class="w"> </span>match<span class="w"> </span>distance
+<span class="w">   </span>--out-suffix-summary<span class="w"> </span><span class="o">[</span>STR:<span class="w"> </span>.summary.tsv<span class="o">]</span><span class="w"> </span>:<span class="w"> </span>Suffix<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>summary<span class="w"> </span>file
 
 
 NOTES:
