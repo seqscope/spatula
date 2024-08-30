@@ -37,6 +37,7 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_join_pixel_tsv.cpp
     cmd_custom_demux_fastq.cpp
     cmd_stratify_fastq_by_barcodes.cpp
     cmd_filter_common_barcodes.cpp

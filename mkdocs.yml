@@ -82,6 +82,9 @@ nav:
     - Analysis of Spatial Gene Expression (SGE): 
       - dge2sge: tools/dge2sge.md
       - subset-sge: tools/subset_sge.md
+    - FICTURE Analysis:
+      - convert-sge: tools/convert_sge.md
+      - join-pixel-tsv: tools/join_pixel_tsv.md
     - FASTQ Processing: 
       - reformat-fastqs: tools/reformat_fastqs.md
       - custom-demux-fastq: tools/custom_demux_fastq.md

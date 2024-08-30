@@ -8,7 +8,8 @@ The categories of software tools provided includes:
 * Tools for Analyzing Spatial Barcodes 
 * Tools for Analyzing Spatial Gene Expression (SGE)
 * Tools for Processing FASTQ Files
+* Tools for Supporting Analysis with [FICTURE](https://github.com/seqscope/ficture)
 * Miscellaneous Tools
 
-Note that the documentation contain only a subset of tools that `spatula` provides. 
+Note that the documentation contains only a subset of tools that `spatula` provides. 
 Other tools not documented here is either deprecated or under active development.
