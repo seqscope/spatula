@@ -44,6 +44,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
     std::string out_suffix_summary(".summary.tsv");   // suffix for the summary file
 
     // output column names for tsv files
+    //std::string colname_block("BLOCK");
     std::string colname_X("X");
     std::string colname_Y("Y");
     std::string sort_axis("X"); // both input files must be sorted by the same axis
@@ -164,8 +165,9 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
     std::vector<double> v_offsets_y(n_pix);
     std::vector<double> v_scales(n_pix);
     std::vector<int32_t> v_topks(n_pix);
-    std::vector<double> v_idxs_x(n_pix);
-    std::vector<double> v_idxs_y(n_pix);
+    //std::vector<int32_t> v_idxs_block(n_pix);
+    std::vector<int32_t> v_idxs_x(n_pix);
+    std::vector<int32_t> v_idxs_y(n_pix);
     std::vector<int32_t> v_idxs_k1(n_pix);
     std::vector<int32_t> v_idxs_p1(n_pix);
     for(int32_t i=0; i < n_pix; ++i) {
@@ -175,7 +177,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         double offset_y = DBL_MAX;
         double scale = DBL_MAX;
         int32_t topk = 0;
-        bool index_axis_checked = false;
+        //bool block_axis_checked = false;
         int32_t idx_pix_x = -1, idx_pix_y = -1, idx_pix_k1 = -1, idx_pix_p1 = -1;
         tsv_reader* p_pix_tr = pix_trs[i];
         while( p_pix_tr->read_line() ) {
@@ -191,13 +193,13 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
                         if ( keyvals.size() != 2 ) {
                             error("Cannot parse %s in the meta line in %s", meta_toks[i].c_str(), pix_tsvs[i].c_str());
                         }
-                        if ( keyvals[0].compare("INDEX_AXIS") == 0 ) {
-                            // make sure that the axis is consistent
-                            if ( keyvals[1].compare(sort_axis) != 0 ) {
-                                error("INDEX_AXIS=%s in %s, but sort_axis=%s", keyvals[1].c_str(), pix_tsvs[i].c_str(), sort_axis.c_str());
-                            }
-                            index_axis_checked = true;
-                        }
+                        // if ( keyvals[0].compare("BLOCK_AXIS") == 0 ) {
+                        //     // make sure that the axis is consistent
+                        //     if ( keyvals[1].compare(sort_axis) != 0 ) {
+                        //         error("BLOCK_AXIS=%s in %s, but sort_axis=%s", keyvals[1].c_str(), pix_tsvs[i].c_str(), sort_axis.c_str());
+                        //     }
+                        //     block_axis_checked = true;
+                        // }
                         else if ( keyvals[0].compare("OFFSET_X") == 0 ) {
                             offset_x = atof(keyvals[1].c_str());
                         }
@@ -224,6 +226,9 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
                         }
 
                         std::string& colname = m_pix_colnames[i].back();
+                        // if ( colname.compare(colname_block) == 0 ) {
+                        //     idx_pix_block = j;
+                        // }
                         if ( colname.compare(colname_X) == 0 ) {
                             idx_pix_x = j;
                         }
@@ -251,7 +256,8 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         if ( scale == DBL_MAX ) error("Cannot find SCALE field in the meta line of %s", pix_tsvs[i].c_str());
         if ( offset_x == DBL_MAX ) error("Cannot find OFFSET_X field in the meta line of %s", pix_tsvs[i].c_str());
         if ( offset_y == DBL_MAX ) error("Cannot find OFFSET_Y field in the meta line of %s", pix_tsvs[i].c_str());
-        if ( !index_axis_checked ) error("Cannot find INDEX_AXIS field in the meta line of %s", pix_tsvs[i].c_str());
+        //if ( !block_axis_checked ) error("Cannot find BLOCK_AXIS field in the meta line of %s", pix_tsvs[i].c_str());
+        //if ( idx_pix_block < 0 ) error("Cannot find %s in the header line of %s", colname_block.c_str(), pix_tsvs[i].c_str());
         if ( idx_pix_x < 0 ) error("Cannot find %s in the header line of %s", colname_X.c_str(), pix_tsvs[i].c_str());
         if ( idx_pix_y < 0 ) error("Cannot find %s in the header line of %s", colname_Y.c_str(), pix_tsvs[i].c_str());
         if ( idx_pix_k1 < 0 ) error("Cannot find K1 in the header line of %s", pix_tsvs[i].c_str());
@@ -262,6 +268,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         v_offsets_y[i] = offset_y;
         v_scales[i] = scale;
         v_topks[i] = topk;
+        //v_idxs_block[i] = idx_pix_block;
         v_idxs_x[i] = idx_pix_x;
         v_idxs_y[i] = idx_pix_y;
         v_idxs_k1[i] = idx_pix_k1;
@@ -393,7 +400,18 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
                 int32_t bin_major = is_sorted_by_x ? bin_x : bin_y;
                 int32_t bin_minor = is_sorted_by_x ? bin_y : bin_x;
                 v_bin2factors[i][bin_major][bin_minor].push_back(ppf);
-                v_max_pix_vals[i] = is_sorted_by_x ? ppf->x : ppf->y;
+                if ( is_sorted_by_x ) {
+                    if ( v_max_pix_vals[i] > ppf->x ) {
+                        error("Pixel-level data in %s is not sorted by the axis %s", pix_tsvs[i].c_str(), sort_axis.c_str());
+                    }
+                    v_max_pix_vals[i] = ppf->x;
+                }
+                else {
+                    if ( v_max_pix_vals[i] > ppf->y ) {
+                        error("Pixel-level data in %s is not sorted by the axis %s", pix_tsvs[i].c_str(), sort_axis.c_str());
+                    }
+                    v_max_pix_vals[i] = ppf->y;
+                }
                 ++n_pix_read;
             }
             //if ( n_pix_read > 0 )
