@@ -27,6 +27,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     int32_t intensity_per_obs = 1;  // intensity per observation
     int32_t verbose_freq = 1000000; // report frequency of input reading
     bool auto_adjust_intensity = false;
+    bool invert_image = false;
     int32_t max_intensity = 255;
     double auto_adjust_quantile = 0.99;
     std::string outf;
@@ -44,9 +45,9 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     LONG_DOUBLE_PARAM("coord-per-pixel", &coord_per_pixel, "Number of coordinate units per pixel")
     LONG_INT_PARAM("intensity-per-obs", &intensity_per_obs, "Intensity per pixel per observation")
     LONG_PARAM("auto-adjust", &auto_adjust_intensity, "Automatically adjust the intensity of the color based on the maximum count")
+    LONG_PARAM("invert", &invert_image, "Invert the image")
     LONG_DOUBLE_PARAM("adjust-quantile", &auto_adjust_quantile, "Quantile of pixel to use for auto-adjustment among non-zero pixels")
     LONG_INT_PARAM("max-intensity", &max_intensity, "Maximum value of possible intensity")
-
 
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out", &outf, "Output file name")
@@ -195,6 +196,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
         else {
             for(int32_t iy=0; iy < height; ++iy) {
                 uint8_t c = imbufs[ix][iy];
+                if ( invert_image ) c = max_intensity - c;
                 image(ix, iy, 0) = c;
                 image(ix, iy, 1) = c;
                 image(ix, iy, 2) = c;
