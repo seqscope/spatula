@@ -62,6 +62,7 @@ set(SOURCE_FILES
     cmd_sge2tsv.cpp
     cmd_convert_sge.cpp
     cmd_segment_sge.cpp
+    cmd_filter_tsv.cpp
     multiproc_compressor.h
     sge.cpp
     sge.h
@@ -77,6 +78,8 @@ set(SOURCE_FILES
     file_utils.h
     spatula.cpp
     spatula.h
+    polygon.h
+    polygon.cpp
     nlohmann/json.hpp
     cimg/CImg.h
     )

@@ -21,11 +21,16 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     std::string tsvf;
     int32_t icolx = 0;
     int32_t icoly = 1;
+    int32_t icolcnt = -1;
     double coord_per_pixel = 1.0; // 1 pixel = 1 coordinate unit
     int32_t width = 0;
     int32_t height = 0;
     int32_t intensity_per_obs = 1;  // intensity per observation
     int32_t verbose_freq = 1000000; // report frequency of input reading
+    bool auto_adjust_intensity = false;
+    bool invert_image = false;
+    int32_t max_intensity = 255;
+    double auto_adjust_quantile = 0.99;
     std::string outf;
 
     paramList pl;
@@ -34,12 +39,17 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     LONG_STRING_PARAM("tsv", &tsvf, "tsv file to draw the x-y coordinates. /dev/stdin for stdin")
     LONG_INT_PARAM("icol-x", &icolx, "0-based index of the column for x")
     LONG_INT_PARAM("icol-y", &icoly, "0-based index of the column for y")
+    LONG_INT_PARAM("icol-cnt", &icolcnt, "0-based index of the column for count")
 
     LONG_PARAM_GROUP("Settings", NULL)
     LONG_INT_PARAM("width", &width, "Width of the image")
     LONG_INT_PARAM("height", &height, "Height of the image")
     LONG_DOUBLE_PARAM("coord-per-pixel", &coord_per_pixel, "Number of coordinate units per pixel")
     LONG_INT_PARAM("intensity-per-obs", &intensity_per_obs, "Intensity per pixel per observation")
+    LONG_PARAM("auto-adjust", &auto_adjust_intensity, "Automatically adjust the intensity of the color based on the maximum count")
+    LONG_PARAM("invert", &invert_image, "Invert the image")
+    LONG_DOUBLE_PARAM("adjust-quantile", &auto_adjust_quantile, "Quantile of pixel to use for auto-adjustment among non-zero pixels")
+    LONG_INT_PARAM("max-intensity", &max_intensity, "Maximum value of possible intensity")
 
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out", &outf, "Output file name")
@@ -62,13 +72,16 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
 
     tsv_reader tf(tsvf.c_str());
 
+    std::vector<int32_t> intensity_counts(max_intensity + 1, 0);
+
     uint64_t nlines = 0;
     while ( tf.read_line() ) {
-        if ( tf.nfields <= icolx || tf.nfields <= icoly )
+        if ( tf.nfields <= icolx || tf.nfields <= icoly || ( icolcnt >= 0 && tf.nfields <= icolcnt ) )
             error("Input file %s does not have enough columns - only %d", tsvf.c_str(), tf.nfields);
 
         double x = tf.double_field_at(icolx);
         double y = tf.double_field_at(icoly);
+        int32_t cnt = icolcnt >= 0 ? tf.int_field_at(icolcnt) : 1;
         int32_t ix = (int32_t)(x / coord_per_pixel);
         int32_t iy = (int32_t)(y / coord_per_pixel);
 
@@ -99,16 +112,32 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
 
         max_y = iy > max_y ? iy : max_y;
 
-        if ( imbufs[ix][iy] + intensity_per_obs < 256 )
-            imbufs[ix][iy] += (uint8_t)intensity_per_obs;
-        else
-            imbufs[ix][iy] = 255;    
+        if ( imbufs[ix][iy] + intensity_per_obs * cnt <= max_intensity ) {
+            if ( imbufs[ix][iy] == 0 ) {
+                intensity_counts[intensity_per_obs * cnt]++;
+            }
+            else {
+                intensity_counts[imbufs[ix][iy]]--;
+                intensity_counts[imbufs[ix][iy] + intensity_per_obs * cnt]++;
+            }
+            imbufs[ix][iy] += (uint8_t)(intensity_per_obs * cnt);
+        }
+        else {
+            if ( imbufs[ix][iy] == 0 ) {
+                intensity_counts[max_intensity]++;
+            }
+            else {
+                intensity_counts[imbufs[ix][iy]]--;
+                intensity_counts[max_intensity]++;
+            }
+            imbufs[ix][iy] = max_intensity;    
+        }
 
-	++nlines;
+	    ++nlines;
 
-	if ( nlines % verbose_freq == 0 ) {
-	    notice("Reading %llu input lines... max_y = %d, cur_height = %d", nlines, max_y, cur_height);
-	}
+        if ( nlines % verbose_freq == 0 ) {
+            notice("Reading %llu input lines... max_y = %d, cur_height = %d", nlines, max_y, cur_height);
+        }
     }
 
     if ( width == 0 ) {
@@ -118,6 +147,42 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     if ( height == 0 ) {
         height = max_y + 1;
         notice("Setting the height = %d", height);
+    }
+
+    if ( auto_adjust_intensity ) {
+        notice("Auto-adjusting the intensity of the image");
+
+        // obtain quantile threshold of non-zero intensities
+        std::vector<int32_t> cumulative_counts(max_intensity + 1, 0);
+        for(int32_t i=1; i <= max_intensity; ++i) {
+            cumulative_counts[i] = cumulative_counts[i-1] + intensity_counts[i];
+        }
+
+        int32_t threshold_intensity = max_intensity;
+        for(int32_t i=max_intensity; i > 0; --i) {
+            if ( cumulative_counts[i] > auto_adjust_quantile * cumulative_counts[max_intensity] ) {
+                threshold_intensity = i;
+            }
+            else {
+                break;
+            }
+        }
+
+        notice("Auto-adjusted intensity threshold = %d", threshold_intensity);
+        for(int32_t ix=0; ix < width; ++ix) {
+            if ( imbufs[ix] != NULL ) {
+                for(int32_t iy=0; iy < height; ++iy) {
+                    if ( imbufs[ix][iy] > 0 ) {
+                        if ( imbufs[ix][iy] > threshold_intensity ) {
+                            imbufs[ix][iy] = max_intensity;
+                        }
+                        else {
+                            imbufs[ix][iy] = (int32_t)(imbufs[ix][iy] * max_intensity / threshold_intensity);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     notice("Creating an image in memory");
@@ -134,6 +199,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
         else {
             for(int32_t iy=0; iy < height; ++iy) {
                 uint8_t c = imbufs[ix][iy];
+                if ( invert_image ) c = max_intensity - c;
                 image(ix, iy, 0) = c;
                 image(ix, iy, 1) = c;
                 image(ix, iy, 2) = c;
