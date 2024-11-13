@@ -22,6 +22,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     int32_t icolx = 0;
     int32_t icoly = 1;
     int32_t icolcnt = -1;
+    int32_t skip_lines = 0;
     double coord_per_pixel = 1.0; // 1 pixel = 1 coordinate unit
     int32_t width = 0;
     int32_t height = 0;
@@ -30,6 +31,7 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     bool auto_adjust_intensity = false;
     bool invert_image = false;
     int32_t max_intensity = 255;
+    std::string ullr;
     double auto_adjust_quantile = 0.99;
     std::string outf;
 
@@ -40,10 +42,12 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     LONG_INT_PARAM("icol-x", &icolx, "0-based index of the column for x")
     LONG_INT_PARAM("icol-y", &icoly, "0-based index of the column for y")
     LONG_INT_PARAM("icol-cnt", &icolcnt, "0-based index of the column for count")
+    LONG_INT_PARAM("skip-lines", &skip_lines, "Number of lines to skip")
 
     LONG_PARAM_GROUP("Settings", NULL)
     LONG_INT_PARAM("width", &width, "Width of the image")
     LONG_INT_PARAM("height", &height, "Height of the image")
+    LONG_STRING_PARAM("ullr", &ullr, "Comma-separated bounding box (xmin,ymin,xmax,ymax)")
     LONG_DOUBLE_PARAM("coord-per-pixel", &coord_per_pixel, "Number of coordinate units per pixel")
     LONG_INT_PARAM("intensity-per-obs", &intensity_per_obs, "Intensity per pixel per observation")
     LONG_PARAM("auto-adjust", &auto_adjust_intensity, "Automatically adjust the intensity of the color based on the maximum count")
@@ -59,9 +63,24 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     pl.Read(argc, argv);
     pl.Status();
 
+    double xmin = 0, ymin = 0, xmax = 0, ymax = 0;
+
     if ( tsvf.empty() || outf.empty() )
         error("--tsv and --out must be specified");
-    if ( width == 0 || height == 0 ) 
+    if ( !ullr.empty() ) {
+        std::vector<std::string> v;
+        split(v, ",", ullr);
+        if ( v.size() != 4 ) error("Invalid ullr format: %s", ullr.c_str());
+        xmin = atof(v[0].c_str());
+        ymin = atof(v[1].c_str());
+        xmax = atof(v[2].c_str());
+        ymax = atof(v[3].c_str());
+        width = (int32_t)(ceil((xmax - xmin + 1) / coord_per_pixel));
+        height = (int32_t)(ceil((ymax - ymin + 1) / coord_per_pixel));
+        notice("Bounding box: xmin = %lf, ymin = %lf, xmax = %lf, ymax = %lf", xmin, ymin, xmax, ymax);
+        notice("Width = %d, Height = %d", width, height);
+    }
+    else if ( width == 0 || height == 0 ) 
         notice("width and height is not specified. Will be automatically detected while reading the input files");
 
     notice("Analysis started");
@@ -79,8 +98,13 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
         if ( tf.nfields <= icolx || tf.nfields <= icoly || ( icolcnt >= 0 && tf.nfields <= icolcnt ) )
             error("Input file %s does not have enough columns - only %d", tsvf.c_str(), tf.nfields);
 
-        double x = tf.double_field_at(icolx);
-        double y = tf.double_field_at(icoly);
+        if ( nlines < skip_lines ) {
+            ++nlines;
+            continue;
+        }
+
+        double x = tf.double_field_at(icolx) - xmin;
+        double y = tf.double_field_at(icoly) - ymin;
         int32_t cnt = icolcnt >= 0 ? tf.int_field_at(icolcnt) : 1;
         int32_t ix = (int32_t)(x / coord_per_pixel);
         int32_t iy = (int32_t)(y / coord_per_pixel);
@@ -191,9 +215,9 @@ int32_t cmdDrawXY(int32_t argc, char **argv)
     for(int32_t ix=0; ix < width; ++ix) {
         if ( imbufs[ix] == NULL ) {
             for(int32_t iy=0; iy < height; ++iy) {
-                image(ix, iy, 0) = 0;
-                image(ix, iy, 1) = 0;
-                image(ix, iy, 2) = 0;
+                image(ix, iy, 0) = invert_image ? 255 : 0;
+                image(ix, iy, 1) = invert_image ? 255 : 0;
+                image(ix, iy, 2) = invert_image ? 255 : 0;
             }
         }
         else {
