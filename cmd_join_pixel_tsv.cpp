@@ -56,6 +56,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
 
     int32_t out_max_k = 1;            // maximum num of pixel-level factors to include in the joined output 
     int32_t out_max_p = 1;            // maximum num of pixel-level probs to include in the joined output
+    double mu_scale = 1.0;            // scale factor for the mu values
     //bool skip_unmatched = false;      // do not print transcripts without matched factor
 
     paramList pl;
@@ -64,11 +65,11 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
     LONG_STRING_PARAM("mol-tsv", &in_mol_tsv, "TSV file containing individual molecules")
     LONG_MULTI_STRING_PARAM("pix-prefix-tsv", &pix_prefix_tsvs, "TSV file containing pixel-level factors")
     LONG_STRING_PARAM("out-prefix", &out_prefix, "Output prefix for the joined TSV files")
-    //LONG_PARAM("skip-unmatched",&skip_unmatched, "Do not print transcripts without matched factor")
 
     LONG_PARAM_GROUP("Key Parameters", NULL)
     LONG_DOUBLE_PARAM("bin-um", &bin_um, "Bin size for grouping the pixel-level output for indexing")
     LONG_DOUBLE_PARAM("max-dist-um", &max_dist_um, "Maximum distance in um to consider a match")
+    LONG_DOUBLE_PARAM("mu-scale", &mu_scale, "Scale factor for the mu values")
 
     LONG_PARAM_GROUP("Expected columns in input and output", NULL)
     LONG_STRING_PARAM("colname-x", &colname_X, "Column name for X-axis")
@@ -77,7 +78,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
     LONG_STRING_PARAM("colnames-include", &csv_colnames_include, "Comma-separated column names to include in the output TSV file")
     LONG_STRING_PARAM("colnames-exclude", &csv_colnames_exclude, "Comma-separated column names to exclude in the output TSV file")
     LONG_INT_PARAM("out-max-k", &out_max_k, "Maximum number of pixel-level factors to include in the joined output. (Default : 1)")
-    LONG_INT_PARAM("out-max-p", &out_max_p, "Maximum number of pixel-level posterior probabilities to include in the joined output. (Default : 1)")    
+    LONG_INT_PARAM("out-max-p", &out_max_p, "Maximum number of pixel-level posterior probabilities to include in the joined output. (Default : 1)")
 
     LONG_PARAM_GROUP("Output File suffixes", NULL)
     LONG_STRING_PARAM("out-suffix-tsv", &out_suffix_tsv, "Suffix for the output TSV file")
@@ -185,13 +186,21 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
             //notice("line = %s", line);
             if ( line[0] == '#' ) {
                 if ( line[1] == '#' ) { // meta line, starting with '##'
+                    std::string meta_line(p_pix_tr->str_field_at(0));
+                    if ( p_pix_tr->nfields > 1 ) {
+                        for(int i=1; i < p_pix_tr->nfields; ++i) {
+                            meta_line += p_pix_tr->str_field_at(i);
+                        }
+                        line = meta_line.c_str(); // substitute the meta line removing blanks
+                    }
+
                     std::vector<std::string> meta_toks;
                     split(meta_toks, ";", line+2);
                     for(int32_t i=0; i < (int32_t)meta_toks.size(); ++i) {
                         std::vector<std::string> keyvals;
                         split(keyvals, "=", meta_toks[i]);
                         if ( keyvals.size() != 2 ) {
-                            error("Cannot parse %s in the meta line in %s", meta_toks[i].c_str(), pix_tsvs[i].c_str());
+                            error("Cannot parse '%s' in the meta line in %s. size = %zu, line = %s", meta_toks[i].c_str(), pix_tsvs[i].c_str(), keyvals.size(), line);
                         }
                         // if ( keyvals[0].compare("BLOCK_AXIS") == 0 ) {
                         //     // make sure that the axis is consistent
@@ -328,7 +337,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
     std::vector<std::map<int32_t, std::map<int32_t, std::vector<pix_factor_t*> > > > v_bin2factors(n_pix);
 
     // read the first line of molecular-level data
-    double mol_x, mol_y;
+    double mol_x, mol_y, mu_x, mu_y;
     std::vector<double> v_max_pix_vals(n_pix, -DBL_MAX);
     double max_major_val = -DBL_MAX;
     std::vector<std::map<int32_t, std::map<int32_t, std::vector<pix_factor_t*> > >::iterator > v_it(n_pix);
@@ -373,7 +382,9 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
     while( mol_tr.read_line() ) {
         mol_x = mol_tr.double_field_at(idx_mol_x);
         mol_y = mol_tr.double_field_at(idx_mol_y);
-        double new_max_major_val = is_sorted_by_x ? mol_x + max_dist_um : mol_y + max_dist_um;
+        mu_x = mol_x / mu_scale; // micrometer-scale x value (consistent to the pixel-level data)
+        mu_y = mol_y / mu_scale; // micrometer-scale y value (consistent to the pixel-level data)
+        double new_max_major_val = is_sorted_by_x ? mu_x + max_dist_um : mu_y + max_dist_um;
         if ( new_max_major_val < max_major_val ) {
             error("Input file %s is not sorted by the axis %s", in_mol_tsv.c_str(), sort_axis.c_str());
         }
@@ -417,9 +428,9 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
             //if ( n_pix_read > 0 )
             //    notice("n_pix_read = %llu, max_major_val = %lf, max_pix_val = %lf", n_pix_read, max_major_val, max_pix_val);
 
-            double min_major_val = is_sorted_by_x ? mol_x - max_dist_um : mol_y - max_dist_um;
-            double min_minor_val = is_sorted_by_x ? mol_y - max_dist_um : mol_x - max_dist_um;
-            double max_minor_val = is_sorted_by_x ? mol_y + max_dist_um : mol_x + max_dist_um;    
+            double min_major_val = is_sorted_by_x ? mu_x - max_dist_um : mu_y - max_dist_um;
+            double min_minor_val = is_sorted_by_x ? mu_y - max_dist_um : mu_x - max_dist_um;
+            double max_minor_val = is_sorted_by_x ? mu_y + max_dist_um : mu_x + max_dist_um;    
 
             int32_t min_major_bin = (int32_t)floor(min_major_val / bin_um);
             int32_t max_major_bin = (int32_t)floor(max_major_val / bin_um);
@@ -445,7 +456,6 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
             int32_t min_minor_bin = (int32_t)floor(min_minor_val / bin_um);
             int32_t max_minor_bin = (int32_t)floor(max_minor_val / bin_um);
 
-
             // identify best-matching bins to examine
             pix_factor_t* best_ppf = NULL;
             double best_dist = DBL_MAX; // max_dist_um * max_dist_um; 
@@ -462,7 +472,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
                             // enumerate all pixel-level factors
                             for(int32_t j=0; j < (int32_t)v.size(); ++j) {
                                 pix_factor_t* ppf = v[j];
-                                double dist = (mol_x - ppf->x)*(mol_x - ppf->x) + (mol_y - ppf->y)*(mol_y - ppf->y);
+                                double dist = (mu_x - ppf->x)*(mu_x - ppf->x) + (mu_y - ppf->y)*(mu_y - ppf->y);
                                 ++ncomp;
                                 if ( dist < best_dist ) {
                                     best_ppf = ppf;
@@ -523,6 +533,7 @@ int32_t cmdJoinPixelTSV(int32_t argc, char **argv)
         }
     }
     hts_close(wh_tsv);
+    notice("Processed %llu transcripts and identified %llu full matches and %llu partial matches", n_mol, n_full_match, n_partial_match);
     notice("Analysis finished");
 
     // Write the output histogram
