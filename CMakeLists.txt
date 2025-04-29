@@ -37,6 +37,8 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_reformat_tsv.cpp
+    cmd_diffexp_pseudobulk.cpp
     cmd_join_pixel_tsv.cpp
     cmd_custom_demux_fastq.cpp
     cmd_stratify_fastq_by_barcodes.cpp
@@ -70,6 +72,8 @@ set(SOURCE_FILES
     sge2.h
     tiles.cpp
     tiles.h
+    generic_utils.cpp
+    generic_utils.h
     fastq_utils.cpp
     fastq_utils.h
     seq_utils.cpp
