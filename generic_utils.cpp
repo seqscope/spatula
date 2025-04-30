@@ -29,3 +29,16 @@ double chisq1_log10p(double chi2) {
         return -logp / std::log(10.0);
     }
 }
+
+bool unquote_string(std::string& s) {
+    if ( s.size() < 2 ) return false;
+    if ( s[0] == '"' && s[s.size()-1] == '"' ) {
+        s = s.substr(1, s.size()-2);
+        return true;
+    }
+    else if ( s[0] == '\'' && s[s.size()-1] == '\'' ) {
+        s = s.substr(1, s.size()-2);
+        return true;
+    }
+    return false;
+}
