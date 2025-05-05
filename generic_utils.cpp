@@ -1,6 +1,7 @@
 #include "generic_utils.h"
 #include "qgenlib/qgen_error.h"
 #include <cmath>
+#include <cstring>
 
 int32_t find_idx_by_key(std::map<std::string, int32_t>& dict, const char* key, bool required) {
     auto feature_idx = dict.find(key);
