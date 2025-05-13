@@ -32,6 +32,7 @@ int32_t cmdDiffExpPseudobulk(int32_t argc, char **argv);
 int32_t cmdReformatTsv(int32_t argc, char **argv);
 int32_t cmdPastePixelTSV(int32_t argc, char **argv);
 int32_t cmdAppendTopKTSV(int32_t argc, char **argv);
+int32_t cmdJoinPixelDecode(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -64,6 +65,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("paste-pixel-tsv", &cmdPastePixelTSV, "Paste pixel-level output from FICTURE2 with raw transcript-level TSV files")
   LONG_COMMAND("diffexp-pseudobulk", &cmdDiffExpPseudobulk, "Perform differential expression test as pseudobulk data from pixel-level output")
   LONG_COMMAND("append-topk-tsv", &cmdAppendTopKTSV, "Append topK and topP columns to the input TSV file")
+  LONG_COMMAND("join-pixel-decode", &cmdJoinPixelDecode, "Join pixel-level-decode output from FICTURE2 with raw transcript-level TSV files")
 
   LONG_COMMAND_GROUP("Tools for FASTQ processing", NULL)
   LONG_COMMAND("filter-fastqs", &cmdFilterFASTQs, "Filter FASTQs based on a pattern")
