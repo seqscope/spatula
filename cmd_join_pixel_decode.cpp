@@ -77,7 +77,7 @@ public:
     //std::string colname_decode_feature("feature");
 
     double tile_size = 500;   // tile size in um
-    double bin_size  = 1.0;   // unit to group temporary output
+    //double bin_size  = 1.0;   // unit to group temporary output
     double max_dist  = 0.5;   // maximum distance between pixel-level output and the molecules 
     int32_t precision = 3;    // Output precision below the decimal point
 
@@ -654,7 +654,7 @@ int32_t cmdJoinPixelDecode(int32_t argc, char **argv)
 
     LONG_PARAM_GROUP("Key Parameters", NULL)
     LONG_DOUBLE_PARAM("tile-size", &dj.tile_size, "Tile size to create temporary files for binning")
-    LONG_DOUBLE_PARAM("bin-size", &dj.bin_size, "Bin size for grouping the pixel-level output for indexing")
+    //LONG_DOUBLE_PARAM("bin-size", &dj.bin_size, "Bin size for grouping the pixel-level output for indexing")
     LONG_DOUBLE_PARAM("max-dist", &dj.max_dist, "Maximum distance in um to consider a match")
     LONG_DOUBLE_PARAM("mu-scale", &dj.mu_scale, "Scale factor for the resolution - divide by mu_scale in the output")
     LONG_DOUBLE_PARAM("precision", &dj.precision, "Output precision below the decimal point")
