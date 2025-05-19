@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8...3.23)
 project(spatula)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -std=c++11 -msse4.1 -mpclmul -fno-strict-aliasing")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -std=c++11")
 
 if(APPLE)
     # On macOS, CMake typically finds Apple Clang by default.
@@ -22,6 +22,8 @@ if(APPLE)
 
     # You can also set macOS specific deployment target if needed:
     # set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS deployment version")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1 -mpclmul -fno-strict-aliasing")
 endif()
 
 # Option to enable finding and linking with libdeflate
