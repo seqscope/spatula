@@ -29,6 +29,8 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
     std::string out_model;   // Output model file name (required with --reorder)
     bool reorder = false;    // reorder the columns in the output file
     bool keep_random_key = false; // keep the random key in the output file
+    int32_t icol_random_key = 0;  // column index for the random key, -1 if not present
+    int32_t offset_data = 3;      // column index for the beginning of the data in the input TSV file
     int32_t offset_model = 1;
 
     paramList pl;
@@ -43,7 +45,9 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
     LONG_PARAM("keep-random-key", &keep_random_key, "Keep the random key in the output file")
 
     LONG_PARAM_GROUP("Expected columns in input and output", NULL)
+    LONG_INT_PARAM("icol-random-key", &icol_random_key, "Column index for the random key, -1 if not present")
     LONG_INT_PARAM("offset-model", &offset_model, "Column index for the beginning of the input model file")
+    LONG_INT_PARAM("offset-data", &offset_data, "Column index for the beginning of the input tsv file")
     LONG_STRING_PARAM("topK", &topK, "Column name for topK")
     LONG_STRING_PARAM("topP", &topK, "Column name for topP")
     END_LONG_PARAMS();
@@ -53,20 +57,30 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
     pl.Status();
 
     // check the input files
-    if ( in_tsv.empty() || out_tsv.empty() || in_json.empty() )
-        error("--in-tsv, --in-json, and --out-tsv must be specified");
+    if ( in_tsv.empty() || out_tsv.empty() )
+        error("--in-tsv, and --out-tsv must be specified");
 
     // read the input JSON file
-    std::ifstream json_file(in_json);
-    if (!json_file.is_open()) {
-        error("Cannot open JSON file %s", in_json.c_str());
+    if ( in_json.empty() ) {
+        notice("No --in-json specified. Using the following parameters specified by the user:");
     }
-    nlohmann::json json_data;
-    json_file >> json_data;
+    else {
+        std::ifstream json_file(in_json);
+        if (!json_file.is_open()) {
+            error("Cannot open JSON file %s", in_json.c_str());
+        }
+        nlohmann::json json_data;
+        json_file >> json_data;
 
-    // extract the header information
-    int32_t icol_random_key = json_data["random_key"].get<int32_t>();
-    int32_t offset_data = json_data["offset_data"].get<int32_t>();
+        // extract the header information
+        icol_random_key = json_data["random_key"].get<int32_t>();
+        offset_data = json_data["offset_data"].get<int32_t>();
+
+        notice("Extracted the following parameters from %s:", in_json.c_str());
+    }
+    notice("icol_random_key = %d", icol_random_key);
+    notice("offset_data = %d", offset_data);
+    notice("offset_model = %d", offset_model);
 
     std::vector<int32_t> icols;
     std::vector<std::string> colnames;
