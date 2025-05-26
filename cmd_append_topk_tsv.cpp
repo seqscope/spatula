@@ -49,7 +49,7 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
     LONG_INT_PARAM("offset-model", &offset_model, "Column index for the beginning of the input model file")
     LONG_INT_PARAM("offset-data", &offset_data, "Column index for the beginning of the input tsv file")
     LONG_STRING_PARAM("topK", &topK, "Column name for topK")
-    LONG_STRING_PARAM("topP", &topK, "Column name for topP")
+    LONG_STRING_PARAM("topP", &topP, "Column name for topP")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));
