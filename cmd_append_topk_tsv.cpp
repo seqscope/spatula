@@ -182,9 +182,9 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
         }
         else { // process data lines
             double imax = 0;
-            double maxP = tr.double_field_at(icols[0]);
+            double maxP = tr.double_field_at(icols[0]+offset_data);
             for(int32_t i=1; i < (int32_t)icols.size(); ++i) {
-                double p = tr.double_field_at(icols[i]);
+                double p = tr.double_field_at(icols[i]+offset_data);
                 if ( p > maxP ) {
                     maxP = p;
                     imax = i;
