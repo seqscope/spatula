@@ -69,7 +69,8 @@ set(SOURCE_FILES
     cmd_join_pixel_decode.cpp
     cmd_append_topk_tsv.cpp
     cmd_reformat_tsv.cpp
-    cmd_diffexp_pseudobulk.cpp
+    cmd_diffexp_decode.cpp
+    cmd_diffexp_model_matrix.cpp
     cmd_paste_pixel_tsv.cpp
     cmd_join_pixel_tsv.cpp
     cmd_custom_demux_fastq.cpp

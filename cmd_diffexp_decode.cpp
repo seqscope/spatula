@@ -25,9 +25,9 @@ bool deEntry_cmp(const deEntry& a, const deEntry& b) {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// diffexp-pseudobulk : Pseudobulk test for pixel-level differential expression
+// diffexp-decode : Pseudobulk test for pixel-level differential expression from pixel-level decode output
 ////////////////////////////////////////////////////////////////////////////////
-int32_t cmdDiffExpPseudobulk(int32_t argc, char **argv)
+int32_t cmdDiffExpDecode(int32_t argc, char **argv)
 {
     std::string tsvf;
     std::string colname_feature("feature");
