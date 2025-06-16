@@ -29,8 +29,10 @@ int32_t cmdFilterCommonBarcodes(int32_t argc, char **argv);
 int32_t cmdStratifyFASTQByBarcodes(int32_t argc, char **argv);
 int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv);
 int32_t cmdJoinPixelTSV(int32_t argc, char **argv);
+int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv);
 int32_t cmdDiffExpDecode(int32_t argc, char **argv);
 int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv);
+int32_t cmdMergePseudobulk(int32_t argc, char **argv);
 int32_t cmdReformatTsv(int32_t argc, char **argv);
 int32_t cmdPastePixelTSV(int32_t argc, char **argv);
 int32_t cmdAppendTopKTSV(int32_t argc, char **argv);
@@ -66,9 +68,13 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("join-pixel-tsv", &cmdJoinPixelTSV, "Join pixel-level output from FICTURE with raw transcript-level TSV files")
   LONG_COMMAND("paste-pixel-tsv", &cmdPastePixelTSV, "Paste pixel-level output from FICTURE2 with raw transcript-level TSV files")
   LONG_COMMAND("diffexp-decode", &cmdDiffExpDecode, "Perform differential expression test and create pseudobulk data from pixel-level decoding output")
+  LONG_COMMAND("pseudobulk-from-decode", &cmdPseudobulkFromDecode, "Write pseudobulk matrix from pixel-level decode output")
+  LONG_COMMAND("join-pixel-decode", &cmdJoinPixelDecode, "Join pixel-level-decode output from FICTURE2 with raw transcript-level TSV files")
+
+  LONG_COMMAND_GROUP("Tools for Analyzing Pseudobulk Data", NULL)
   LONG_COMMAND("diffexp-model-matrix", &cmdDiffExpModelMatrix, "Perform differential expression test from model matrix")
   LONG_COMMAND("append-topk-tsv", &cmdAppendTopKTSV, "Append topK and topP columns to the input TSV file")
-  LONG_COMMAND("join-pixel-decode", &cmdJoinPixelDecode, "Join pixel-level-decode output from FICTURE2 with raw transcript-level TSV files")
+  LONG_COMMAND("merge-pseudobulk", &cmdMergePseudobulk, "Merge multiple pseudobulk matrices into one")
 
   LONG_COMMAND_GROUP("Tools for FASTQ processing", NULL)
   LONG_COMMAND("filter-fastqs", &cmdFilterFASTQs, "Filter FASTQs based on a pattern")
