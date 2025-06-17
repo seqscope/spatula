@@ -29,7 +29,7 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
     std::string out_model;   // Output model file name (required with --reorder)
     bool reorder = false;    // reorder the columns in the output file
     bool keep_random_key = false; // keep the random key in the output file
-    int32_t icol_random_key = 0;  // column index for the random key, -1 if not present
+    int32_t icol_random_key = -1;  // column index for the random key, -1 if not present
     int32_t offset_data = 3;      // column index for the beginning of the data in the input TSV file
     int32_t offset_model = 1;
 
@@ -73,7 +73,13 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
         json_file >> json_data;
 
         // extract the header information
-        icol_random_key = json_data["random_key"].get<int32_t>();
+        //icol_random_key = json_data["random_key"].get<int32_t>();
+        std::vector<std::string> hdrs = json_data["header_info"].get<std::vector<std::string> >();
+        for(int32_t i=0; i < (int32_t)json_data["header_info"].size(); ++i) {
+            if ( hdrs[i].compare("random_key") == 0 ) {
+                icol_random_key = i;
+            }
+        }
         offset_data = json_data["offset_data"].get<int32_t>();
 
         notice("Extracted the following parameters from %s:", in_json.c_str());
