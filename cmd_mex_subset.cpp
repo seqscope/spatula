@@ -273,7 +273,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 int32_t ibcd = mtx_tr.int_field_at(1); // barcode index (1-based)
                 ++nproc;
                 if ( nproc % 10000000 == 0 ) {
-                    notice("Processed %llu lines, passed %llu with %zu barcodes and %zu features, total non-zero entries: %llu (%.5lf)", nproc, nlines, iftrs_set.size(), ibcds_set.size(), nnz, nproc / (double)nnz);
+                    notice("Processed %llu lines, passed %llu with %zu features and %zu barcodes, total non-zero entries: %llu (%.5lf)", nproc, nlines, iftrs_set.size(), ibcds_set.size(), nnz, nproc / (double)nnz);
                 }
                 if ( iftr2oftr.find(iftr-1) == iftr2oftr.end() ) {
                     continue; // skip the feature if it is not in the output feature list
@@ -351,7 +351,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 int32_t ibcd = mtx_tr.int_field_at(1); // barcode index (1-based)
                 int32_t cnt = mtx_tr.int_field_at(icol_mtx - 1); // count value (1-based)
                 ++nproc;
-                if ( nlines2 % 10000000 == 0 ) {
+                if ( nproc % 10000000 == 0 ) {
                     notice("Processed %llu lines, passed %llu/%llu (%.5lf), total non-zero entries: %llu (%.5lf)", nproc, nlines2, nlines, nlines2/(double)nlines, nnz, nproc / (double)nnz);
                 }
                 if ( iftr2oftr.find(iftr-1) == iftr2oftr.end() ) {
@@ -371,10 +371,13 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                         ( exclude_bcd_set.find(bcds[ibcd-1]) != exclude_bcd_set.end() ) ) {
                     continue; // skip the barcode if it is in the exclude list
                 }
-                if ( ibcd != prev_ibcd ) {
+                if ( ibcd > prev_ibcd ) {
                     hprintf(wh_bcd, "%s\n", bcds[ibcd-1].c_str()); // write the barcode 
                     prev_ibcd = ibcd; // update the previous barcode index
                     ++new_ibcd;
+                }
+                else if ( ibcd < prev_ibcd ) {
+                    error("Barcode index is not sorted in the input matrix file %s", in_mtxf.c_str());
                 }
                 hprintf(wh_mtx, "%d %d %d\n", nz_iftr2oftr[iftr-1] + 1, new_ibcd, cnt); // write the feature index (1-based), barcode index (1-based) and count
                 ++nlines2; // count the number of lines
