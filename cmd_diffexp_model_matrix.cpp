@@ -387,6 +387,7 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
             }
             // perform cauchy-combined test
             if ( top_factor_idx >= 0 ) {
+                notice("Computing CCT for feature %s", pbm1.features[i].c_str());
                 double combined_log10pval = stable_cauchy_combination_test(log10pvals, weights);
                 // if ( combined_log10pval < log10_max_pval ) {
                 //     continue; // skip features with high combined p-value
