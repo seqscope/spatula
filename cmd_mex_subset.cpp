@@ -267,17 +267,19 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
         tsv_reader mtx_tr(in_mtxf.c_str());
         mtx_tr.delimiter = ' ';
         uint64_t nnz = 0;
+        uint64_t nproc = 0;
         while ( mtx_tr.read_line() ) {
             if ( mtx_tr.str_field_at(0)[0] == '%' ) { // skip the header lines
                 continue;
             }
-            if ( nlines == 0 ) {
+            if ( nproc == 0 ) {
                 nnz = mtx_tr.uint64_field_at(2); // total number of non-zero entries
-                ++nlines;
+                ++nproc;
             }
             else {
                 int32_t iftr = mtx_tr.int_field_at(0); // feature index (1-based)
                 int32_t ibcd = mtx_tr.int_field_at(1); // barcode index (1-based)
+                ++nproc;
                 if ( iftr2oftr.find(iftr-1) == iftr2oftr.end() ) {
                     continue; // skip the feature if it is not in the output feature list
                 }
@@ -298,8 +300,8 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 ++nlines; // count the number of lines
                 iftrs_set.insert(iftr-1); // add the feature index to the set
                 ibcds_set.insert(ibcd-1); // add the barcode index to the set
-                if ( nlines % 1000000 == 0 ) {
-                    notice("Processed %llu lines, total non-zero entries: %llu (%.5lf)", nlines, nnz, nlines / (double)nnz);
+                if ( nproc % 1000000 == 0 ) {
+                    notice("Processed %llu lines, passed %llu, total non-zero entries: %llu (%.5lf)", nproc, nlines, nnz, nproc / (double)nnz);
                 }
             }
         }
@@ -318,7 +320,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
     {
         tsv_reader mtx_tr(in_mtxf.c_str());
         int32_t prev_ibcd = -1;
-        uint64_t nnz = 0;
+        uint64_t nnz = 0, nproc = 0;
         notice("Reading the matrix file for the 2rd time to write the actual output..");
         while ( mtx_tr.read_line() ) {
             if ( mtx_tr.str_field_at(0)[0] == '%' ) { // skip the header lines
@@ -329,15 +331,16 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 hprintf(wh_mtx, "\n");
                 continue;
             }
-            if ( nlines2 == 0 ) {            
+            if ( nproc == 0 ) {            
                 hprintf(wh_mtx, "%zu %zu %zu\n", iftrs_set.size(), ibcds_set.size(), nlines-1);
-                ++nlines2;
+                ++nproc;
                 nnz = mtx_tr.uint64_field_at(2); // total number of non-zero entries
             }
             else {
                 int32_t iftr = mtx_tr.int_field_at(0); // feature index (1-based)
                 int32_t ibcd = mtx_tr.int_field_at(1); // barcode index (1-based)
                 int32_t cnt = mtx_tr.int_field_at(icol_mtx - 1); // count value (1-based)
+                ++nproc;
                 if ( iftr2oftr.find(iftr-1) == iftr2oftr.end() ) {
                     continue; // skip the feature if it is not in the output feature list
                 }
@@ -362,7 +365,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 hprintf(wh_mtx, "%d %d %d\n", iftr2oftr[iftr-1] + 1, ibcd, cnt); // write the feature index (1-based), barcode index (1-based) and count
                 ++nlines2; // count the number of lines
                 if ( nlines2 % 1000000 == 0 ) {
-                    notice("Processed %llu lines, total non-zero entries: %llu (%.5lf)", nlines2, nnz, nlines2 / (double)nnz);
+                    notice("Processed %llu lines, passed %llu, total non-zero entries: %llu (%.5lf)", nproc, nlines2, nnz, nproc / (double)nnz);
                 }
             }
         }
