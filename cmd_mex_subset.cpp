@@ -214,10 +214,6 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
     // construct feature maps
     std::map<int32_t, int32_t> iftr2oftr; // index to map input feature index to output feature index (0-based)
     std::vector<int32_t> iftrs;
-    htsFile* wh_ftr = hts_open(out_ftrf.c_str(), out_ftrf.compare(out_ftrf.size() - 3, 3, ".gz", 3) == 0 ? "wz" : "w");
-    if ( wh_ftr == NULL ) {
-        error("Cannot open feature file %s for writing", out_ftrf.c_str());
-    }
     for(int32_t i = 0; i < (int32_t)ftr_ids.size(); ++i)
     {
         if ( min_feature_count > 0 && (ftr2cnt[i] < min_feature_count ) ) {
@@ -226,14 +222,12 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
         if ( include_ftr_set.empty() && exclude_ftr_set.empty() ) { // no filtering
             iftr2oftr[i] = (int32_t)iftrs.size(); // map input feature index to output feature index
             iftrs.push_back(i); // add to the output feature index
-            hprintf(wh_ftr, "%s\t%s\t%s\n", ftr_ids[i].c_str(), ftr_names[i].c_str(), ftr_types[i].c_str()); // write feature index (1-based) and name
         }
         else if ( !include_ftr_set.empty() ) { // include list was specified
             if ( include_ftr_set.find(ftr_ids[i]) != include_ftr_set.end() ||
                  include_ftr_set.find(ftr_names[i]) != include_ftr_set.end() ) {
                 iftr2oftr[i] = (int32_t)iftrs.size(); // add to the output feature index
                 iftrs.push_back(i);
-                hprintf(wh_ftr, "%s\t%s\t%s\n", ftr_ids[i].c_str(), ftr_names[i].c_str(), ftr_types[i].c_str()); // write feature index (1-based) and name
             }
         }
         else if ( !exclude_ftr_set.empty() ) { // exclude list was specified
@@ -241,14 +235,12 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                  exclude_ftr_set.find(ftr_names[i]) == exclude_ftr_set.end() ) {
                 iftr2oftr[i] = (int32_t)iftrs.size(); // add to the output feature index
                 iftrs.push_back(i);
-                hprintf(wh_ftr, "%s\t%s\t%s\n", ftr_ids[i].c_str(), ftr_names[i].c_str(), ftr_types[i].c_str()); // write feature index (1-based) and name
             }
         }
         else {
             error("Something went wrong with the feature filtering options");
         }
     }
-    hts_close(wh_ftr);
 
     tsv_reader bcd_tr(in_bcdf.c_str());
     std::vector<std::string> bcds;
@@ -308,6 +300,23 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
         mtx_tr.close();
     }
 
+    std::map<int32_t, int32_t> nz_iftr2oftr; // index to map input feature index to output feature index (0-based)
+    std::vector<int32_t> nz_iftrs;
+    htsFile* wh_ftr = hts_open(out_ftrf.c_str(), out_ftrf.compare(out_ftrf.size() - 3, 3, ".gz", 3) == 0 ? "wz" : "w");
+    if ( wh_ftr == NULL ) {
+        error("Cannot open feature file %s for writing", out_ftrf.c_str());
+    }
+    for(int32_t i = 0; i < (int32_t)iftrs.size(); ++i)
+    {
+        if ( iftrs_set.find(iftrs[i]) != iftrs_set.end() ) { // if the feature is in the set
+            nz_iftr2oftr[iftrs[i]] = (int32_t)nz_iftrs.size(); // map input feature index to output feature index
+            nz_iftrs.push_back(iftrs[i]); // add to the output feature index
+            hprintf(wh_ftr, "%s\t%s\t%s\n", ftr_ids[iftrs[i]].c_str(), ftr_names[iftrs[i]].c_str(), ftr_types[iftrs[i]].c_str()); // write feature index (1-based) and name
+        }
+    }
+    hts_close(wh_ftr);
+
+
     htsFile* wh_mtx = hts_open(out_mtxf.c_str(), out_mtxf.compare(out_mtxf.size() - 3, 3, ".gz", 3) == 0 ? "wz" : "w");
     if ( wh_mtx == NULL ) {
         error("Cannot open matrix file %s for writing", out_mtxf.c_str());
@@ -320,6 +329,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
     {
         tsv_reader mtx_tr(in_mtxf.c_str());
         int32_t prev_ibcd = -1;
+        int32_t new_ibcd = 0;
         uint64_t nnz = 0, nproc = 0;
         notice("Reading the matrix file for the 2rd time to write the actual output..");
         while ( mtx_tr.read_line() ) {
@@ -332,7 +342,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 continue;
             }
             if ( nproc == 0 ) {            
-                hprintf(wh_mtx, "%zu %zu %zu\n", iftrs_set.size(), ibcds_set.size(), nlines-1);
+                hprintf(wh_mtx, "%zu %zu %zu\n", nz_iftrs.size(), ibcds_set.size(), nlines-1);
                 ++nproc;
                 nnz = mtx_tr.uint64_field_at(2); // total number of non-zero entries
             }
@@ -364,8 +374,9 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 if ( ibcd != prev_ibcd ) {
                     hprintf(wh_bcd, "%s\n", bcds[ibcd-1].c_str()); // write the barcode 
                     prev_ibcd = ibcd; // update the previous barcode index
+                    ++new_ibcd;
                 }
-                hprintf(wh_mtx, "%d %d %d\n", iftr2oftr[iftr-1] + 1, ibcd, cnt); // write the feature index (1-based), barcode index (1-based) and count
+                hprintf(wh_mtx, "%d %d %d\n", nz_iftr2oftr[iftr-1] + 1, new_ibcd, cnt); // write the feature index (1-based), barcode index (1-based) and count
                 ++nlines2; // count the number of lines
             }
         }
