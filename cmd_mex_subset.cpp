@@ -145,12 +145,16 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
         tsv_reader bcd_tr(include_bcd_list.c_str());
         while (bcd_tr.read_line() > 0)
             include_bcd_set.insert(bcd_tr.str_field_at(0));
+        bcd_tr.close();
+        notice("Loaded %zu barcodes from the include list", include_bcd_set.size());
     }
     if (!exclude_bcd_list.empty())
     {
         tsv_reader bcd_tr(exclude_bcd_list.c_str());
         while (bcd_tr.read_line() > 0)
             exclude_bcd_set.insert(bcd_tr.str_field_at(0));
+        bcd_tr.close();
+        notice("Loaded %zu barcodes from the exclude list", exclude_bcd_set.size());
     }
 
     // load the exclude and include gene lists
@@ -161,12 +165,16 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
         tsv_reader ftr_tr(include_ftr_list.c_str());
         while (ftr_tr.read_line() > 0)
             include_ftr_set.insert(ftr_tr.str_field_at(0));
+        ftr_tr.close();
+        notice("Loaded %zu features from the include list", include_ftr_set.size());
     }
     if (!exclude_ftr_list.empty())
     {
         tsv_reader ftr_tr(exclude_ftr_list.c_str());
         while (ftr_tr.read_line() > 0)
             exclude_ftr_set.insert(ftr_tr.str_field_at(0));
+        ftr_tr.close();
+        notice("Loaded %zu features from the exclude list", exclude_ftr_set.size());
     }
 
     std::map<int32_t, int32_t> ftr2cnt; // total count for each feature
