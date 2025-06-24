@@ -203,7 +203,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                     bcd2cnt[ibcd-1] += cnt; // accumulate the count for the barcode
                 }
                 ++nlines;
-                if ( nlines % 1000000 == 0 ) {
+                if ( nlines % 10000000 == 0 ) {
                     notice("Processed %llu lines, total non-zero entries: %llu (%.5lf)", nlines, nnz, nlines / (double)nnz);
                 }
             }
@@ -280,8 +280,8 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 int32_t iftr = mtx_tr.int_field_at(0); // feature index (1-based)
                 int32_t ibcd = mtx_tr.int_field_at(1); // barcode index (1-based)
                 ++nproc;
-                if ( nproc % 1000000 == 0 ) {
-                    notice("Processed %llu lines, passed %llu, total non-zero entries: %llu (%.5lf)", nproc, nlines, nnz, nproc / (double)nnz);
+                if ( nproc % 10000000 == 0 ) {
+                    notice("Processed %llu lines, passed %llu with %zu barcodes and %zu features, total non-zero entries: %llu (%.5lf)", nproc, nlines, iftrs_set.size(), ibcds_set.size(), nnz, nproc / (double)nnz);
                 }
                 if ( iftr2oftr.find(iftr-1) == iftr2oftr.end() ) {
                     continue; // skip the feature if it is not in the output feature list
@@ -341,8 +341,8 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
                 int32_t ibcd = mtx_tr.int_field_at(1); // barcode index (1-based)
                 int32_t cnt = mtx_tr.int_field_at(icol_mtx - 1); // count value (1-based)
                 ++nproc;
-                if ( nlines2 % 1000000 == 0 ) {
-                    notice("Processed %llu lines, passed %llu, total non-zero entries: %llu (%.5lf)", nproc, nlines2, nnz, nproc / (double)nnz);
+                if ( nlines2 % 10000000 == 0 ) {
+                    notice("Processed %llu lines, passed %llu/%llu (%.5lf), total non-zero entries: %llu (%.5lf)", nproc, nlines2, nlines, nlines2/(double)nlines, nnz, nproc / (double)nnz);
                 }
                 if ( iftr2oftr.find(iftr-1) == iftr2oftr.end() ) {
                     continue; // skip the feature if it is not in the output feature list
