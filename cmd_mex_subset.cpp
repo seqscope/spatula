@@ -182,7 +182,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
     if ( min_feature_count > 0 || min_barcode_count > 0 ) 
     {
         // read the matrix file to get the total count for each feature
-        notice("Reading the matrix file to get the total count for each feature...");
+        notice("Reading the matrix file 1st time to get the total count for each feature...");
         tsv_reader mtx_tr(in_mtxf.c_str());
         uint64_t nlines = 0;
         uint64_t nnz = 0;
@@ -331,7 +331,7 @@ int32_t cmdMEXSubset(int32_t argc, char **argv)
         int32_t prev_ibcd = -1;
         int32_t new_ibcd = 0;
         uint64_t nnz = 0, nproc = 0;
-        notice("Reading the matrix file for the 2rd time to write the actual output..");
+        notice("Reading the matrix file for the 3rd time to write the actual output..");
         while ( mtx_tr.read_line() ) {
             if ( mtx_tr.str_field_at(0)[0] == '%' ) { // skip the header lines
                 for(int32_t i = 0; i < mtx_tr.nfields; ++i) {
