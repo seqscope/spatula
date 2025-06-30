@@ -67,6 +67,7 @@ include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 set(SOURCE_FILES
     cmd_mex_subset.cpp
     cmd_sptsv2mex.cpp
+    cmd_sptsv2model.cpp
     cmd_mex2sptsv.cpp
     cmd_png_mono2rgba.cpp
     cmd_join_pixel_decode.cpp

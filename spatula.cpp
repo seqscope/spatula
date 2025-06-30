@@ -16,6 +16,7 @@ int32_t cmdSGE2TSV(int32_t argc, char **argv);
 int32_t cmdMEX2SpTSV(int32_t argc, char **argv);
 int32_t cmdMEXSubset(int32_t argc, char **argv);
 int32_t cmdSpTSV2MEX(int32_t argc, char **argv);
+int32_t cmdSpTSV2Model(int32_t argc, char **argv);
 int32_t cmdConvertSGE(int32_t argc, char **argv);
 int32_t cmdFilterTSV(int32_t argc, char **argv);
 int32_t cmdSegmentSGE(int32_t argc, char **argv);
@@ -73,6 +74,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("subset-mex", &cmdMEXSubset, "Subset 10x Market Exchange (MEX) formatted DGE to specific features and barcodes")
   LONG_COMMAND("mex2sptsv", &cmdMEX2SpTSV, "Convert 10x Market Exchange (MEX) formatted DGE to Sparse TSV format in FICTURE2")
   LONG_COMMAND("sptsv2mex", &cmdSpTSV2MEX, "Convert Sparse TSV format in FICTURE2 to 10x Market Exchange (MEX) formatted DGE")
+  LONG_COMMAND("sptsv2model", &cmdSpTSV2Model, "Create model matrix from Sparse TSV format in FICTURE2 with cluster assignment")
   LONG_COMMAND("join-pixel-tsv", &cmdJoinPixelTSV, "Join pixel-level output from FICTURE with raw transcript-level TSV files")
   LONG_COMMAND("paste-pixel-tsv", &cmdPastePixelTSV, "Paste pixel-level output from FICTURE2 with raw transcript-level TSV files")
   LONG_COMMAND("diffexp-decode", &cmdDiffExpDecode, "Perform differential expression test and create pseudobulk data from pixel-level decoding output")
