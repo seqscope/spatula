@@ -180,7 +180,7 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
     std::map<std::string, int32_t> unit2idx;
     std::map<std::string, std::vector<double> > unit2probs;
     std::vector<std::string> sorted_clust_ids;
-    std::vector<int32_t> unsrt2srt_idx;  
+    std::vector<int32_t> srt2unsrt_idx;
     bool mode_clust = false;
 
     if ( !in_clust.empty() ) {     
@@ -226,13 +226,17 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
                 return a < b;
             }
         });
-        std::map<std::string, int32_t> clust2srt_idx;
-        for(int32_t i = 0; i < (int32_t)sorted_clust_ids.size(); ++i) {
-            clust2srt_idx[sorted_clust_ids[i]] = i; // map cluster ID to sorted index
-        }
-        // fill unsrt2srt_idx
+
+        std::map<std::string, int32_t> clust2unsrt_idx;
         for(int32_t i = 0; i < (int32_t)clust_ids.size(); ++i) {
-            unsrt2srt_idx.push_back(clust2srt_idx[clust_ids[i]]);
+            clust2unsrt_idx[clust_ids[i]] = i; // map cluster ID to sorted index
+        }
+        for(int32_t i = 0; i < (int32_t)sorted_clust_ids.size(); ++i) {
+            srt2unsrt_idx.push_back(clust2unsrt_idx[sorted_clust_ids[i]]);
+        }
+
+        for(int32_t i = 0; i < (int32_t)clust_ids.size(); ++i) {
+            notice("%d\t%s\t%d\t%s", i, clust_ids[i].c_str(), srt2unsrt_idx[i], sorted_clust_ids[i].c_str());
         }
     }
     else { // in_fit is not empty
@@ -284,7 +288,7 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
         // do not sort the cluster in probability mode
         sorted_clust_ids = clust_ids; // use the original order of cluster IDs
         for(int32_t i = 0; i < (int32_t)clust_ids.size(); ++i) {
-            unsrt2srt_idx.push_back(i);
+            srt2unsrt_idx.push_back(i);
         }
     }
 
@@ -402,7 +406,7 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
         const std::vector<double>& vec = iftr2vec_it->second;
         hprintf(wf, "%s", feature_names[iftr].c_str());
         for(int32_t i = 0; i < (int32_t)sorted_clust_ids.size(); ++i) {
-            hprintf(wf, "\t%.3f", vec[unsrt2srt_idx[i]]);
+            hprintf(wf, "\t%.3f", vec[srt2unsrt_idx[i]]);
         }
         hprintf(wf, "\n");
     }
