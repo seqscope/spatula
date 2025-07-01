@@ -370,6 +370,15 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
         // print individual transcripts
         if (ftr_passes[ssr.cur_iftr-1]) { // print only if the feature passes the filter
             if ( wh_tsv != NULL ) {
+                uint64_t sum_cur_cnts = 0;
+                for(int32_t i=0; i < n_colnames; ++i) {
+                    sum_cur_cnts += ssr.cur_cnts[v_icols_mtx[i]];
+                }
+                if ( sum_cur_cnts == 0 ) {
+                    // skip the feature if the count is zero
+                    continue;
+                }
+
                 if ( floor(um_x) != um_x || floor(um_y) != um_y ) { // non-integer coordinates, use the precision
                     hprintf(wh_tsv, "%.*f\t%.*f\t%s", precision_um, um_x, precision_um, um_y, ftr_names[ssr.cur_iftr-1].c_str());
                 }

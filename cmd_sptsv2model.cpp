@@ -234,10 +234,9 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
         for(int32_t i = 0; i < (int32_t)sorted_clust_ids.size(); ++i) {
             srt2unsrt_idx.push_back(clust2unsrt_idx[sorted_clust_ids[i]]);
         }
-
-        for(int32_t i = 0; i < (int32_t)clust_ids.size(); ++i) {
-            notice("%d\t%s\t%d\t%s", i, clust_ids[i].c_str(), srt2unsrt_idx[i], sorted_clust_ids[i].c_str());
-        }
+        // for(int32_t i = 0; i < (int32_t)clust_ids.size(); ++i) {
+        //     notice("%d\t%s\t%d\t%s", i, clust_ids[i].c_str(), srt2unsrt_idx[i], sorted_clust_ids[i].c_str());
+        // }
     }
     else { // in_fit is not empty
         notice("Reading fit results file %s", in_fit.c_str());
