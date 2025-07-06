@@ -38,29 +38,45 @@ endif()
 
 message(STATUS ${HTS_INCLUDE_DIRS})
 
-find_library(HTS_LIBRARIES libhts.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/htslib/ ../htslib/)
+find_library(HTS_LIBRARIES hts
+  HINTS
+    submodules/htslib/
+    ../htslib/
+    /usr/lib/x86_64-linux-gnu/
+    /usr/lib/
+    /usr/lib64/
+)
 if(NOT HTS_LIBRARIES)
     message(FATAL_ERROR "libhts HTS_LIBRARIES not found")
 endif()
+message(STATUS "HTS: ${HTS_LIBRARIES}")
 
-message(STATUS ${HTS_LIBRARIES})
-
-find_path(QGEN_INCLUDE_DIRS qgenlib/qgen_error.h  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/qgenlib ../qgenlib)
+find_path(QGEN_INCLUDE_DIRS qgenlib/qgen_error.h
+  HINTS
+    submodules/qgenlib
+    ../qgenlib
+    /usr/lib/x86_64-linux-gnu/
+    /usr/lib/
+    /usr/lib64/
+)
 if(NOT QGEN_INCLUDE_DIRS )
     message(FATAL_ERROR "libqgen QGEN_INCLUDE_DIRS not found")
 endif()
+message(STATUS "QGEN include: ${QGEN_INCLUDE_DIRS}")
 
-message(STATUS ${QGEN_INCLUDE_DIRS})
+find_library(QGEN_LIBRARIES qgen
+  HINTS
+    submodules/qgenlib/lib
+    ../qgenlib/lib/
+    /usr/lib/x86_64-linux-gnu/
+    /usr/lib/
+    /usr/lib64/
+)
 
-find_library(QGEN_LIBRARIES libqgen.a  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/qgenlib/lib ../qgenlib/lib/)
 if(NOT QGEN_LIBRARIES)
     message(FATAL_ERROR "libqgen QGEN_LIBRARIES not found")
 endif()
-
-# find_package(PNG REQUIRED)
-# find_package(ZLIB REQUIRED)
-
-message(STATUS ${QGEN_LIBRARIES})
+message(STATUS "QGEN lib: ${QGEN_LIBRARIES}")
 
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
