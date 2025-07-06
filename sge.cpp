@@ -363,3 +363,73 @@ bool read_minmax(const char *fn, uint64_t &xmin, uint64_t &xmax, uint64_t &ymin,
     }
     return true;
 }
+
+// read a minmax file
+bool read_minmax_double(const char *fn, double &xmin, double &xmax, double &ymin, double &ymax)
+{
+    tsv_reader tr(fn);
+    if (!tr.read_line())
+        error("Cannot read the first line from %s", fn);
+
+    bool xmin_found = false, xmax_found = false, ymin_found = false, ymax_found = false;
+
+    // check the number of fields
+    if ( tr.nfields == 2 ) { // two fields - each with xmin, xmax, ymin, ymax
+        do {
+            if ( tr.nfields != 2 )
+                error("The number of fields in the tall-format minmax file is not 2: %d", tr.nfields);
+            if (strcmp(tr.str_field_at(0), "xmin") == 0) {
+                xmin = tr.double_field_at(1);
+                xmin_found = true;
+            }
+            else if (strcmp(tr.str_field_at(0), "xmax") == 0) {
+                xmax = tr.double_field_at(1);
+                xmax_found = true;
+            }
+            else if (strcmp(tr.str_field_at(0), "ymin") == 0) {
+                ymin = tr.double_field_at(1);
+                ymin_found = true;
+            }
+            else if (strcmp(tr.str_field_at(0), "ymax") == 0) {
+                ymax = tr.double_field_at(1);
+                ymax_found = true;
+            }
+            if ( xmin_found && xmax_found && ymin_found && ymax_found )
+                break;
+        } while ( tr.read_line() );
+    }
+    else if ( tr.nfields >= 4 ) {
+        // check the header line
+        int32_t i_xmin = -1, i_xmax = -1, i_ymin = -1, i_ymax = -1;
+        for(int32_t i = 0; i < tr.nfields; ++i) {
+            if ( strcmp(tr.str_field_at(i), "xmin") == 0 ) i_xmin = i;
+            else if ( strcmp(tr.str_field_at(i), "xmax") == 0 ) i_xmax = i;
+            else if ( strcmp(tr.str_field_at(i), "ymin") == 0 ) i_ymin = i;
+            else if ( strcmp(tr.str_field_at(i), "ymax") == 0 ) i_ymax = i;
+        }
+        // if all the fields are found
+        if ( i_xmin >= 0 && i_xmax >= 0 && i_ymin >= 0 && i_ymax >= 0 ) { // header was found
+            if (!tr.read_line()) // read the second line
+                error("Cannot read the first second from %s", fn);
+            xmin = tr.double_field_at(i_xmin);
+            xmax = tr.double_field_at(i_xmax);
+            ymin = tr.double_field_at(i_ymin);
+            ymax = tr.double_field_at(i_ymax);
+        }
+        else if ( i_xmin < 0 && i_xmax < 0 && i_ymin < 0 && i_ymax < 0 ) { // headerless format
+            xmin = tr.double_field_at(0);
+            xmax = tr.double_field_at(1);
+            ymin = tr.double_field_at(2);
+            ymax = tr.double_field_at(3);
+        }
+        else {
+            error("Cannot recognize header in the minmax file: %s", fn);
+            return false;
+        }
+    }
+    else {
+        error("The number of fields in the minmax file is not recognized: %d", tr.nfields);
+        return false;
+    }
+    return true;
+}

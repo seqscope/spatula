@@ -15,6 +15,7 @@
 #include <deque>
 #include <memory>
 #include <fstream>
+#include <unistd.h>
 #include "nanoflann/nanoflann.hpp"
 
 template<typename T>
@@ -706,21 +707,25 @@ int32_t cmdJoinPixelDecode(int32_t argc, char **argv)
         exit(1);
     }
 
+    // synchronize the filesystem to ensure all files are written
+    notice("Synchronizing the filesystem to ensure all files are written");
+    sync();
+
     // remove the temporary directory
     for(int32_t i=0; i <= (int32_t)decode_prefix_tsvs.size(); ++i) {
         std::string tmpDir = dj.tmp_dir + "/files/" + std::to_string(i);
         if ( !removeDir(tmpDir) ) {
-            error("Cannot remove %s", tmpDir.c_str());
+            warning("Cannot remove %s", tmpDir.c_str());
         }
     }
     if ( !removeDir(dj.tmp_dir + "/files") ) {
-        error("Cannot remove %s", (dj.tmp_dir + "/files").c_str());
+        warning("Cannot remove %s", (dj.tmp_dir + "/files").c_str());
     }
     if ( ! removeDir(dj.tmp_dir + "/tiles") ) {
-        error("Cannot remove %s", (dj.tmp_dir + "/tiles").c_str());
+        warning("Cannot remove %s", (dj.tmp_dir + "/tiles").c_str());
     }
     if ( !removeDir(dj.tmp_dir) ) {
-        error("Cannot remove %s", dj.tmp_dir.c_str());
+        warning("Cannot remove %s", dj.tmp_dir.c_str());
     }
 
     notice("Analysis Finished");
