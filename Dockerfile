@@ -52,9 +52,9 @@ RUN mkdir -p build && cd build && \
     make -j$(nproc)
 
 # # Set default command to interactive shell
-# CMD ["bash"]
+#CMD ["bash"]
 
-SHELL ["/bin/bash", "-c"]
+# SHELL ["/bin/bash", "-c"]
 
 # Command to run when starting the container
 COPY ./entrypoint.sh /

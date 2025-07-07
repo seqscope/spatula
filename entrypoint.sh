@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SPATULA_BIN="/app/build/spatula"
+SPATULA_BIN="/app/bin/spatula"
 
 if [[ ! -f "$SPATULA_BIN" ]]; then
   echo "Error: spatula binary was not found at $SPATULA_BIN"
