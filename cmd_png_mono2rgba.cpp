@@ -347,7 +347,8 @@ int32_t cmdPngMono2RGBA(int32_t argc, char **argv)
 {
     std::string in_png;  // input PNG file (grayscale)
     std::string out_png; // output PNG file
-    int32_t thres_transparency = 0;  // threshold for transparent pixels
+    int32_t thres_transparency_below = 0;  // threshold for transparent pixels
+    int32_t thres_transparency_above = 255;       // threshold for transparent pixels
     std::string rgb("FFFFFF");  // RGB color for the monochrome image
 
     paramList pl;
@@ -355,7 +356,8 @@ int32_t cmdPngMono2RGBA(int32_t argc, char **argv)
     LONG_PARAM_GROUP("Input options", NULL)
     LONG_STRING_PARAM("in", &in_png, "Input PNG file (grayscale)")
     LONG_STRING_PARAM("out", &out_png, "Output PNG file")
-    LONG_INT_PARAM("thres", &thres_transparency, "Threshold for transparent pixels (default: 0)")
+    LONG_INT_PARAM("transparent-below", &thres_transparency_below, "Threshold for transparent pixels (default: 0)")
+    LONG_INT_PARAM("transparent-above", &thres_transparency_above, "Threshold for transparent pixels (default: 255)")
     LONG_STRING_PARAM("rgb", &rgb, "RGB color for the monochrome image (default: #FFFFFF)")
     END_LONG_PARAMS();
 
@@ -401,16 +403,23 @@ int32_t cmdPngMono2RGBA(int32_t argc, char **argv)
     notice("Processing individual pixels");
 
     uint64_t npixels = width * height;
-    uint64_t nbelow = 0;
+    uint64_t nbelow = 0, nabove = 0;
     for(int32_t i=0; i < height; ++i) {
         for(int32_t j=0; j < width; ++j) {
             uint8_t gray_value = gray(j,i); // Assuming 1 byte per pixel for grayscale
-            if (gray_value <= thres_transparency) {
+            if (gray_value < thres_transparency_below) {
                 rgba_data.push_back(0); // R (transparent)
                 rgba_data.push_back(0); // G
                 rgba_data.push_back(0); // B
                 rgba_data.push_back(0); // Alpha
                 ++nbelow;
+            }
+            else if (gray_value > thres_transparency_above) {
+                rgba_data.push_back(0); // R (transparent)
+                rgba_data.push_back(0); // G
+                rgba_data.push_back(0); // B
+                rgba_data.push_back(0); // Alpha
+                ++nabove;
             }
             else {            
                 rgba_data.push_back((uint8_t)floor(gray_value / 255.0 * rgb_i[0])); // R
@@ -420,7 +429,7 @@ int32_t cmdPngMono2RGBA(int32_t argc, char **argv)
             }
         }
     }
-    notice("Processed %llu pixels, %llu below threshold", npixels, nbelow);
+    notice("Processed %llu pixels, %llu below / %llu above threshold", npixels, nbelow, nabove);
 
     notice("Saving the png file to %s", out_png.c_str());
     if (!save_rgba_with_fpng(out_png.c_str(), rgba_data, width, height)) {
