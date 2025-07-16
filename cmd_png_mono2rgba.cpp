@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <algorithm>
+#include <cmath>
 #define cimg_display 0  // remove the need for X11 library
 #include "cimg/CImg.h"
 //#include <png.h>
@@ -350,15 +351,29 @@ int32_t cmdPngMono2RGBA(int32_t argc, char **argv)
     int32_t thres_transparency_below = 0;  // threshold for transparent pixels
     int32_t thres_transparency_above = 255;       // threshold for transparent pixels
     std::string rgb("FFFFFF");  // RGB color for the monochrome image
+    double alpha_linear_coef = 1.0;
+    int32_t alpha_constant_max = 255;
+    double alpha_quadratic_coef = 16.0;   
+    bool use_quadratic_alpha = false; // Use quadratic alpha calculation
+    bool use_linear_alpha = false;    // Use linear alpha calculation
+    bool invert_transparency = false; // Invert the transparency logic
 
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input options", NULL)
     LONG_STRING_PARAM("in", &in_png, "Input PNG file (grayscale)")
     LONG_STRING_PARAM("out", &out_png, "Output PNG file")
+
+    LONG_PARAM_GROUP("Color settings", NULL)
     LONG_INT_PARAM("transparent-below", &thres_transparency_below, "Threshold for transparent pixels (default: 0)")
     LONG_INT_PARAM("transparent-above", &thres_transparency_above, "Threshold for transparent pixels (default: 255)")
     LONG_STRING_PARAM("rgb", &rgb, "RGB color for the monochrome image (default: #FFFFFF)")
+    LONG_PARAM("linear-alpha", &use_linear_alpha, "Use linear alpha calculation (default: constant)")
+    LONG_PARAM("quadratic-alpha", &use_quadratic_alpha, "Use quadratic alpha calculation (default: constant)")
+    LONG_PARAM("invert-transparency", &invert_transparency, "Invert the transparency logic (default: false)")
+    LONG_INT_PARAM("alpha-constant-max", &alpha_constant_max, "Maximum value for constant alpha (default: 255)")
+    LONG_DOUBLE_PARAM("alpha-quadratic-coef", &alpha_quadratic_coef, "Coefficient for quadratic alpha calculation (default: 16.0)")
+    LONG_DOUBLE_PARAM("alpha-linear-coef", &alpha_linear_coef, "Coefficient for linear alpha calculation (default: 1.0)")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));
@@ -407,6 +422,7 @@ int32_t cmdPngMono2RGBA(int32_t argc, char **argv)
     for(int32_t i=0; i < height; ++i) {
         for(int32_t j=0; j < width; ++j) {
             uint8_t gray_value = gray(j,i); // Assuming 1 byte per pixel for grayscale
+            uint32_t alpha_value = alpha_constant_max; 
             if (gray_value < thres_transparency_below) {
                 rgba_data.push_back(0); // R (transparent)
                 rgba_data.push_back(0); // G
@@ -425,7 +441,18 @@ int32_t cmdPngMono2RGBA(int32_t argc, char **argv)
                 rgba_data.push_back((uint8_t)floor(gray_value / 255.0 * rgb_i[0])); // R
                 rgba_data.push_back((uint8_t)floor(gray_value / 255.0 * rgb_i[1])); // R
                 rgba_data.push_back((uint8_t)floor(gray_value / 255.0 * rgb_i[2])); // R
-                rgba_data.push_back(gray_value); // Alpha
+                if ( use_linear_alpha ) {
+                    alpha_value = (int32_t)(( invert_transparency ? 255 - gray_value : gray_value ) * alpha_linear_coef);
+                }
+                else if ( use_quadratic_alpha ) {
+                    alpha_value = (int32_t)(sqrt((double)( invert_transparency ? 255 - gray_value : gray_value )) * alpha_quadratic_coef);
+                }
+                else {
+                    alpha_value = alpha_constant_max; // Default constant alpha
+                }
+                if (alpha_value < 0) alpha_value = 0;
+                if (alpha_value > 255) alpha_value = 255;
+                rgba_data.push_back((uint8_t)alpha_value); 
             }
         }
     }
