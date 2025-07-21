@@ -276,7 +276,7 @@ int32_t cmdMEX2SpTSV(int32_t argc, char **argv)
     }
     bcd_tr.close();
 
-    notice("Wiring output TSV file... %s", out_tsv.c_str());
+    notice("Wrting output TSV file... %s", out_tsv.c_str());
 
     tsv_reader mtx_tr(mtxf.c_str());
     htsFile* wh_tsv = hts_open(out_tsv.c_str(), out_tsv.compare(out_tsv.size() - 3, 3, ".gz", 3) == 0 ? "wz" : "w");
