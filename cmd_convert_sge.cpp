@@ -93,7 +93,6 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
 
     LONG_PARAM_GROUP("Expected column index in SGE input", NULL)
     LONG_STRING_PARAM("icols-mtx", &str_icols_mtx, "Comma-separated 1-based column indices use as the count")
-    LONG_INT_PARAM("icol-thres", &in_icol_mtx_thres, "1-based column index of the threshold in the matrix file (default: -1)")    
     LONG_INT_PARAM("icol-bcd-barcode", &in_icol_bcd_barcode, "1-based column index of barcode in the barcode file")
     LONG_INT_PARAM("icol-bcd-x", &in_icol_bcd_px, "1-based column index of x coordinate in the barcode file")
     LONG_INT_PARAM("icol-bcd-y", &in_icol_bcd_py, "1-based column index of y coordinate in the barcode file")
