@@ -22,6 +22,7 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
     double min_count = 10.0;
     double pseudocount = 0.5;
     bool test_pairwise = false;
+    bool ignore_mismatch = false;
 
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
@@ -34,9 +35,9 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
     LONG_DOUBLE_PARAM("max-pval", &max_pval, "Max p-value for the differential expression test")
     LONG_DOUBLE_PARAM("min-fc", &min_fc, "Min fold change for the differential expression test")
     LONG_DOUBLE_PARAM("min-count", &min_count, "Minimum observed count for the feature to be considered")
-
     LONG_DOUBLE_PARAM("pseudocount", &pseudocount, "Pseudocount to add to the counts")
     LONG_PARAM("test-pairwise", &test_pairwise, "Perform pairwise test (1 sample test only)")
+    LONG_PARAM("ignore-mismatch", &ignore_mismatch, "Ignore mismatching factors between tsv1 and tsv2. If set, only overlapping factors will be used for the test")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));
@@ -171,7 +172,12 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
 
         // make sure that the two matrices are compatible, i.e. they have the same features and factors
         if ( pbm1.features.size() != pbm2.features.size() || pbm1.factors.size() != pbm2.factors.size() ) {
-            error("The two pseudobulk matrices must have the same number of features and factors");
+            if ( ignore_mismatch) {
+                notice("WARNING: The two pseudobulk matrices have different number of features or factors, but --ignore-mismatch is set. Only overlapping features and factors will be used for the test.");
+            }
+            else {
+                error("The two pseudobulk matrices must have the same number of features and factors");
+            }
         }
 
         bool match_features = true;
@@ -191,7 +197,8 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
 
         // order of index to match tsv2 to tsv1
         std::vector<int32_t> idx1_factors(pbm1.factors.size(), -1);
-        std::vector<int32_t> idx2_factors(pbm2.factors.size(), -1);
+//        std::vector<int32_t> idx2_factors(pbm2.factors.size(), -1);
+        std::vector<int32_t> idx2_factors(pbm1.factors.size(), -1);
         if ( match_factors ) {
             for(size_t i = 0; i < pbm1.factors.size(); ++i) {
                 idx1_factors[i] = i;
@@ -203,13 +210,21 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 idx1_factors[i] = i;
                 auto it = pbm2.factor2idx.find(pbm1.factors[i]);
                 if ( it == pbm2.factor2idx.end() ) {
-                    error("Factor %s from the first pseudobulk matrix not found in the second pseudobulk matrix", pbm1.factors[i].c_str());
+                    if ( ignore_mismatch ) {
+                        idx2_factors[i] = -1; // skip factors that are not present in the second matrix
+                    }
+                    else {
+                        error("Factor %s from the first pseudobulk matrix not found in the second pseudobulk matrix", pbm1.factors[i].c_str());
+                    }
                 }
-                idx2_factors[i] = it->second;
+                else {
+                    idx2_factors[i] = it->second;
+                }
             }
         }
         std::vector<int32_t> idx1_features(pbm1.features.size(), -1);
-        std::vector<int32_t> idx2_features(pbm2.features.size(), -1);
+//        std::vector<int32_t> idx2_features(pbm2.features.size(), -1);
+        std::vector<int32_t> idx2_features(pbm1.features.size(), -1);
         if ( match_features ) {
             for(size_t i = 0; i < pbm1.features.size(); ++i) {
                 idx1_features[i] = i;
@@ -221,9 +236,16 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 idx1_features[i] = i;
                 auto it = pbm2.feature2idx.find(pbm1.features[i]);
                 if ( it == pbm2.feature2idx.end() ) {
-                    error("Feature %s from the first pseudobulk matrix not found in the second pseudobulk matrix", pbm1.features[i].c_str());
+                    if ( ignore_mismatch ) {
+                        idx2_features[i] = -1; // skip features that are not present in the second matrix
+                    }
+                    else {
+                        error("Feature %s from the first pseudobulk matrix not found in the second pseudobulk matrix", pbm1.features[i].c_str());
+                    } 
                 }
-                idx2_features[i] = it->second;
+                else {
+                    idx2_features[i] = it->second;
+                }
             }
         }
 
@@ -247,6 +269,10 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         for(int32_t i=0; i < (int32_t)idx1_factors.size(); ++i) {
             int32_t i1 = idx1_factors[i];
             int32_t i2 = idx2_factors[i];
+            if ( i1 < 0 || i2 < 0 ) {
+                // skip factors that are not present in both matrices
+                continue;
+            }
             double a = pbm1.colsums[i1];
             double b = pbm2.colsums[i2];
             double c = pbm1.total - a;
@@ -286,6 +312,10 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         for(int32_t i=0; i < (int32_t)idx1_features.size(); ++i) {
             int32_t i1 = idx1_features[i];
             int32_t i2 = idx2_features[i];
+            if ( i1 < 0 || i2 < 0 ) {
+                // skip features that are not present in both matrices
+                continue;
+            }
             double a = pbm1.rowsums[i1];
             double b = pbm2.rowsums[i2];
             double c = pbm1.total - a;
@@ -343,6 +373,10 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 int32_t j1 = idx1_factors[j];
                 int32_t i2 = idx2_features[i];
                 int32_t j2 = idx2_factors[j];
+                if ( i1 < 0 || j1 < 0 || i2 < 0 || j2 < 0 ) {
+                    // skip features or factors that are not present in both matrices
+                    continue;
+                }
                 double a = pbm1.counts[i1][j1];
                 double b = pbm2.counts[i2][j2];
                 double c = pbm1.colsums[j1] - a;
