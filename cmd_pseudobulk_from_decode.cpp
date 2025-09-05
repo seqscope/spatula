@@ -24,6 +24,9 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     std::string colname_P3("P3");
     std::string outf;
     int32_t n_factors = 0; 
+    bool write_cell_tsv = false;
+    std::string colname_cell("cell_id");
+    std::string out_cell_tsvf;
 
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
@@ -41,6 +44,11 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out", &outf, "Output file name")
     LONG_INT_PARAM("n-factors", &n_factors, "Force the total number of factors. Only works with integer factors. Encoded as 0, 1, 2, ..., (n_factors-1)")
+
+    LONG_PARAM_GROUP("Auxiliary Options to generate per-cell results matrix", NULL)
+    LONG_PARAM("write-cell-tsv", &write_cell_tsv, "Write per-cell results TSV file")
+    LONG_STRING_PARAM("out-cell-tsv", &out_cell_tsvf, "Output file name for per-cell results")
+    LONG_STRING_PARAM("colname-cell", &colname_cell, "Column name for the cell ID")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));
@@ -68,6 +76,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
 
     int32_t icol_feature = find_idx_by_key(col2idx, colname_feature.c_str(), true);
     int32_t icol_count = find_idx_by_key(col2idx, colname_count.c_str(), true);
+    int32_t icol_cell = find_idx_by_key(col2idx, colname_cell.c_str(), false);
     int32_t icol_K1 = find_idx_by_key(col2idx, colname_K1.c_str(), true);
     int32_t icol_K2 = find_idx_by_key(col2idx, colname_K2.c_str(), false);
     int32_t icol_K3 = find_idx_by_key(col2idx, colname_K3.c_str(), false);
@@ -104,10 +113,25 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
         }
     }
 
+    htsFile* wf_cell = NULL;
+    if ( write_cell_tsv ) {
+        if ( icol_cell < 0 ) {
+            error("Cannot find the cell ID column %s", colname_cell.c_str());
+        }
+        if ( out_cell_tsvf.empty() ) {
+            error("--out-cell-tsv must be specified when --write-cell-tsv is set");
+        }
+        wf_cell = hts_open(out_cell_tsvf.c_str(), out_cell_tsvf.compare(out_cell_tsvf.size()-3, 3, ".gz") == 0 ? "wz" : "w");
+        if ( wf_cell == NULL ) {
+            error("Cannot open output file %s", out_cell_tsvf.c_str());
+        }
+    }
+
     uint64_t nlines = 0;
     std::map<std::string, std::map<std::string, double> > fac2ftr2cnt;
     std::map<std::string, double> ftr2cnt;
     std::map<std::string, double> fac2cnt;
+    std::map<std::string, std::map<std::string, double> > cell2fac2cnt;
     double total = 0;
 
     if ( n_factors > 0 ) {
@@ -128,6 +152,10 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
             fac2ftr2cnt[K1][ftr] += cnt;
             ftr2cnt[ftr] += cnt;
             fac2cnt[K1] += cnt;
+            if ( write_cell_tsv ) {
+                const char* cell_id = tf.str_field_at(icol_cell);
+                cell2fac2cnt[cell_id][K1] += cnt;
+            }
             total += cnt;
         }
         else {
@@ -135,6 +163,11 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
             fac2ftr2cnt[K1][ftr] += (cnt*P1);
             ftr2cnt[ftr] += (cnt*P1);
             fac2cnt[K1] += (cnt*P1);
+            const char* cell_id = NULL;
+            if ( write_cell_tsv ) {
+                cell_id = tf.str_field_at(icol_cell);
+                cell2fac2cnt[cell_id][K1] += (cnt*P1);
+            }
             total += (cnt*P1);
             if ( maxK >= 2 ) {
                 const char* K2 = tf.str_field_at(icol_K2);
@@ -142,6 +175,9 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
                 fac2ftr2cnt[K2][ftr] += (cnt*P2);
                 ftr2cnt[ftr] += (cnt*P2);
                 fac2cnt[K2] += (cnt*P2);
+                if ( write_cell_tsv ) {
+                    cell2fac2cnt[cell_id][K2] += (cnt*P2);
+                }
                 total += (cnt*P2);
                 if ( maxK >= 3 ) {
                     const char* K3 = tf.str_field_at(icol_K3);
@@ -149,6 +185,9 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
                     fac2ftr2cnt[K3][ftr] += (cnt*P3);
                     ftr2cnt[ftr] += (cnt*P3);
                     fac2cnt[K3] += (cnt*P3);
+                    if ( write_cell_tsv ) {
+                        cell2fac2cnt[cell_id][K3] += (cnt*P3);
+                    }
                     total += (cnt*P3);
                 }
             }
@@ -209,6 +248,26 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
         hprintf(wf_post, "\n");
     }
     hts_close(wf_post);
+
+    if ( write_cell_tsv ) {
+        notice("Writing auxiliary per-cell factor count matrix to %s", outf.c_str());
+        hprintf(wf_cell, "cell_id");
+        for (size_t i = 0; i < facs.size(); ++i) {
+            hprintf(wf_cell, "\t%s", facs[i].c_str());
+        }
+        hprintf(wf_cell, "\n");
+        std::map<std::string, std::map<std::string, double> >::iterator itc;
+        for(itc = cell2fac2cnt.begin(); itc != cell2fac2cnt.end(); ++itc) {
+            const std::string& cell_id = itc->first;
+            std::map<std::string, double>& fac2cnt = itc->second;
+            hprintf(wf_cell, "%s", cell_id.c_str());
+            for(size_t i=0; i < facs.size(); ++i) {
+                hprintf(wf_cell, "\t%.4f", fac2cnt[facs[i]]);
+            }
+            hprintf(wf_cell, "\n");
+        }
+        hts_close(wf_cell);
+    }
 
     notice("Analysis finished");
 
