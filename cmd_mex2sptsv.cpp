@@ -307,11 +307,11 @@ int32_t cmdMEX2SpTSV(int32_t argc, char **argv)
                 if ( ( cur_ibcd >= 0 ) && ( iftr2cnts.size() > 0 ) ) {
                     // check if the barcode is filtered or not
                     bool bcd_skip = ( ( ( !include_bcd_list.empty() ) && 
-                                      ( include_bcd_set.find(bcds[ibcd-1]) == include_bcd_set.end() ) ) ||
+                                      ( include_bcd_set.find(bcds[cur_ibcd-1]) == include_bcd_set.end() ) ) ||
                                       ( !exclude_bcd_list.empty() &&
-                                       ( exclude_bcd_set.find(bcds[ibcd-1]) != exclude_bcd_set.end() ) ) );
+                                       ( exclude_bcd_set.find(bcds[cur_ibcd-1]) != exclude_bcd_set.end() ) ) );
                     if ( !bcd_skip) {
-                        write_sptsv_barcode(wh_tsv, bcds[ibcd-1], iftr2cnts, ftr_combined, iftr2oftr);  
+                        write_sptsv_barcode(wh_tsv, bcds[cur_ibcd-1], iftr2cnts, ftr_combined, iftr2oftr);  
                         ++n_units;                  
                     }
                 }
