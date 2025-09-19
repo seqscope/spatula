@@ -708,8 +708,13 @@ int32_t cmdJoinPixelDecode(int32_t argc, char **argv)
     }
 
     // synchronize the filesystem to ensure all files are written
-    notice("Synchronizing the filesystem to ensure all files are written");
-    sync();
+    //notice("Synchronizing the filesystem to ensure all files are written");
+    //sync();
+
+    //notice("Finishied synchronizing the filesystem to ensure all files are written");
+
+    notice("Removing temporary directories..");
+
 
     // remove the temporary directory
     for(int32_t i=0; i <= (int32_t)decode_prefix_tsvs.size(); ++i) {
@@ -718,9 +723,11 @@ int32_t cmdJoinPixelDecode(int32_t argc, char **argv)
             warning("Cannot remove %s", tmpDir.c_str());
         }
     }
+    usleep(999999); // sleep for 1 second to allow the filesystem to catch up
     if ( !removeDir(dj.tmp_dir + "/files") ) {
         warning("Cannot remove %s", (dj.tmp_dir + "/files").c_str());
     }
+    usleep(999999); // sleep for 1 second to allow the filesystem to catch up
     if ( ! removeDir(dj.tmp_dir + "/tiles") ) {
         warning("Cannot remove %s", (dj.tmp_dir + "/tiles").c_str());
     }
