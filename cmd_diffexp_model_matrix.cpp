@@ -63,7 +63,7 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         if ( wf == NULL ) {
             error("Cannot open output file %s", (outprefix + suffix_marginal).c_str());
         }
-        hprintf(wf, "%s\tfactor\tChi2\tpval\tFoldChange\tgene_total\tlog10p\n", pbm1.feature_name.c_str());
+        hprintf(wf, "%s\tfactor\tChi2\tpval\tFoldChange\tgene_total\tlog10pval\n", pbm1.feature_name.c_str());
         for(int32_t i=0; i < (int32_t)pbm1.features.size(); ++i) {
             const std::string& feature = pbm1.features[i];
             for(int32_t j=0; j < (int32_t)pbm1.factors.size(); ++j) {

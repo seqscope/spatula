@@ -717,6 +717,7 @@ int32_t cmdJoinPixelDecode(int32_t argc, char **argv)
 
 
     // remove the temporary directory
+    usleep(999999); // sleep for 1 second to allow the filesystem to catch up
     for(int32_t i=0; i <= (int32_t)decode_prefix_tsvs.size(); ++i) {
         std::string tmpDir = dj.tmp_dir + "/files/" + std::to_string(i);
         if ( !removeDir(tmpDir) ) {
