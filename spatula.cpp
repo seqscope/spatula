@@ -14,6 +14,7 @@ int32_t cmdReformatFASTQsMT(int32_t argc, char **argv);
 int32_t cmdDGE2SDGE(int32_t argc, char **argv);
 int32_t cmdSGE2TSV(int32_t argc, char **argv);
 int32_t cmdMEX2SpTSV(int32_t argc, char **argv);
+int32_t cmdPixel2SpTSV(int32_t argc, char **argv);
 int32_t cmdMEXSubset(int32_t argc, char **argv);
 int32_t cmdSpTSV2MEX(int32_t argc, char **argv);
 int32_t cmdSpTSV2Model(int32_t argc, char **argv);
@@ -74,6 +75,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND_GROUP("Tools for Analyzing FICTURE-specific Gene Expression data", NULL)
   LONG_COMMAND("subset-mex", &cmdMEXSubset, "Subset 10x Market Exchange (MEX) formatted DGE to specific features and barcodes")
   LONG_COMMAND("mex2sptsv", &cmdMEX2SpTSV, "Convert 10x Market Exchange (MEX) formatted DGE to Sparse TSV format in FICTURE2")
+  LONG_COMMAND("pixel2sptsv", &cmdPixel2SpTSV, "Convert pixel-level TSV to Sparse TSV based on assigned cell IDs")
   LONG_COMMAND("sptsv2mex", &cmdSpTSV2MEX, "Convert Sparse TSV format in FICTURE2 to 10x Market Exchange (MEX) formatted DGE")
   LONG_COMMAND("sptsv2model", &cmdSpTSV2Model, "Create model matrix from Sparse TSV format in FICTURE2 with cluster assignment")
   LONG_COMMAND("join-pixel-tsv", &cmdJoinPixelTSV, "Join pixel-level output from FICTURE with raw transcript-level TSV files")
@@ -113,7 +115,7 @@ int32_t main(int32_t argc, char **argv)
   if (argc < 2)
   {
     printf("[spatula] -- spatial transcriptomics utilities\n\n");
-    fprintf(stderr, " Copyright (c) 2022-2024 by Hyun Min Kang\n");
+    fprintf(stderr, " Copyright (c) 2022-2025 by Hyun Min Kang\n");
     fprintf(stderr, " Licensed under the Apache License v2.0 http://www.apache.org/licenses/\n\n");
     fprintf(stderr, "To run a specific command      : %s [command] [options]\n", argv[0]);
     fprintf(stderr, "For detailed instructions, run : %s --help\n", argv[0]);
