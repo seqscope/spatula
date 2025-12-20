@@ -159,7 +159,7 @@ int32_t cmdSpTSV2MEX(int32_t argc, char **argv)
     // computing the total number of lines by reading the input TSV file
     uint64_t nnz = 0;
     {
-        tsv_reader tsv_tr(intsv.c_str());
+        tsv_reader tsv_tr;
         int32_t nlines = 0;
         if ( !tsv_tr.open(intsv.c_str()) ) {
             error("Cannot open input TSV file %s for reading", intsv.c_str());
@@ -187,7 +187,7 @@ int32_t cmdSpTSV2MEX(int32_t argc, char **argv)
     hprintf(wf_mtx, "%%\n");
     hprintf(wf_mtx, "%d %d %llu\n", n_features, n_units, nnz); // write the header for the matrix file
 
-    tsv_reader tsv_tr(intsv.c_str());
+    tsv_reader tsv_tr;
     if ( !tsv_tr.open(intsv.c_str()) ) {
         error("Cannot open input TSV file %s for reading", intsv.c_str());
     }   

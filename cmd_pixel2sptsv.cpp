@@ -18,8 +18,15 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
     std::string in_col_cnt("count");   // column name in the input file for count  
     std::string in_col_x("X"); // column name in the input file for x coordinate
     std::string in_col_y("Y"); // column name in the input file for y coordinate
+    int32_t idx_col_x = 1;   // 1-based index for x coordinate column
+    int32_t idx_col_y = 2;   // 1-based index for y coordinate column
+    int32_t idx_col_ftr = 3; // 1-based index for feature name column
+    int32_t idx_col_cnt = 4; // 1-based index for count column
+    int32_t idx_col_id = 5; // 1-based index for cell ID column
+
     bool skip_cell_tsv = false; // skip generating cell-level TSV file
     bool add_xy = false;        // add X and Y coordinate to the output TSV file
+    bool no_header = false;     // if true, input file has no header line
 
     int32_t min_feature_count = 1; // minimum feature count to include in the output
     int32_t min_cell_count = 1;    // minimum cell count to include in the output, after filtering by features
@@ -54,6 +61,12 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
     LONG_STRING_PARAM("in-col-cnt", &in_col_cnt, "Column name in the input file for count")
     LONG_STRING_PARAM("in-col-x", &in_col_x, "Column name in the input file for x coordinate")
     LONG_STRING_PARAM("in-col-y", &in_col_y, "Column name in the input file for y coordinate")
+    LONG_INT_PARAM("idx-col-x", &idx_col_x, "1-based index for x coordinate column, effective only with --no-header")
+    LONG_INT_PARAM("idx-col-y", &idx_col_y, "1-based index for y coordinate columnm, effective only with --no-header")
+    LONG_INT_PARAM("idx-col-ftr", &idx_col_ftr, "1-based index for feature name columnm, effective only with --no-header")
+    LONG_INT_PARAM("idx-col-cnt", &idx_col_cnt, "1-based index for count column, effective only with --no-header")
+    LONG_INT_PARAM("idx-col-id", &idx_col_id, "1-based index for cell ID column, effective only with --no-header")
+    LONG_PARAM("no-header", &no_header, "If set, the input file has no header line")
 
     LONG_PARAM_GROUP("Input Filtering Options", NULL)
     LONG_STRING_PARAM("ignore-ids", &ignore_ids, "IDs to be considered as null and ignored")
@@ -174,33 +187,42 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
 
     notice("Reading the inpput file... %s", pixelf.c_str());
     tsv_reader pix_tr(pixelf.c_str());
-    if ( pix_tr.read_line() < 0 ) {
-        error("Cannot read the input file %s", pixelf.c_str());
-    }
     // detect header columns
     int32_t icol_id = -1;
     int32_t icol_ftr = -1;
     int32_t icol_cnt = -1;
     int32_t icol_x = -1;
     int32_t icol_y = -1;
-    for(int32_t i=0; i < pix_tr.nfields; ++i) {
-        if ( strcmp(pix_tr.str_field_at(i), in_col_id.c_str()) == 0 )
-            icol_id = i;
-        else if ( strcmp(pix_tr.str_field_at(i), in_col_ftr.c_str()) == 0 )
-            icol_ftr = i;
-        else if ( strcmp(pix_tr.str_field_at(i), in_col_cnt.c_str()) == 0 )
-            icol_cnt = i;
-        else if ( strcmp(pix_tr.str_field_at(i), in_col_x.c_str()) == 0 )
-            icol_x = i;
-        else if ( strcmp(pix_tr.str_field_at(i), in_col_y.c_str()) == 0 )
-            icol_y = i;
+    if ( no_header ) {
+        icol_x = idx_col_x - 1;
+        icol_y = idx_col_y - 1;
+        icol_ftr = idx_col_ftr - 1;
+        icol_cnt = idx_col_cnt - 1;
+        icol_id = idx_col_id - 1;
     }
-    if ( icol_id < 0 )
-        error("Cannot find the column %s in the input file", in_col_id.c_str());
-    if ( icol_ftr < 0 )
-        error("Cannot find the column %s in the input file", in_col_ftr.c_str());
-    if ( icol_cnt < 0 )
-        error("Cannot find the column %s in the input file", in_col_cnt.c_str());
+    else {
+        if ( pix_tr.read_line() < 0 ) {
+            error("Cannot read the input file %s", pixelf.c_str());
+        }
+        for(int32_t i=0; i < pix_tr.nfields; ++i) {
+            if ( strcmp(pix_tr.str_field_at(i), in_col_id.c_str()) == 0 )
+                icol_id = i;
+            else if ( strcmp(pix_tr.str_field_at(i), in_col_ftr.c_str()) == 0 )
+                icol_ftr = i;
+            else if ( strcmp(pix_tr.str_field_at(i), in_col_cnt.c_str()) == 0 )
+                icol_cnt = i;
+            else if ( strcmp(pix_tr.str_field_at(i), in_col_x.c_str()) == 0 )
+                icol_x = i;
+            else if ( strcmp(pix_tr.str_field_at(i), in_col_y.c_str()) == 0 )
+                icol_y = i;
+        }
+        if ( icol_id < 0 )
+            error("Cannot find the column %s in the input file", in_col_id.c_str());
+        if ( icol_ftr < 0 )
+            error("Cannot find the column %s in the input file", in_col_ftr.c_str());
+        if ( icol_cnt < 0 )
+            error("Cannot find the column %s in the input file", in_col_cnt.c_str());
+    }
     if ( compute_xy ) {
         if ( icol_x < 0 )
             error("Cannot find the column %s in the input file", in_col_x.c_str());

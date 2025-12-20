@@ -43,6 +43,7 @@ int32_t cmdReformatTsv(int32_t argc, char **argv);
 int32_t cmdPastePixelTSV(int32_t argc, char **argv);
 int32_t cmdAppendTopKTSV(int32_t argc, char **argv);
 int32_t cmdJoinPixelDecode(int32_t argc, char **argv);
+int32_t cmdMergeSpTSV(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -83,6 +84,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("diffexp-decode", &cmdDiffExpDecode, "Perform differential expression test and create pseudobulk data from pixel-level decoding output")
   LONG_COMMAND("pseudobulk-from-decode", &cmdPseudobulkFromDecode, "Write pseudobulk matrix from pixel-level decode output")
   LONG_COMMAND("join-pixel-decode", &cmdJoinPixelDecode, "Join pixel-level-decode output from FICTURE2 with raw transcript-level TSV files")
+  LONG_COMMAND("merge-sptsv", &cmdMergeSpTSV, "Merge multiple sparse TSV files into a single sparse TSV file")
 
   LONG_COMMAND_GROUP("Tools for Analyzing Pseudobulk Data", NULL)
   LONG_COMMAND("diffexp-model-matrix", &cmdDiffExpModelMatrix, "Perform differential expression test from model matrix")
