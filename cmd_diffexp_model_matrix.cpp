@@ -64,6 +64,12 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
             error("Cannot open output file %s", (outprefix + suffix_marginal).c_str());
         }
         hprintf(wf, "%s\tfactor\tChi2\tpval\tFoldChange\tgene_total\tlog10pval\n", pbm1.feature_name.c_str());
+
+        // make sure that at least one top gene is printed per factor
+        std::vector<int32_t> npassed(pbm1.factors.size(), 0);
+        std::vector<double>  max_log10pval(pbm1.factors.size(), 0.0);
+        std::vector<int32_t> max_log10pval_idx(pbm1.factors.size(), -1); 
+
         for(int32_t i=0; i < (int32_t)pbm1.features.size(); ++i) {
             const std::string& feature = pbm1.features[i];
             for(int32_t j=0; j < (int32_t)pbm1.factors.size(); ++j) {
@@ -72,29 +78,64 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 double c = pbm1.rowsums[i] - a; // total counts for the feature minus the current factor
                 double d = pbm1.total - b - c - a; // total counts minus the counts for the feature and factor
 
-                if ( a < min_count ) {
-                    continue; // skip features with low counts
-                }
-
                 a += pseudocount;
                 b += pseudocount;
                 c += pseudocount;
                 d += pseudocount;
                 double fc = (a * d) / ( b * c );
+                double chi2 = (a * d - b * c) * (a * d - b * c) / ((a + b) * (c + d) * (a + c) * (b + d)) * (a + b + c + d);
+                double log10pval = chisq1_log10p(chi2);
+
+                if ( (log10pval > max_log10pval[j]) && (fc >= 1.0) ) {
+                    max_log10pval[j] = log10pval;
+                    max_log10pval_idx[j] = i;
+                }
+
+                if ( a < min_count ) {
+                    continue; // skip features with low counts
+                }
                 if ( fc < min_fc ) {
                     continue; // skip features with low fold change
                 }
-                double chi2 = (a * d - b * c) * (a * d - b * c) / ((a + b) * (c + d) * (a + c) * (b + d)) * (a + b + c + d);
-                double log10pval = chisq1_log10p(chi2);
                 if ( log10pval < log10_max_pval ) {
                     continue; // skip features with high p-value
                 }
+                npassed[j]++;
                 const std::string& factor = pbm1.factors[j];
                 // print the results
                 hprintf(wf, "%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f\n",
                         feature.c_str(), factor.c_str(),
                         chi2, std::pow(10.0, -log10pval), fc,
                         pbm1.rowsums[i], log10pval);
+            }
+        }
+        // make sure that at least one feature is printed per factor
+        for(int32_t j=0; j < (int32_t)pbm1.factors.size(); ++j) {
+            if ( npassed[j] == 0 ) {
+                if ( max_log10pval_idx[j] >= 0 ) {
+                    int32_t i = max_log10pval_idx[j];
+                    const std::string& feature = pbm1.features[i];
+                    const std::string& factor = pbm1.factors[j];
+                    double a = pbm1.counts[i][j]; // add pseudocount to avoid zero counts
+                    double b = pbm1.colsums[j] - a; // total counts for the factor minus the current feature
+                    double c = pbm1.rowsums[i] - a; // total counts for the feature minus the current factor
+                    double d = pbm1.total - b - c - a; // total counts minus the counts for the feature and factor
+
+                    a += pseudocount;
+                    b += pseudocount;
+                    c += pseudocount;
+                    d += pseudocount;
+                    double fc = (a * d) / ( b * c );
+                    double chi2 = (a * d - b * c) * (a * d - b * c) / ((a + b) * (c + d) * (a + c) * (b + d)) * (a + b + c + d);
+                    double log10pval = chisq1_log10p(chi2);
+                    hprintf(wf, "%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f\n",
+                            feature.c_str(), factor.c_str(),
+                            chi2, std::pow(10.0, -log10pval), fc,
+                            pbm1.rowsums[i], log10pval);
+                }
+                else {
+                    notice("WARNING: No feature passed the DE test for factor %s, and no feature found to force print", pbm1.factors[j].c_str());
+                }
             }
         }
         hts_close(wf);

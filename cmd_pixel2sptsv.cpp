@@ -185,7 +185,7 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
     std::vector<int32_t> cell_cnts;
     std::map<int32_t, std::map<int32_t, int32_t> > cell2ftr2cnts;
 
-    notice("Reading the inpput file... %s", pixelf.c_str());
+    notice("Reading the input file... %s", pixelf.c_str());
     tsv_reader pix_tr(pixelf.c_str());
     // detect header columns
     int32_t icol_id = -1;
