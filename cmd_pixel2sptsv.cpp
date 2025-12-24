@@ -354,6 +354,7 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
             notice("Writing %d valid cells", n_valid_cells);
     }
     hts_close(wh_tsv);
+    hts_close(wh_cell);
     notice("Finished writing %d valid cells", n_valid_cells);
 
     // write the feature counts
