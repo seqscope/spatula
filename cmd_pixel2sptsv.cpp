@@ -3,6 +3,7 @@
 #include "qgenlib/tsv_reader.h"
 #include "spatula.h"
 #include <ctime>
+#include <regex>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -47,6 +48,10 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
     std::string keyname_offset_data("offset_data");
     std::string include_ftr_list;
     std::string exclude_ftr_list;
+    std::string include_ftr_regex;
+    std::string exclude_ftr_regex;
+    std::string include_ftr_substr;
+    std::string exclude_ftr_substr;
     std::string include_id_list;
     std::string exclude_id_list;
 
@@ -70,10 +75,14 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
 
     LONG_PARAM_GROUP("Input Filtering Options", NULL)
     LONG_STRING_PARAM("ignore-ids", &ignore_ids, "IDs to be considered as null and ignored")
-    LONG_STRING_PARAM("include-feature-list", &include_ftr_list, "A file containing a list of input genes to be included (feature name of IDs)")
-    LONG_STRING_PARAM("exclude-feature-list", &exclude_ftr_list, "A file containing a list of input genes to be excluded (feature name of IDs)")
     LONG_STRING_PARAM("include-id-list", &include_id_list, "A file containing a list of input IDs to be included")
     LONG_STRING_PARAM("exclude-id-list", &exclude_id_list, "A file containing a list of input IDs to be excluded")
+    LONG_STRING_PARAM("include-feature-list", &include_ftr_list, "A file containing a list of input genes to be included (feature name of IDs)")
+    LONG_STRING_PARAM("exclude-feature-list", &exclude_ftr_list, "A file containing a list of input genes to be excluded (feature name of IDs)")
+    LONG_STRING_PARAM("include-feature-regex", &include_ftr_regex, "A regex pattern of feature/gene names to be included")
+    LONG_STRING_PARAM("exclude-feature-regex", &exclude_ftr_regex, "A regex pattern of feature/gene names to be excluded")
+    LONG_STRING_PARAM("include-feature-substr", &include_ftr_substr, "A substring of feature/gene names to be included")
+    LONG_STRING_PARAM("exclude-feature-substr", &exclude_ftr_substr, "A substring of feature/gene names to be excluded")
     LONG_INT_PARAM("min-cell-count", &min_cell_count, "Minimum cell count to include in the output.")
     LONG_INT_PARAM("min-feature-count", &min_feature_count, "Minimum feature count to include in the output.")
 
@@ -117,12 +126,27 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
         error("--out must be specified");
     }
 
-    if ((!include_ftr_list.empty()) && (!exclude_ftr_list.empty())) {
-        error("Cannot specify both --include-feature-list and --exclude-feature-list");
-    }
-    if ((!include_id_list.empty()) && (!exclude_id_list.empty())) {
-        error("Cannot specify both --include-id-list and --exclude-id-list");
-    }
+    // only one of the include and exclude options can be used
+    int32_t include_sum = ( include_ftr_list.empty() ? 0 : 1 ) + ( include_ftr_regex.empty() ? 0 : 1 ) + ( include_ftr_substr.empty() ? 0 : 1 );
+    if ( include_sum > 1 )
+        error("Only one of --include-feature-list, --include-feature-regex, and --include-feature-substr can be used");
+    
+    int32_t exclude_sum = ( exclude_ftr_list.empty() ? 0 : 1 ) + ( exclude_ftr_regex.empty() ? 0 : 1 ) + ( exclude_ftr_substr.empty() ? 0 : 1 );
+    if ( exclude_sum > 1 )
+        error("Only one of --exclude-feature-list, --exclude-feature-regex, and --exclude-feature-substr can be used");
+
+    if ( include_sum == 0 && exclude_sum == 0 )
+        notice("No feature filtering is applied");
+    else if ( include_sum > 0 && exclude_sum > 0 )
+        warning("Both --include.. and --exclude.. filters applied. If both filters are matched, the feature will be excluded");
+
+
+    // if ((!include_ftr_list.empty()) && (!exclude_ftr_list.empty())) {
+    //     error("Cannot specify both --include-feature-list and --exclude-feature-list");
+    // }
+    // if ((!include_id_list.empty()) && (!exclude_id_list.empty())) {
+    //     error("Cannot specify both --include-id-list and --exclude-id-list");
+    // }
 
     // check if the input files exist
     struct stat sb;
@@ -231,6 +255,8 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
     }
 
     uint64_t nskip = 0, npass = 0;
+    std::regex regex_include(include_ftr_regex);
+    std::regex regex_exclude(exclude_ftr_regex);
     while( pix_tr.read_line() > 0 ) {
         std::string id = pix_tr.str_field_at(icol_id);
         std::string ftr = pix_tr.str_field_at(icol_ftr);
@@ -246,12 +272,50 @@ int32_t cmdPixel2SpTSV(int32_t argc, char **argv) {
             continue;
         }
 
-        // check if the feature is valid
-        if ( include_ftr_set.size() > 0 && include_ftr_set.find(ftr) == include_ftr_set.end() ) {
-            nskip++;
-            continue;
+        // // check if the feature is valid
+        // if ( include_ftr_set.size() > 0 && include_ftr_set.find(ftr) == include_ftr_set.end() ) {
+        //     nskip++;
+        //     continue;
+        // }
+        // if ( exclude_ftr_set.size() > 0 && exclude_ftr_set.find(ftr) != exclude_ftr_set.end() ) {
+        //     nskip++;
+        //     continue;
+        // }
+
+        // check if the gene is in the inclusion list
+        bool include = true;
+        if (!include_ftr_set.empty()) {
+            if ( include_ftr_set.find(ftr) != include_ftr_set.end() ) {
+                include = true;
+            }
+            else {
+                include = false;
+            }
         }
-        if ( exclude_ftr_set.size() > 0 && exclude_ftr_set.find(ftr) != exclude_ftr_set.end() ) {
+        else if (!include_ftr_regex.empty()) {
+            include = std::regex_search(ftr, regex_include);
+        }
+        else if (!include_ftr_substr.empty()) {
+            include = strstr(ftr.c_str(), include_ftr_substr.c_str()) != NULL;
+        }
+
+        bool exclude = false;
+        if (!exclude_ftr_set.empty()) {
+            if ( exclude_ftr_set.find(ftr) != exclude_ftr_set.end() ) {
+                exclude = true;
+            }
+            else {
+                exclude = false;
+            }
+        }
+        else if (!exclude_ftr_regex.empty()) {
+            exclude = std::regex_search(ftr, regex_exclude);
+        }
+        else if (!exclude_ftr_substr.empty()) {
+            exclude = strstr(ftr.c_str(), exclude_ftr_substr.c_str()) != NULL;
+        }
+
+        if ( !include || exclude ) { // gene must be excluded
             nskip++;
             continue;
         }

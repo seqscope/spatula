@@ -61,6 +61,10 @@ int32_t cmdMEX2SpTSV(int32_t argc, char **argv)
     bool error_on_duplicate_gene_name = false;
     std::string include_ftr_list;
     std::string exclude_ftr_list;
+    std::string include_ftr_regex;
+    std::string exclude_ftr_regex;
+    std::string include_ftr_substr;
+    std::string exclude_ftr_substr;
     std::string include_bcd_list;
     std::string exclude_bcd_list;
 
@@ -76,6 +80,10 @@ int32_t cmdMEX2SpTSV(int32_t argc, char **argv)
     LONG_PARAM_GROUP("Input Filtering Options", NULL)
     LONG_STRING_PARAM("include-feature-list", &include_ftr_list, "A file containing a list of input genes to be included (feature name of IDs)")
     LONG_STRING_PARAM("exclude-feature-list", &exclude_ftr_list, "A file containing a list of input genes to be excluded (feature name of IDs)")
+    LONG_STRING_PARAM("include-feature-regex", &include_ftr_regex, "A regex pattern of feature/gene names to be included")
+    LONG_STRING_PARAM("exclude-feature-regex", &exclude_ftr_regex, "A regex pattern of feature/gene names to be excluded")
+    LONG_STRING_PARAM("include-feature-substr", &include_ftr_substr, "A substring of feature/gene names to be included")
+    LONG_STRING_PARAM("exclude-feature-substr", &exclude_ftr_substr, "A substring of feature/gene names to be excluded")
     LONG_STRING_PARAM("include-barcode-list", &include_bcd_list, "A file containing a list of input barcode IDs to be included (feature name of IDs)")
     LONG_STRING_PARAM("exclude-barcode-list", &exclude_bcd_list, "A file containing a list of input barcode IDs to be excluded (feature name of IDs)")
     LONG_INT_PARAM("min-feature-count", &min_feature_count, "Minimum feature count to include in the output. Requires reading the input matrix twice")
@@ -124,14 +132,28 @@ int32_t cmdMEX2SpTSV(int32_t argc, char **argv)
         mtxf = indir + "/" + mtxf;
     }
 
-    if ( ( !include_ftr_list.empty() ) && ( !exclude_ftr_list.empty() ) )
-    {
-        error("Cannot specify both --include-feature-list and --exclude-feature-list");
-    }
-    if ( ( !include_bcd_list.empty() ) && ( !exclude_bcd_list.empty() ) )
-    {
-        error("Cannot specify both --include-barcode-list and --exclude-barcode-list");
-    }
+    // only one of the include and exclude options can be used
+    int32_t include_sum = ( include_ftr_list.empty() ? 0 : 1 ) + ( include_ftr_regex.empty() ? 0 : 1 ) + ( include_ftr_substr.empty() ? 0 : 1 );
+    if ( include_sum > 1 )
+        error("Only one of --include-feature-list, --include-feature-regex, and --include-feature-substr can be used");
+    
+    int32_t exclude_sum = ( exclude_ftr_list.empty() ? 0 : 1 ) + ( exclude_ftr_regex.empty() ? 0 : 1 ) + ( exclude_ftr_substr.empty() ? 0 : 1 );
+    if ( exclude_sum > 1 )
+        error("Only one of --exclude-feature-list, --exclude-feature-regex, and --exclude-feature-substr can be used");
+
+    if ( include_sum == 0 && exclude_sum == 0 )
+        notice("No feature filtering is applied");
+    else if ( include_sum > 0 && exclude_sum > 0 )
+        warning("Both --include.. and --exclude.. filters applied. If both filters are matched, the feature will be excluded");
+
+    // if ( ( !include_ftr_list.empty() ) && ( !exclude_ftr_list.empty() ) )
+    // {
+    //     error("Cannot specify both --include-feature-list and --exclude-feature-list");
+    // }
+    // if ( ( !include_bcd_list.empty() ) && ( !exclude_bcd_list.empty() ) )
+    // {
+    //     error("Cannot specify both --include-barcode-list and --exclude-barcode-list");
+    // }
 
     // check if the input files exist
     struct stat sb;
@@ -240,32 +262,85 @@ int32_t cmdMEX2SpTSV(int32_t argc, char **argv)
     // construct feature maps
     std::map<int32_t, int32_t> iftr2oftr; // index to map input feature index to output feature index (0-based)
     std::vector<int32_t> iftrs;
+    std::regex regex_include(include_ftr_regex);
+    std::regex regex_exclude(exclude_ftr_regex);
     for(int32_t i = 0; i < (int32_t)ftr_ids.size(); ++i)
     {
         if ( min_feature_count > 0 && (ftr2cnt[i] < min_feature_count ) ) {
             continue; // skip the feature if its total count is less than the minimum feature count
         }
-        if ( include_ftr_set.empty() && exclude_ftr_set.empty() ) { // no filtering
-            iftr2oftr[i] = (int32_t)iftrs.size(); // map input feature index to output feature index
-            iftrs.push_back(i); // add to the output feature index
-        }
-        else if ( !include_ftr_set.empty() ) { // include list was specified
-            if ( include_ftr_set.find(ftr_ids[i]) != include_ftr_set.end() ||
-                 include_ftr_set.find(ftr_names[i]) != include_ftr_set.end() ) {
-                iftr2oftr[i] = (int32_t)iftrs.size(); // add to the output feature index
-                iftrs.push_back(i);
+
+        // check if the feature should be included or excluded
+        // check if the gene is in the inclusion list
+        bool include = true;
+        if (!include_ftr_set.empty()) {
+            if ( include_ftr_set.find(ftr_ids[i]) != include_ftr_set.end() ) {
+                include = true;
+            }
+            else if ( include_ftr_set.find(ftr_names[i]) != include_ftr_set.end() ) {
+                include = true;
+            }
+            else {
+                include = false;
             }
         }
-        else if ( !exclude_ftr_set.empty() ) { // exclude list was specified
-            if ( exclude_ftr_set.find(ftr_ids[i]) == exclude_ftr_set.end() &&
-                 exclude_ftr_set.find(ftr_names[i]) == exclude_ftr_set.end() ) {
-                iftr2oftr[i] = (int32_t)iftrs.size(); // add to the output feature index
-                iftrs.push_back(i);
+        else if (!include_ftr_regex.empty()) {
+            //include = std::regex_search(ftr_ids[i], regex_include) || std::regex_search(ftr_names[i], regex_include);
+            include = std::regex_search(ftr_names[i], regex_include);
+        }
+        else if (!include_ftr_substr.empty()) {
+            //include = strstr(ftr_ids[i].c_str(), include_ftr_substr.c_str()) != NULL || strstr(ftr_names[i].c_str(), include_ftr_substr.c_str()) != NULL;
+            include = strstr(ftr_names[i].c_str(), include_ftr_substr.c_str()) != NULL;
+        }
+
+        bool exclude = false;
+        if (!exclude_ftr_set.empty()) {
+            if ( exclude_ftr_set.find(ftr_ids[i]) != exclude_ftr_set.end() ) {
+                exclude = true;
+            }
+            else if ( exclude_ftr_set.find(ftr_names[i]) != exclude_ftr_set.end() ) {
+                exclude = true;
+            }
+            else {
+                exclude = false;
             }
         }
-        else {
-            error("Something went wrong with the feature filtering options");
+        else if (!exclude_ftr_regex.empty()) {
+            exclude = std::regex_search(ftr_names[i], regex_exclude);
         }
+        else if (!exclude_ftr_substr.empty()) {
+            exclude = strstr(ftr_names[i].c_str(), exclude_ftr_substr.c_str()) != NULL;
+        }
+
+        if ( !include || exclude ) { // gene must be excluded
+            //nskip++;
+            continue;
+        }
+
+        iftr2oftr[i] = (int32_t)iftrs.size(); // map input feature index to output feature index
+        iftrs.push_back(i); // add to the output feature index
+
+        // if ( include_ftr_set.empty() && exclude_ftr_set.empty() ) { // no filtering
+        //     iftr2oftr[i] = (int32_t)iftrs.size(); // map input feature index to output feature index
+        //     iftrs.push_back(i); // add to the output feature index
+        // }
+        // else if ( !include_ftr_set.empty() ) { // include list was specified
+        //     if ( include_ftr_set.find(ftr_ids[i]) != include_ftr_set.end() ||
+        //          include_ftr_set.find(ftr_names[i]) != include_ftr_set.end() ) {
+        //         iftr2oftr[i] = (int32_t)iftrs.size(); // add to the output feature index
+        //         iftrs.push_back(i);
+        //     }
+        // }
+        // else if ( !exclude_ftr_set.empty() ) { // exclude list was specified
+        //     if ( exclude_ftr_set.find(ftr_ids[i]) == exclude_ftr_set.end() &&
+        //          exclude_ftr_set.find(ftr_names[i]) == exclude_ftr_set.end() ) {
+        //         iftr2oftr[i] = (int32_t)iftrs.size(); // add to the output feature index
+        //         iftrs.push_back(i);
+        //     }
+        // }
+        // else {
+        //     error("Something went wrong with the feature filtering options");
+        // }
     }
 
     tsv_reader bcd_tr(bcdf.c_str());
