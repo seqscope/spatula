@@ -76,13 +76,16 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
 
     int32_t icol_feature = find_idx_by_key(col2idx, colname_feature.c_str(), true);
     int32_t icol_count = find_idx_by_key(col2idx, colname_count.c_str(), true);
-    int32_t icol_cell = find_idx_by_key(col2idx, colname_cell.c_str(), false);
     int32_t icol_K1 = find_idx_by_key(col2idx, colname_K1.c_str(), true);
     int32_t icol_K2 = find_idx_by_key(col2idx, colname_K2.c_str(), false);
     int32_t icol_K3 = find_idx_by_key(col2idx, colname_K3.c_str(), false);
     int32_t icol_P1 = find_idx_by_key(col2idx, colname_P1.c_str(), false);
     int32_t icol_P2 = find_idx_by_key(col2idx, colname_P2.c_str(), false);
     int32_t icol_P3 = find_idx_by_key(col2idx, colname_P3.c_str(), false);
+    int32_t icol_cell = -1;
+    if ( write_cell_tsv ) {
+        icol_cell = find_idx_by_key(col2idx, colname_cell.c_str(), false);
+    }
 
     // possible cases:
     // 1. K1/P1, K2/P2, K3/P3 are present in pairs

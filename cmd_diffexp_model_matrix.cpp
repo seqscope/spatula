@@ -217,7 +217,7 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 notice("WARNING: The two pseudobulk matrices have different number of features or factors, but --ignore-mismatch is set. Only overlapping features and factors will be used for the test.");
             }
             else {
-                error("The two pseudobulk matrices must have the same number of features and factors");
+                error("The two pseudobulk matrices must have the same number of features and factors. Use --ignore-mismatch to ignore mismatching features and factors.");
             }
         }
 
@@ -392,17 +392,17 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         // de.cond.feature
         // de.combinedfeature
         std::string suffix_conditional_feature(".de.conditional.feature.tsv.gz");
-        std::string suffix_combined_feature(".de.combined.feature.tsv.gz");
+        //std::string suffix_combined_feature(".de.combined.feature.tsv.gz");
         htsFile* wf_conditional_feature = hts_open((outprefix + suffix_conditional_feature).c_str(), "wz");
         if ( wf_conditional_feature == NULL ) {
             error("Cannot open output file %s", (outprefix + suffix_conditional_feature).c_str());
         }
-        htsFile* wf_combined_feature = hts_open((outprefix + suffix_combined_feature).c_str(), "wz");
-        if ( wf_combined_feature == NULL ) {
-            error("Cannot open output file %s", (outprefix + suffix_combined_feature).c_str());
-        }
+        // htsFile* wf_combined_feature = hts_open((outprefix + suffix_combined_feature).c_str(), "wz");
+        // if ( wf_combined_feature == NULL ) {
+        //     error("Cannot open output file %s", (outprefix + suffix_combined_feature).c_str());
+        // }
         hprintf(wf_conditional_feature, "Feature\tFactor\tCount1\tCount2\tFrac1\tFrac2\tlog2FC\tChi2\tpval\tlog10p\n");
-        hprintf(wf_combined_feature, "Feature\tCount1\tCount2\tFrac1\tFrac2\tTopFactor\tTopLog2FC\tTopLog10p\tCombinedLog10p\n");
+        //hprintf(wf_combined_feature, "Feature\tCount1\tCount2\tFrac1\tFrac2\tTopFactor\tTopLog2FC\tTopLog10p\tCombinedLog10p\n");
         for(int32_t i=0; i < (int32_t)idx1_features.size(); ++i) {
             std::vector<double> log10pvals(idx1_factors.size(), 0.0);
             std::vector<double> weights(idx1_factors.size(), 0.0);
@@ -460,27 +460,30 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                         log2fc, chi2, std::pow(10.0, -log10pval), log10pval);
 
             }
-            // perform cauchy-combined test
-            if ( top_factor_idx >= 0 ) {
-                notice("Computing CCT for feature %s", pbm1.features[i].c_str());
-                double combined_log10pval = stable_cauchy_combination_test(log10pvals, weights);
-                // if ( combined_log10pval < log10_max_pval ) {
-                //     continue; // skip features with high combined p-value
-                // }
-                hprintf(wf_combined_feature, "%s\t%.2f\t%.2f\t%.5g\t%.5g\t%s\t%.4f\t%.2f\t%.2f\n",
-                        pbm1.features[i].c_str(),
-                        pbm1.rowsums[i], pbm2.rowsums[i],
-                        pbm1.rowsums[i] / pbm1.total, pbm2.rowsums[i] / pbm2.total,
-                        pbm1.factors[top_factor_idx].c_str(),
-                        top_log10fc, top_log10pval, combined_log10pval);
-            }
+            // // perform cauchy-combined test
+            // if ( top_factor_idx >= 0 ) {
+            //     notice("Computing CCT for feature %s", pbm1.features[i].c_str());
+            //     double combined_log10pval = stable_cauchy_combination_test(log10pvals, weights);
+            //     // if ( combined_log10pval < log10_max_pval ) {
+            //     //     continue; // skip features with high combined p-value
+            //     // }
+            //     hprintf(wf_combined_feature, "%s\t%.2f\t%.2f\t%.5g\t%.5g\t%s\t%.4f\t%.2f\t%.2f\n",
+            //             pbm1.features[i].c_str(),
+            //             pbm1.rowsums[i], pbm2.rowsums[i],
+            //             pbm1.rowsums[i] / pbm1.total, pbm2.rowsums[i] / pbm2.total,
+            //             pbm1.factors[top_factor_idx].c_str(),
+            //             top_log10fc, top_log10pval, combined_log10pval);
+            // }
         }
         hts_close(wf_conditional_feature);
-        hts_close(wf_combined_feature);
+        // hts_close(wf_combined_feature);
 
-        notice("Conditional and Combined DE tests completed, results written to %s and %s", 
-               (outprefix + suffix_conditional_feature).c_str(), 
-               (outprefix + suffix_combined_feature).c_str());
+        // notice("Conditional and Combined DE tests completed, results written to %s and %s", 
+        //        (outprefix + suffix_conditional_feature).c_str(), 
+        //        (outprefix + suffix_combined_feature).c_str());
+        notice("Conditional and DE tests completed, results written to %s and %s", 
+               (outprefix + suffix_conditional_feature).c_str());
+
     }
 
     notice("Analysis finished");
