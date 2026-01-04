@@ -43,6 +43,8 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     int32_t in_icol_bcd_py = 7; // 1-based column index in the barcode file to use as the Y coordinate
     int32_t in_icol_ftr_id = 1;
     int32_t in_icol_ftr_name = 2;
+    int32_t in_icol_mtx_thres = -1; 
+    int32_t mtx_thres = 0; // threshold for the matrix file to be considered as a valid count
     // int32_t in_icol_mtx = 1;
     std::string str_icols_mtx("1,2,3,4,5");
     std::vector<int32_t> v_icols_mtx;
@@ -96,6 +98,10 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     LONG_INT_PARAM("icol-bcd-y", &in_icol_bcd_py, "1-based column index of y coordinate in the barcode file")
     LONG_INT_PARAM("icol-ftr-id", &in_icol_ftr_id, "1-based column index of feature ID in the barcode file")
     LONG_INT_PARAM("icol-ftr-name", &in_icol_ftr_name, "1-based column index of feature name in the barcode file")
+
+    LONG_PARAM_GROUP("Thrsholding options", NULL)
+    LONG_INT_PARAM("icol-thres", &in_icol_mtx_thres, "1-based column index of the threshold in the matrix file (default: -1)")    
+    LONG_INT_PARAM("mtx-thres", &mtx_thres, "Threshold for the matrix file to be considered as a valid count (default: 0)")
 
     LONG_PARAM_GROUP("Additional Barcode Position File", NULL)
     LONG_STRING_PARAM("pos", &posf, "Position file name that contains separate X and Y coordinates")
@@ -369,6 +375,22 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
         }
         // print individual transcripts
         if (ftr_passes[ssr.cur_iftr-1]) { // print only if the feature passes the filter
+            uint64_t sum_cur_cnts = 0;
+            for(int32_t i=0; i < n_colnames; ++i) {
+                sum_cur_cnts += ssr.cur_cnts[v_icols_mtx[i]];
+            }
+            if ( sum_cur_cnts == 0 ) {
+                // skip the feature if the count is zero
+                continue;
+            }
+
+            // if the threshold is specified, skip the feature if the count is below the specified threshold
+            if ( in_icol_mtx_thres > 0 ) {
+                if ( ssr.cur_cnts[in_icol_mtx_thres-1] < mtx_thres ) {
+                    continue;
+                }
+            }                   
+
             if ( wh_tsv != NULL ) {
                 if ( floor(um_x) != um_x || floor(um_y) != um_y ) { // non-integer coordinates, use the precision
                     hprintf(wh_tsv, "%.*f\t%.*f\t%s", precision_um, um_x, precision_um, um_y, ftr_names[ssr.cur_iftr-1].c_str());
@@ -390,14 +412,15 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
                 }
                 hprintf(wh_tsv, "\n");
             }
-        }
-        //ftr_cnts[ssr.cur_iftr-1] += ssr.cur_cnts[in_icol_mtx-1];
-        for (int32_t i = 0; i < n_colnames; ++i)
-        {
-            ftr_cnts[ssr.cur_iftr-1][i] += ssr.cur_cnts[v_icols_mtx[i]];
-        }
-        if ( pssw != NULL) {
-            pssw->add_mtx(ssr.cur_iftr, ssr.cur_cnts, v_icols_mtx);
+
+            //ftr_cnts[ssr.cur_iftr-1] += ssr.cur_cnts[in_icol_mtx-1];
+            for (int32_t i = 0; i < n_colnames; ++i)
+            {
+                ftr_cnts[ssr.cur_iftr-1][i] += ssr.cur_cnts[v_icols_mtx[i]];
+            }
+            if ( pssw != NULL) {
+                pssw->add_mtx(ssr.cur_iftr, ssr.cur_cnts, v_icols_mtx);
+            }
         }
         ++nlines;
     }

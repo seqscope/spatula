@@ -1,0 +1,278 @@
+#include "spatula.h"
+#include "qgenlib/dataframe.h"
+#include "qgenlib/tsv_reader.h"
+#include "qgenlib/qgen_error.h"
+#include "seq_utils.h"
+#include "generic_utils.h"
+#include "sge.h"
+#include <ctime>
+#include <set>
+
+//////////////////////////////////////////////////////////////////////////////////////
+// pseudobulk-from-decode : Write a pseudobulk matrix from pixel-level decode output
+//////////////////////////////////////////////////////////////////////////////////////
+int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
+{
+    std::string tsvf;
+    std::string colname_feature("feature");
+    std::string colname_count("ct");
+    std::string colname_K1("K1");
+    std::string colname_K2("K2");
+    std::string colname_K3("K3");
+    std::string colname_P1("P1");
+    std::string colname_P2("P2");
+    std::string colname_P3("P3");
+    std::string outf;
+    int32_t n_factors = 0; 
+    bool write_cell_tsv = false;
+    std::string colname_cell("cell_id");
+    std::string out_cell_tsvf;
+
+    paramList pl;
+    BEGIN_LONG_PARAMS(longParameters)
+    LONG_PARAM_GROUP("Input options", NULL)
+    LONG_STRING_PARAM("tsv", &tsvf, "tsv file to draw the x-y coordinates. /dev/stdin for stdin")
+    LONG_STRING_PARAM("colname-feature", &colname_feature, "Column name for the feature")
+    LONG_STRING_PARAM("colname-count", &colname_count, "Column name for the count")
+    LONG_STRING_PARAM("colname-K1", &colname_K1, "Column name for the K1 value")
+    LONG_STRING_PARAM("colname-K2", &colname_K2, "Column name for the K2 value")
+    LONG_STRING_PARAM("colname-K3", &colname_K3, "Column name for the K3 value")
+    LONG_STRING_PARAM("colname-P1", &colname_P1, "Column name for the P1 value")
+    LONG_STRING_PARAM("colname-P2", &colname_P2, "Column name for the P2 value")
+    LONG_STRING_PARAM("colname-P3", &colname_P3, "Column name for the P3 value")
+    
+    LONG_PARAM_GROUP("Output Options", NULL)
+    LONG_STRING_PARAM("out", &outf, "Output file name")
+    LONG_INT_PARAM("n-factors", &n_factors, "Force the total number of factors. Only works with integer factors. Encoded as 0, 1, 2, ..., (n_factors-1)")
+
+    LONG_PARAM_GROUP("Auxiliary Options to generate per-cell results matrix", NULL)
+    LONG_PARAM("write-cell-tsv", &write_cell_tsv, "Write per-cell results TSV file")
+    LONG_STRING_PARAM("out-cell-tsv", &out_cell_tsvf, "Output file name for per-cell results")
+    LONG_STRING_PARAM("colname-cell", &colname_cell, "Column name for the cell ID")
+    END_LONG_PARAMS();
+
+    pl.Add(new longParams("Available Options", longParameters));
+    pl.Read(argc, argv);
+    pl.Status();
+
+    if ( tsvf.empty() || outf.empty() )
+        error("--tsv and --out must be specified");
+
+    notice("Analysis started");
+
+    tsv_reader tf(tsvf.c_str());
+
+    // read the header info
+    if ( !tf.read_line() )
+        error("Cannot read the header from %s", tsvf.c_str());
+    std::map<std::string, int32_t> col2idx;
+    for(int32_t i=0; i < tf.nfields; ++i) {
+        const char* s = tf.str_field_at(i);
+        while ( s[0] == '#' ) {
+            ++s;
+        }
+        col2idx[s] = i;
+    }
+
+    int32_t icol_feature = find_idx_by_key(col2idx, colname_feature.c_str(), true);
+    int32_t icol_count = find_idx_by_key(col2idx, colname_count.c_str(), true);
+    int32_t icol_K1 = find_idx_by_key(col2idx, colname_K1.c_str(), true);
+    int32_t icol_K2 = find_idx_by_key(col2idx, colname_K2.c_str(), false);
+    int32_t icol_K3 = find_idx_by_key(col2idx, colname_K3.c_str(), false);
+    int32_t icol_P1 = find_idx_by_key(col2idx, colname_P1.c_str(), false);
+    int32_t icol_P2 = find_idx_by_key(col2idx, colname_P2.c_str(), false);
+    int32_t icol_P3 = find_idx_by_key(col2idx, colname_P3.c_str(), false);
+    int32_t icol_cell = -1;
+    if ( write_cell_tsv ) {
+        icol_cell = find_idx_by_key(col2idx, colname_cell.c_str(), false);
+    }
+
+    // possible cases:
+    // 1. K1/P1, K2/P2, K3/P3 are present in pairs
+    // 2. only K1 present, P1, P2, P3 are empty
+    bool best_guess_mode = false;
+    int32_t maxK = 0;
+    if ( icol_P1 < 0 ) {
+        if ( ( icol_P2 >= 0 ) || ( icol_P3 >= 0 ) ) {
+            error("When P1 is empty, P2 and P3 must also be empty");
+        }
+        if ( ( icol_K2 >= 0 ) || ( icol_K3 >= 0 ) ) {
+            warning("K2 and K3 is present, but will be ignored");
+        }
+        best_guess_mode = true;
+    }
+    else {
+        if ( icol_K2 < 0 ) {
+            maxK = 1;
+        }
+        else if ( icol_K3 < 0 ) {
+            if ( icol_P2 < 0 ) { error("P2 must present when K2 is present"); }
+            maxK = 2;
+        }
+        else {
+            if ( icol_P2 < 0 ) { error("P2 must present when K2 is present"); }
+            if ( icol_P3 < 0 ) { error("P3 must present when K3 is present"); }
+            maxK = 3;
+        }
+    }
+
+    htsFile* wf_cell = NULL;
+    if ( write_cell_tsv ) {
+        if ( icol_cell < 0 ) {
+            error("Cannot find the cell ID column %s", colname_cell.c_str());
+        }
+        if ( out_cell_tsvf.empty() ) {
+            error("--out-cell-tsv must be specified when --write-cell-tsv is set");
+        }
+        wf_cell = hts_open(out_cell_tsvf.c_str(), out_cell_tsvf.compare(out_cell_tsvf.size()-3, 3, ".gz") == 0 ? "wz" : "w");
+        if ( wf_cell == NULL ) {
+            error("Cannot open output file %s", out_cell_tsvf.c_str());
+        }
+    }
+
+    uint64_t nlines = 0;
+    std::map<std::string, std::map<std::string, double> > fac2ftr2cnt;
+    std::map<std::string, double> ftr2cnt;
+    std::map<std::string, double> fac2cnt;
+    std::map<std::string, std::map<std::string, double> > cell2fac2cnt;
+    double total = 0;
+
+    if ( n_factors > 0 ) {
+        notice("Forcing the total number of factors to %d", n_factors);
+        // add new key
+        char buf[255];
+        for(int32_t i=0; i < n_factors; ++i) {
+            snprintf(buf, sizeof(buf), "%d", i);
+            fac2ftr2cnt[buf] = std::map<std::string, double>();
+        }
+    }
+
+    while ( tf.read_line() ) {
+        const char* ftr = tf.str_field_at(icol_feature);
+        int32_t cnt = tf.int_field_at(icol_count);
+        const char* K1 = tf.str_field_at(icol_K1);
+        if ( best_guess_mode ) {
+            fac2ftr2cnt[K1][ftr] += cnt;
+            ftr2cnt[ftr] += cnt;
+            fac2cnt[K1] += cnt;
+            if ( write_cell_tsv ) {
+                const char* cell_id = tf.str_field_at(icol_cell);
+                cell2fac2cnt[cell_id][K1] += cnt;
+            }
+            total += cnt;
+        }
+        else {
+            double P1 = tf.double_field_at(icol_P1);
+            fac2ftr2cnt[K1][ftr] += (cnt*P1);
+            ftr2cnt[ftr] += (cnt*P1);
+            fac2cnt[K1] += (cnt*P1);
+            const char* cell_id = NULL;
+            if ( write_cell_tsv ) {
+                cell_id = tf.str_field_at(icol_cell);
+                cell2fac2cnt[cell_id][K1] += (cnt*P1);
+            }
+            total += (cnt*P1);
+            if ( maxK >= 2 ) {
+                const char* K2 = tf.str_field_at(icol_K2);
+                double P2 = tf.double_field_at(icol_P2); 
+                fac2ftr2cnt[K2][ftr] += (cnt*P2);
+                ftr2cnt[ftr] += (cnt*P2);
+                fac2cnt[K2] += (cnt*P2);
+                if ( write_cell_tsv ) {
+                    cell2fac2cnt[cell_id][K2] += (cnt*P2);
+                }
+                total += (cnt*P2);
+                if ( maxK >= 3 ) {
+                    const char* K3 = tf.str_field_at(icol_K3);
+                    double P3 = tf.double_field_at(icol_P3); 
+                    fac2ftr2cnt[K3][ftr] += (cnt*P3);
+                    ftr2cnt[ftr] += (cnt*P3);
+                    fac2cnt[K3] += (cnt*P3);
+                    if ( write_cell_tsv ) {
+                        cell2fac2cnt[cell_id][K3] += (cnt*P3);
+                    }
+                    total += (cnt*P3);
+                }
+            }
+        }
+        ++nlines;
+        if ( nlines % 1000000 == 0 ) {
+            notice("Processed %d lines", nlines);
+        }
+    }
+
+    notice("Finished processing %llu lines, identifying %zu factors across %zu features over %.1f transcripts", nlines, fac2ftr2cnt.size(), ftr2cnt.size(), total);
+
+    std::map<std::string, std::map<std::string, double> >::iterator it1;
+    std::map<std::string, double>::iterator it2;
+
+    // reverse sort the genes by the count
+    std::vector<std::pair<std::string, double> > ftr2cnt_vec;
+    for(it2 = ftr2cnt.begin(); it2 != ftr2cnt.end(); ++it2) {
+        ftr2cnt_vec.push_back(std::make_pair(it2->first, it2->second));
+    }
+    std::sort(ftr2cnt_vec.begin(), ftr2cnt_vec.end(), [](const std::pair<std::string, double>& a, const std::pair<std::string, double>& b) {
+        return a.second > b.second;
+    });
+
+    // sort the factors as numbers, and alphanumerically if not numbers
+    std::vector<std::string> facs;
+    for(it1 = fac2ftr2cnt.begin(); it1 != fac2ftr2cnt.end(); ++it1) {
+        facs.push_back(it1->first);
+    }
+    std::sort(facs.begin(), facs.end(), [](const std::string& a, const std::string& b) {
+        if ( a.find_first_not_of("0123456789") == std::string::npos && b.find_first_not_of("0123456789") == std::string::npos ) {
+            return std::stoi(a) < std::stoi(b);
+        }
+        else {
+            return a < b;
+        }
+    });
+
+    // write the posterior count
+    notice("Writing pseudobulk count to %s", outf.c_str());
+    htsFile* wf_post = hts_open(outf.c_str(), outf.compare(outf.size()-3, 3, ".gz") == 0 ? "wz" : "w");
+    if ( wf_post == NULL ) {
+        error("Cannot open output file %s", outf.c_str());
+    }
+    hprintf(wf_post, "Feature");
+    for (size_t i = 0; i < facs.size(); ++i) {
+        hprintf(wf_post, "\t%s", facs[i].c_str());
+    }
+    hprintf(wf_post, "\n");
+    for (size_t i = 0; i < ftr2cnt_vec.size(); ++i) {
+        std::string ftr = ftr2cnt_vec[i].first;
+        hprintf(wf_post, "%s", ftr.c_str());
+        for (size_t j = 0; j < facs.size(); ++j) {
+            std::string fac = facs[j];
+            double cnt = fac2ftr2cnt[fac][ftr];
+            hprintf(wf_post, "\t%.4f", cnt);
+        }
+        hprintf(wf_post, "\n");
+    }
+    hts_close(wf_post);
+
+    if ( write_cell_tsv ) {
+        notice("Writing auxiliary per-cell factor count matrix to %s", outf.c_str());
+        hprintf(wf_cell, "cell_id");
+        for (size_t i = 0; i < facs.size(); ++i) {
+            hprintf(wf_cell, "\t%s", facs[i].c_str());
+        }
+        hprintf(wf_cell, "\n");
+        std::map<std::string, std::map<std::string, double> >::iterator itc;
+        for(itc = cell2fac2cnt.begin(); itc != cell2fac2cnt.end(); ++itc) {
+            const std::string& cell_id = itc->first;
+            std::map<std::string, double>& fac2cnt = itc->second;
+            hprintf(wf_cell, "%s", cell_id.c_str());
+            for(size_t i=0; i < facs.size(); ++i) {
+                hprintf(wf_cell, "\t%.4f", fac2cnt[facs[i]]);
+            }
+            hprintf(wf_cell, "\n");
+        }
+        hts_close(wf_cell);
+    }
+
+    notice("Analysis finished");
+
+    return 0;
+}

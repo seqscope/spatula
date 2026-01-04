@@ -129,5 +129,7 @@ public:
 };
 
 bool read_minmax(const char *fn, uint64_t &xmin, uint64_t &xmax, uint64_t &ymin, uint64_t &ymax);
+bool read_minmax_double(const char *fn, double &xmin, double &xmax, double &ymin, double &ymax);
+
 
 #endif

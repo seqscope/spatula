@@ -12,7 +12,10 @@
 #endif
 
 bool isDirExist(const std::string& path);
+bool dirExists(const std::string& path);
+bool fileExists(const std::string& path);
 bool makePath(const std::string& path);
+bool removeDir(const std::string& path);
 
 /*
 int main(int argc, char* ARGV[])

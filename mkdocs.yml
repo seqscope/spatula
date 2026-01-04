@@ -74,26 +74,43 @@ nav:
   - Install: install.md
   - Tools: 
     - Introduction: tools.md
-    - Analysis of Spatial Barcodes:
+    - Seq-Scope Tools:
       - build-sbcds: tools/build_sbcds.md
-      - eval-dups-sbcds: tools/eval_dups_sbcds.md
       - combine-sbcds: tools/combine_sbcds.md
+      - eval-dups-sbcds: tools/eval_dups_sbcds.md
       - match-sbcds: tools/match_sbcds.md
-    - Analysis of Spatial Gene Expression (SGE): 
       - dge2sge: tools/dge2sge.md
       - subset-sge: tools/subset_sge.md
-    - FICTURE Analysis:
+    - FICTURE Tools:
+      - append-topk-tsv: tools/append_topk_tsv.md
       - convert-sge: tools/convert_sge.md
+      - diffexp-model-matrix: tools/diffexp_model_matrix.md
+      - join-pixel-decode: tools/join_pixel_decode.md
       - join-pixel-tsv: tools/join_pixel_tsv.md
-    - FASTQ Processing: 
-      - reformat-fastqs: tools/reformat_fastqs.md
+      - merge-psedubulk: tools/merge_pseudobulk.md
+      - merge-sptsv: tools/merge_sptsv.md
+      - mex2sptsv: tools/mex2sptsv.md
+      - pseudobulk-from-decode: tools/pseudobulk_from_decode.md
+      - sptsv2mex: tools/sptsv2mex.md
+      - sptsv2model: tools/sptsv2model.md
+    - FASTQ Tools: 
       - custom-demux-fastq: tools/custom_demux_fastq.md
-    - Miscellaneous Tools: 
-      - draw-xy: tools/draw_xy.md
+      - filter-common-barcodes: tools/filter_common_barcodes.md
+      - filter-fastqs: tools/filter_fastqs.md
+      - reformat-fastqs: tools/reformat_fastqs.md
+    - Image Tools: 
       - draw-3way: tools/draw_3way.md
       - draw-sge: tools/draw_sge.md
+      - draw-xy: tools/draw_xy.md
+      - draw-tsv: tools/draw_tsv.md
+      - png-mono2rgba: tools/png_mono2rgba.md
+    - Other Tools:
+      - hist: tools/hist.md
+      - reformat-tsv: tools/reformat_tsv.md
+  
 
 markdown_extensions:
+  - admonition
   # - abbr
   - attr_list
   # - def_list

@@ -1,4 +1,38 @@
 #include "file_utils.h"
+#include <unistd.h>
+
+bool removeDir(const std::string& path)
+{
+    if ( rmdir(path.c_str()) != 0 )
+    {
+        return false;
+    }
+    return true;
+}
+
+bool fileExists(const std::string& path)
+{
+#if defined(_WIN32)
+    struct _stat info;
+    if (_stat(path.c_str(), &info) != 0)
+    {
+        return false;
+    }
+    return (info.st_mode & _S_IFREG) != 0;
+#else
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+    {
+        return false;
+    }
+    return (info.st_mode & S_IFREG) != 0;
+#endif
+}
+
+bool dirExists(const std::string& path)
+{
+    return isDirExist(path);
+}
 
 bool isDirExist(const std::string& path)
 {
