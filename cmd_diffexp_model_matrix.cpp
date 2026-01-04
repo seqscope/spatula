@@ -27,8 +27,8 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Input/Output options", NULL)
-    LONG_STRING_PARAM("tsv1", &tsv1f, "First tsv file containing the model or pseudobulk nmatrix")
-    LONG_STRING_PARAM("tsv2", &tsv2f, "(Optional) Second tsv file containing the model or pseudobulk nmatrix")
+    LONG_STRING_PARAM("tsv1", &tsv1f, "First tsv file containing the model or pseudobulk matrix")
+    LONG_STRING_PARAM("tsv2", &tsv2f, "(Optional) Second tsv file containing the model or pseudobulk matrix")
     LONG_STRING_PARAM("out", &outprefix, "Output file prefix")
 
     LONG_PARAM_GROUP("Settings", NULL)

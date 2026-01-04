@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 2.8...3.23)
-project(spatula)
+project(spatula VERSION 1.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -std=c++11")
+
+configure_file(
+    "${CMAKE_SOURCE_DIR}/version.h.in"
+    "${CMAKE_BINARY_DIR}/generated/version.h"
+)
+
+include_directories("${CMAKE_BINARY_DIR}/generated")
 
 if(APPLE)
     # On macOS, CMake typically finds Apple Clang by default.

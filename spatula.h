@@ -17,4 +17,6 @@
 #include "qgenlib/phred_helper.h"
 #include "qgenlib/hts_utils.h"
 
+#include "version.h"
+
 #endif
