@@ -15,6 +15,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # 3. EXTRACT VERSION
+# Compatible with macOS (sed) and Linux
 VERSION=$(sed -n 's/.*project.*VERSION \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' CMakeLists.txt)
 
 if [ -z "$VERSION" ]; then
@@ -24,39 +25,50 @@ fi
 
 echo "Preparing release for version $VERSION..."
 
-# ---------------------------------------------------------
-# NEW STEP: Ensure Submodules are Clean and Updated
-# ---------------------------------------------------------
-echo "Updating submodules..."
+# 4. UPDATE SUBMODULES
+echo "Updating submodules to ensure fresh content..."
 git submodule update --init --recursive
 
-# ---------------------------------------------------------
-# NEW STEP: Create the "Full" Tarball (w/ Submodules)
-# ---------------------------------------------------------
-# We use 'tar' with --exclude-vcs to package the current folder 
-# but skip all .git folders.
+# 5. CREATE STAGED TARBALL (Fixes the root directory issue)
 RELEASE_FILE="spatula-v${VERSION}-full.tar.gz"
+ROOT_FOLDER="spatula-v${VERSION}"
+STAGING_DIR="/tmp/spatula_release_build"
 
-echo "Creating release artifact: $RELEASE_FILE"
-# Note: --exclude-vcs works on GNU tar (Linux). 
-# On macOS, use --exclude='.git' if --exclude-vcs fails.
-tar --exclude='.git' --exclude='.github' --exclude='.gitignore' -czf "$RELEASE_FILE" .
+echo "Staging files into $ROOT_FOLDER..."
+
+# Clean up any previous staging attempts
+rm -rf "$STAGING_DIR"
+mkdir -p "$STAGING_DIR/$ROOT_FOLDER"
+
+# Use rsync to copy files. 
+# It preserves permissions (-a), and makes excluding .git folders easy.
+rsync -a \
+  --exclude='.git' \
+  --exclude='.github' \
+  --exclude='.gitignore' \
+  --exclude='.DS_Store' \
+  --exclude='build' \
+  . "$STAGING_DIR/$ROOT_FOLDER"
+
+echo "Compressing artifact..."
+# -C tells tar to change directory to STAGING_DIR before archiving ROOT_FOLDER
+tar -czf "$RELEASE_FILE" -C "$STAGING_DIR" "$ROOT_FOLDER"
+
+# Clean up staging area
+rm -rf "$STAGING_DIR"
 
 if [ -f "$RELEASE_FILE" ]; then
-    echo "Artifact created successfully: $RELEASE_FILE"
+    echo "Artifact created successfully: $RELEASE_FILE (contains root folder $ROOT_FOLDER)"
 else
     echo "Error: Failed to create tarball."
     exit 1
 fi
 
-# 4. GIT TAGGING
+# 6. GIT TAGGING
 git tag -a "v$VERSION" -m "Release v$VERSION"
 git push origin "v$VERSION"
 
 echo "------------------------------------------------------"
-echo "Successfully tagged v$VERSION!"
-echo "Now upload '$RELEASE_FILE' to your GitHub Release manually,"
-echo "or use the GitHub CLI (gh) to do it automatically:"
-echo ""
-echo "   gh release create v$VERSION '$RELEASE_FILE' --generate-notes"
+echo "Successfully released v$VERSION!"
+echo "Upload '$RELEASE_FILE' to your GitHub Release."
 echo "------------------------------------------------------"
