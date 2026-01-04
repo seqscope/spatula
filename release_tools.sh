@@ -17,7 +17,8 @@ fi
 
 # 1. EXTRACT VERSION from CMakeLists.txt
 # This looks for the line "project(... VERSION X.Y.Z ...)"
-VERSION=$(grep -oP 'project.*VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+#VERSION=$(grep -oP 'project.*VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+VERSION=$(sed -n 's/.*project.*VERSION \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' CMakeLists.txt)
 
 if [ -z "$VERSION" ]; then
     echo "Error: Could not find version in CMakeLists.txt"
