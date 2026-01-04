@@ -9,15 +9,12 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
 fi
 
 # 2. SAFETY CHECK: Ensure the working directory is clean
-# (You don't want to release code you haven't committed yet)
 if [ -n "$(git status --porcelain)" ]; then
   echo "Error: Working directory is not clean. Commit or stash changes first."
   exit 1
 fi
 
-# 1. EXTRACT VERSION from CMakeLists.txt
-# This looks for the line "project(... VERSION X.Y.Z ...)"
-#VERSION=$(grep -oP 'project.*VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+# 3. EXTRACT VERSION
 VERSION=$(sed -n 's/.*project.*VERSION \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' CMakeLists.txt)
 
 if [ -z "$VERSION" ]; then
@@ -25,14 +22,41 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
-echo "Releasing version $VERSION..."
+echo "Preparing release for version $VERSION..."
 
-# 2. GIT TAGGING
+# ---------------------------------------------------------
+# NEW STEP: Ensure Submodules are Clean and Updated
+# ---------------------------------------------------------
+echo "Updating submodules..."
+git submodule update --init --recursive
+
+# ---------------------------------------------------------
+# NEW STEP: Create the "Full" Tarball (w/ Submodules)
+# ---------------------------------------------------------
+# We use 'tar' with --exclude-vcs to package the current folder 
+# but skip all .git folders.
+RELEASE_FILE="spatula-v${VERSION}-full.tar.gz"
+
+echo "Creating release artifact: $RELEASE_FILE"
+# Note: --exclude-vcs works on GNU tar (Linux). 
+# On macOS, use --exclude='.git' if --exclude-vcs fails.
+tar --exclude='.git' --exclude='.github' --exclude='.gitignore' -czf "$RELEASE_FILE" .
+
+if [ -f "$RELEASE_FILE" ]; then
+    echo "Artifact created successfully: $RELEASE_FILE"
+else
+    echo "Error: Failed to create tarball."
+    exit 1
+fi
+
+# 4. GIT TAGGING
 git tag -a "v$VERSION" -m "Release v$VERSION"
 git push origin "v$VERSION"
 
-# 3. DOCS DEPLOYMENT (Using mike)
-# Passes the extracted version to mike
-#mike deploy --push --update-aliases "$VERSION" latest
-
-echo "Successfully released v$VERSION!"
+echo "------------------------------------------------------"
+echo "Successfully tagged v$VERSION!"
+echo "Now upload '$RELEASE_FILE' to your GitHub Release manually,"
+echo "or use the GitHub CLI (gh) to do it automatically:"
+echo ""
+echo "   gh release create v$VERSION '$RELEASE_FILE' --generate-notes"
+echo "------------------------------------------------------"
