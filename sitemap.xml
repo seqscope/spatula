@@ -2,87 +2,122 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://seqscope.github.io/spatula/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/install/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/quickstart/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/append_topk_tsv/</loc>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/build_sbcds/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/combine_sbcds/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/convert_sge/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/custom_demux_fastq/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/dge2sge/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/diffexp_model_matrix/</loc>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/draw_3way/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/draw_sge/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/draw_xy/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/eval_dups_sbcds/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/filter_common_barcodes/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/filter_fastqs/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/hist/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/join_pixel_decode/</loc>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/join_pixel_tsv/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/match_sbcds/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/merge_pseudobulk/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/merge_sptsv/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/mex2sptsv/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/pseudobulk_from_decode/</loc>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/reformat_fastqs/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/reformat_tsv/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/sptsv2mex/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://seqscope.github.io/spatula/tools/sptsv2model/</loc>
+         <lastmod>2026-01-04</lastmod>
     </url>
     <url>
          <loc>https://seqscope.github.io/spatula/tools/subset_sge/</loc>
-         <lastmod>2024-08-30</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2026-01-04</lastmod>
     </url>
 </urlset>
