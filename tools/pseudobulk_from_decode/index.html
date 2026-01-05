@@ -854,7 +854,7 @@
         
   
   <span class="md-ellipsis">
-    merge-psedubulk
+    merge-pseudobulk
   </span>
   
 
@@ -977,9 +977,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#additional-options" class="md-nav__link">
+  <a href="#options-for-writing-per-cell-results-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      Additional Options
+      Options for writing per-cell results matrix
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other Additional Options
     </span>
   </a>
   
@@ -1526,9 +1535,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#additional-options" class="md-nav__link">
+  <a href="#options-for-writing-per-cell-results-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      Additional Options
+      Options for writing per-cell results matrix
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-additional-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other Additional Options
     </span>
   </a>
   
@@ -1572,13 +1590,36 @@
 
 <h1 id="spatula-pseudobulk-from-decode">spatula pseudobulk-from-decode<a class="headerlink" href="#spatula-pseudobulk-from-decode" title="Permanent link">&para;</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
-<p>TBA</p>
+<p><code>spatula pseudobulk-from-decode</code> generates a pseudobulk expression matrix from pixel-level decode output. It aggregates counts for each feature across spatial locations defined by K1, K2, K3 factors.</p>
+<p>An example command is given below:</p>
+<div class="highlight"><pre><span></span><code>spatula<span class="w"> </span>pseudobulk-from-decode<span class="w"> </span>--tsv<span class="w"> </span>/path/to/pixel.decode.tsv.gz<span class="w"> </span>--colname-count<span class="w"> </span>count<span class="w"> </span>--colname-feature<span class="w"> </span>gene<span class="w"> </span>--colname-K1<span class="w"> </span>t24-f48-p24-a6_K1<span class="w"> </span>--colname-P1<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>--colname-K2<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>--colname-P2<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>--colname-K3<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>--colname-P3<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>--write-cell-tsv<span class="w"> </span>--out<span class="w"> </span>/path/to/output.prefix.pseudobulk.tsv.gz<span class="w"> </span>--out-cell-tsv<span class="w"> </span>/path/to/output.prefix.cells.tsv.gz<span class="w"> </span>
+</code></pre></div>
 <h2 id="required-options">Required options<a class="headerlink" href="#required-options" title="Permanent link">&para;</a></h2>
-<p>TBA</p>
-<h2 id="additional-options">Additional Options<a class="headerlink" href="#additional-options" title="Permanent link">&para;</a></h2>
-<p>TBA </p>
+<ul>
+<li><code>--tsv</code>: Input TSV file containing pixel-level decode output.</li>
+<li><code>--out</code> : Output file name for the pseudobulk expression matrix (TSV).</li>
+</ul>
+<h2 id="options-for-writing-per-cell-results-matrix">Options for writing per-cell results matrix<a class="headerlink" href="#options-for-writing-per-cell-results-matrix" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>--write-cell-tsv</code> : If set, writes a per-cell factor assignment distribution TSV file.</li>
+<li><code>--out-cell-tsv</code> : Output file name for the per-cell results TSV file</li>
+<li><code>--colname-cell</code> : Column name for the cell ID in the per-cell results TSV file</li>
+</ul>
+<h2 id="other-additional-options">Other Additional Options<a class="headerlink" href="#other-additional-options" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>--colname-feature</code>: Column name for the feature (default: <code>feature</code>).</li>
+<li><code>--colname-count</code>: Column name for the count (default: <code>ct</code>).</li>
+<li><code>--colname-K1</code>: Column name for the K1 value (default: <code>K1</code>).</li>
+<li><code>--colname-K2</code>: Column name for the K2 value (default: <code>K2</code>).</li>
+<li><code>--colname-K3</code>: Column name for the K3 value (default: <code>K3</code>).</li>
+<li><code>--colname-P1</code>: Column name for the P1 value (default: <code>P1</code>).</li>
+<li><code>--colname-P2</code>: Column name for the P2 value (default: <code>P2</code>).</li>
+<li><code>--colname-P3</code>: Column name for the P3 value (default: <code>P3</code>).</li>
+<li><code>--n-factors</code>: Force the total number of factors. Only works with integer factors.</li>
+</ul>
 <h2 id="expected-output">Expected Output<a class="headerlink" href="#expected-output" title="Permanent link">&para;</a></h2>
-<p>TBA</p>
+<p>The output pseudobulk expression matrix TSV file contains rows for each feature and columns for each factor (combination of K1, K2, K3). Each entry represents the aggregated count for that feature in the corresponding factor. The first column contains the feature (gene) names, and the subsequent columns contain the counts for each factor.</p>
+<p>The output per-cell results TSV file (if <code>--write-cell-tsv</code> is set) contains the distribution of each factor (sum to 1) for each cell. The first column contains the cell IDs, and the subsequent columns contain the probabilities for each factor.</p>
 <h2 id="full-usage">Full Usage<a class="headerlink" href="#full-usage" title="Permanent link">&para;</a></h2>
 <p>The full usage of <code>spatula pseudobulk-from-decode</code> can be viewed with the <code>--help</code> option:</p>
 <div class="highlight"><pre><span></span><code>$ ./spatula pseudobulk-from-decode --help
