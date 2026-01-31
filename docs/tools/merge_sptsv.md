@@ -1,20 +1,34 @@
 # spatula merge-sptsv
 
-## Summary 
+## Summary
 
-TBA
+`spatula merge-sptsv` merges multiple sparse TSV files (containing gene counts per cell/unit) into a single dataset. It handles merging of metadata (JSON), updating feature dictionaries, and can combine multiple header fields to create unique cell IDs across samples.
 
-## Required options
+## Required Options
 
-TBA
+* `--list STR` : Input list file containing paths to input sparse TSV datasets. The list file can have 2 columns (`sample_id` `prefix`) or 4 columns (`sample_id` `feature_count_file` `sptsv_file` `json_file`).
+* `--out STR` : Output prefix for the merged dataset.
 
 ## Additional Options
 
-TBA 
+* `--combine-headers-to-id` : If enabled, multiple header fields are combined to create a unique cell ID. Useful when headers are inconsistent or need to be prefixed with sample IDs.
+* `--delim STR` : Delimiter used when combining header fields. (Default: `:`)
+* `--colname-combined-id STR` : Column name for the newly created combined cell ID. (Default: `cell_id`)
+* `--colname-sample-id STR` : Column name for the sample ID column. (Default: `sample_id`)
+* `--skip-sample-id-column` : If enabled, the sample ID column is not added to the output.
+* `--min-feature-count-per-sample INT` : Minimum total count a feature must have in *each* sample to be included in the merged output. (Default: 0)
+* `--colname-random-key STR` : Name of the random key column in inputs. (Default: `random_key`)
+* `--exclude-random-key` : If enabled, the random key column is excluded from the output.
+* `--suffix-sptsv STR` : Suffix for sparse TSV files (used when parsing 2-column list). (Default: `.tsv`)
+* `--suffix-json STR` : Suffix for JSON metadata files. (Default: `.json`)
+* `--suffix-feature-counts STR` : Suffix for feature count files. (Default: `.feature.counts.tsv`)
 
 ## Expected Output
 
-TBA
+The tool produces a merged dataset consisting of:
+* `[out_prefix].tsv` (or specified suffix): The merged sparse TSV file containing combined data from all samples.
+* `[out_prefix].json` (or specified suffix): A merged metadata file containing the updated feature dictionary and header information.
+* `[out_prefix].feature.counts.tsv` (or specified suffix): A file listing the total counts of each feature in the merged dataset.
 
 ## Full Usage 
 

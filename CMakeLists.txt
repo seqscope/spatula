@@ -72,6 +72,8 @@ message(STATUS ${QGEN_LIBRARIES})
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_pixels2cells.cpp
+    cmd_draw_polygons.cpp
     cmd_merge_sptsv.cpp
     cmd_mex_subset.cpp
     cmd_sptsv2mex.cpp

@@ -2,19 +2,50 @@
 
 ## Summary 
 
-TBA
+`spatula reformat-tsv` is a flexible tool for reformatting TSV/CSV files. It allows selecting specific columns, renaming them, adding constant columns, scaling numeric values, and changing delimiters. It can also compute min/max statistics for coordinates and aggregate feature counts.
 
-## Required options
+## Required Options
 
-TBA
+* `--in STR` : Input CSV/TSV file.
+* `--out STR` : Output filename prefix.
 
 ## Additional Options
 
-TBA 
+### Input/Output Formatting
+* `--in-delim STR` : Delimiter character for the input file. (Default: `\t`)
+* `--out-delim STR` : Delimiter character for the output file. (Default: `\t`)
+* `--unquote` : Remove quotes from string values in the input file.
+* `--skip-lines INT` : Number of lines to skip at the beginning of the input file. (Default: 0)
+
+### Column Selection and Modification
+* `--colnames STR` : Comma-separated list of columns to include in the output.
+    * Use `col` to include a column.
+    * Use `old:new` to rename a column.
+    * Use `:name:value` to add a new column `name` with a constant `value`.
+* `--include-rest` : If enabled, include all remaining columns from the input that were not specified in `--colnames`.
+* `--scale V_STR` : Scale numeric columns. Format: `colname:factor[:format]`.
+    * `factor`: Multiplier.
+    * `format`: Output format (e.g., `2f` for `%.2f`, `3e` for `%.3e`). Default is `f`.
+* `--add-count` : (Flag present in help but logic seems missing/unused in main loop? Code has `add_count` param but not used in loop). *Note based on code: `add_count` is parsed but seemingly not implemented in the loop.*
+
+### Auxiliary Outputs
+* `--write-minmax` : Write a file containing min/max values for X and Y coordinates.
+    * Requires `--colname-x` and `--colname-y` to identify coordinate columns.
+* `--write-features` : Write a file containing unique feature counts.
+    * Requires `--colname-feature` and optionally `--colname-count`.
+* `--colname-x STR` : Name of X column (for minmax). (Default: `X`)
+* `--colname-y STR` : Name of Y column (for minmax). (Default: `Y`)
+* `--colname-feature STR` : Name of feature column (for feature counts). (Default: `gene`)
+* `--colname-count STR` : Name of count column (for feature counts). (Default: `count`)
+* `--suffix-tsv STR` : Suffix for the main output file. (Default: `.tsv.gz`)
+* `--suffix-minmax STR` : Suffix for the minmax output file. (Default: `.minmax.tsv`)
+* `--suffix-features STR` : Suffix for the feature counts output file. (Default: `.features.tsv.gz`)
 
 ## Expected Output
 
-TBA
+* `[out_prefix][suffix-tsv]`: The reformatted TSV/CSV file.
+* `[out_prefix][suffix-minmax]` (Optional): A file with `xmin`, `xmax`, `ymin`, `ymax` values.
+* `[out_prefix][suffix-features]` (Optional): A file with feature names and their total counts.
 
 ## Full Usage 
 

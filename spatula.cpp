@@ -44,6 +44,8 @@ int32_t cmdPastePixelTSV(int32_t argc, char **argv);
 int32_t cmdAppendTopKTSV(int32_t argc, char **argv);
 int32_t cmdJoinPixelDecode(int32_t argc, char **argv);
 int32_t cmdMergeSpTSV(int32_t argc, char **argv);
+int32_t cmdDrawPolygons(int32_t argc, char **argv);
+int32_t cmdPixels2Cells(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -90,6 +92,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("subset-mex", &cmdMEXSubset, "Subset 10x Market Exchange (MEX) formatted DGE to specific features and barcodes")
   LONG_COMMAND("sptsv2mex", &cmdSpTSV2MEX, "Convert Sparse TSV format in FICTURE2 to 10x Market Exchange (MEX) formatted DGE")
   LONG_COMMAND("sptsv2model", &cmdSpTSV2Model, "Create model matrix from Sparse TSV format in FICTURE2 with cluster assignment")
+  LONG_COMMAND("pixels2cells", &cmdPixels2Cells, "Assign pixels to cell IDs based on boundary polygons")
 
   LONG_COMMAND_GROUP("FASTQ Tools", NULL)
   LONG_COMMAND("custom-demux-fastq", &cmdCustomDemuxFASTQ, "Demultiplex FASTQ files based in a customized manner")
@@ -104,6 +107,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("draw-sge", &cmdDrawSGE, "Draw the image of spatial gene expression (SGE) data")
   LONG_COMMAND("draw-xy", &cmdDrawXY, "Draw the image of points in 2D space")
   LONG_COMMAND("draw-tsv", &cmdDrawTSV, "Draw the image of TSV-formatted spatial gene expression data")
+  LONG_COMMAND("draw-polygons", &cmdDrawPolygons, "Draw polygons based on JSON input")
   LONG_COMMAND("png-mono2rgba", &cmdPngMono2RGBA, "Convert a monochrome PNG image to RGBA format")
 
   LONG_COMMAND_GROUP("Other Tools", NULL)

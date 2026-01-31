@@ -2,19 +2,22 @@
 
 ## Summary 
 
-TBA
+`spatula merge-pseudobulk` merges multiple pseudobulk count matrices (e.g. outputs from LDA models or other aggregation tools) into a single matrix. It verifies consistency of row names (genes/features) and column names (topics/samples) before summing the counts.
 
-## Required options
+## Required Options
 
-TBA
+* `--out STR` : Output filename for the merged pseudobulk matrix.
+* One of the following input options must be specified:
+    * `--tsv STR` : Input pseudobulk TSV file. Can be specified multiple times to merge multiple files.
+    * `--list STR` : File containing a list of input pseudobulk TSV files to merge (one per line).
 
 ## Additional Options
 
-TBA 
+N/A
 
 ## Expected Output
 
-TBA
+* A single TSV file containing the merged pseudobulk matrix, where counts from input matrices are summed for matching features and samples. The output format matches the input pseudobulk TSV format (typically genes as rows, topics/clusters as columns).
 
 ## Full Usage 
 

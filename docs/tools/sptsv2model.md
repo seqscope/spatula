@@ -2,19 +2,39 @@
 
 ## Summary 
 
-TBA
+`spatula sptsv2model` aggregates sparse TSV data into a "model matrix" (feature x cluster) based on cluster assignments. It sums feature counts for all cells belonging to each cluster (or uses probabilistic assignments) and outputs a matrix of counts. This is useful for creating pseudobulk profiles for clusters or topics.
 
-## Required options
+## Required Options
 
-TBA
+* `--out STR` : Output model file (feature x factor matrix).
+* `--tsv STR` : Input TSV file containing sparse matrix data.
+* `--json STR` : Input JSON metadata file.
+* One of the following cluster assignment inputs is required:
+    * `--clust STR` : File containing hard cluster assignments for each barcode (TSV with header).
+    * `--fit STR` : File containing probabilistic cluster assignments (fit results).
 
 ## Additional Options
 
-TBA 
+* `--features STR` : Input features file (name and count). Required if `--min-count` is > 0.
+* `--pseudocount FLT` : Pseudocount to add to zero values. Note: The actual added value is `pseudocount / n_factors`. (Default: 1.0)
+* `--min-count INT` : Minimum total count for a feature to be included in the output. (Default: 0)
+* `--colname-random-key STR` : Column name for the random key in metadata. (Default: `random_key`)
+* `--include-random-key` : Use the random key in barcode matching.
+* `--delim STR` : Delimiter for combining header fields into barcodes. (Default: `:`)
+
+### Metadata Keys (Advanced)
+* `--keyname-dictionary STR` : Key for feature dictionary. (Default: `dictionary`)
+* `--keyname-header-info STR` : Key for header info. (Default: `header_info`)
+* `--keyname-n-features STR` : Key for number of features. (Default: `n_features`)
+* `--keyname-n-units STR` : Key for number of units. (Default: `n_units`)
+* `--keyname-offset-data STR` : Key for data offset. (Default: `offset_data`)
 
 ## Expected Output
 
-TBA
+* `[out_model]`: A TSV file where:
+    * Rows correspond to features (genes).
+    * Columns correspond to clusters (or factors).
+    * Values are the aggregated (summed) counts for that feature in that cluster. Zero values are replaced by the pseudocount fraction.
 
 ## Full Usage 
 

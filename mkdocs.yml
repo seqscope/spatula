@@ -87,7 +87,7 @@ nav:
       - diffexp-model-matrix: tools/diffexp_model_matrix.md
       - join-pixel-decode: tools/join_pixel_decode.md
       - join-pixel-tsv: tools/join_pixel_tsv.md
-      - merge-psedubulk: tools/merge_pseudobulk.md
+      - merge-pseudobulk: tools/merge_pseudobulk.md
       - merge-sptsv: tools/merge_sptsv.md
       - mex2sptsv: tools/mex2sptsv.md
       - pseudobulk-from-decode: tools/pseudobulk_from_decode.md

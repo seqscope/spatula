@@ -2,19 +2,29 @@
 
 ## Summary 
 
-TBA
+`spatula filter-fastqs` filters a pair of FASTQ files based on whether the reads match specific IUPAC patterns. It can either keep or remove reads that satisfy the matching criteria, allowing for a specified number of mismatches.
 
-## Required options
+## Required Options
 
-TBA
+* `--fq1 STR` : Input FASTQ file for read 1.
+* `--fq2 STR` : Input FASTQ file for read 2.
+* `--out1 STR` : Output FASTQ file for read 1.
+* `--out2 STR` : Output FASTQ file for read 2.
 
 ## Additional Options
 
-TBA 
+* `--pat1 STR` : IUPAC pattern to match against Read 1. Can be specified multiple times. At least one pattern must match if provided.
+* `--pat2 STR` : IUPAC pattern to match against Read 2. Can be specified multiple times. At least one pattern must match if provided.
+* `--min-mismatch INT` : Minimum number of mismatches allowed for a pattern to be considered a match. (Default: 0)
+* `--remove` : If enabled, the tool removes the matching sequences from the output instead of keeping them. (Default: Keep matching sequences)
 
 ## Expected Output
 
-TBA
+The tool produces two output FASTQ files (specified by `--out1` and `--out2`) containing the filtered reads. 
+* If `--remove` is OFF (default), only read pairs that match the specified patterns (according to `--pat1` and/or `--pat2`) are written to the output.
+* If `--remove` is ON, read pairs that match the patterns are excluded, and only non-matching read pairs are written to the output.
+* If no patterns are provided, all reads are preserved (unless `--remove` is used, in which case all reads are removed).
+* The output files will be compressed if the filename ends with `.gz`.
 
 ## Full Usage 
 
