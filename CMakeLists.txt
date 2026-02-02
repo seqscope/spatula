@@ -64,7 +64,8 @@ if(NOT QGEN_LIBRARIES)
     message(FATAL_ERROR "libqgen QGEN_LIBRARIES not found")
 endif()
 
-# find_package(PNG REQUIRED)
+# Enable libpng for CImg to avoid ImageMagick resource limits on large images
+find_package(PNG REQUIRED)
 # find_package(ZLIB REQUIRED)
 
 message(STATUS ${QGEN_LIBRARIES})
@@ -191,16 +192,15 @@ if(NOT CRYPTOLIB)
     message(FATAL_ERROR "libcrypto library not found")
 endif()
 
-# # add PNG library
-# find_library(PNGLIB png HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
-# if(NOT PNGLIB)
-#     message(FATAL_ERROR "libpng library not found")
-# endif()
+# PNG library is found via find_package(PNG) above
+# Add cimg_use_png define to enable native PNG support in CImg
+# This avoids ImageMagick resource limits that cause truncated PNGs for large images
+add_compile_definitions(cimg_use_png)
 
 #TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${DEFLATELIB} ${CRYPTOLIB} "${OpenMP_CXX_FLAGS}")
 #target_compile_options(${APP_EXE} PRIVATE "${OpenMP_CXX_FLAGS}")
 #TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB})
-TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} ${DEFLATELIB})
+TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} ${DEFLATELIB} PNG::PNG)
 target_compile_options(${APP_EXE} PRIVATE)
 
 install(TARGETS ${APP_EXE} RUNTIME DESTINATION bin)
