@@ -27,6 +27,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     bool write_cell_tsv = false;
     std::string colname_cell("cell_id");
     std::string out_cell_tsvf;
+    //double pseudocount = 1.0;
 
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
@@ -49,6 +50,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     LONG_PARAM("write-cell-tsv", &write_cell_tsv, "Write per-cell results TSV file")
     LONG_STRING_PARAM("out-cell-tsv", &out_cell_tsvf, "Output file name for per-cell results")
     LONG_STRING_PARAM("colname-cell", &colname_cell, "Column name for the cell ID")
+    //LONG_DOUBLE_PARAM("pseudocount", &pseudocount, "Pseudocount to add to each row")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));
@@ -253,7 +255,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     hts_close(wf_post);
 
     if ( write_cell_tsv ) {
-        notice("Writing auxiliary per-cell factor count matrix to %s", outf.c_str());
+        notice("Writing auxiliary per-cell factor count matrix to %s", out_cell_tsvf.c_str());
         hprintf(wf_cell, "cell_id");
         for (size_t i = 0; i < facs.size(); ++i) {
             hprintf(wf_cell, "\t%s", facs[i].c_str());

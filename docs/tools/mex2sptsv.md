@@ -2,19 +2,47 @@
 
 ## Summary 
 
-TBA
+`spatula mex2sptsv` converts 10x Gene Expression Marker (MEX) format (Matrix Market format) into the Sparse TSV format used by FICTURE. It takes a directory containing `barcodes.tsv.gz`, `features.tsv.gz`, and `matrix.mtx.gz` (or specified filenames) and outputs a sparse TSV file along with metadata and feature count files. It supports filtering barcodes and features during conversion.
 
-## Required options
+## Required Options
 
-TBA
+* `--out STR` : Output prefix for the generated files.
 
 ## Additional Options
 
-TBA 
+### Input Options
+* `--in-dir STR` : Input directory containing the MEX files.
+* `--bcd STR` : Filename for barcodes. (Default: `barcodes.tsv.gz`)
+* `--ftr STR` : Filename for features. (Default: `features.tsv.gz`)
+* `--mtx STR` : Filename for the matrix. (Default: `matrix.mtx.gz`)
+* `--icol-mtx INT` : 1-based column index in the matrix file to use as the count. (Default: 3)
+
+### Filtering Options
+* `--include-feature-list STR` : File with list of feature IDs/names to include.
+* `--exclude-feature-list STR` : File with list of feature IDs/names to exclude.
+* `--include-feature-regex STR` : Regex pattern for features to include.
+* `--exclude-feature-regex STR` : Regex pattern for features to exclude.
+* `--include-feature-substr STR` : Substring for features to include.
+* `--exclude-feature-substr STR` : Substring for features to exclude.
+* `--include-barcode-list STR` : File with list of barcode IDs to include.
+* `--exclude-barcode-list STR` : File with list of barcode IDs to exclude.
+* `--min-feature-count INT` : Minimum total count for a feature to be included. (Default: 0)
+
+### Output Configuration
+* `--out-suffix-meta STR` : Suffix for metadata JSON. (Default: `.json`)
+* `--out-suffix-tsv STR` : Suffix for sparse TSV. (Default: `.tsv`)
+* `--out-suffix-feature-counts STR` : Suffix for feature counts. (Default: `.feature.counts.tsv`)
+* `--colname-barcode-name STR` : Column name for barcode ID. (Default: `cell_id`)
+* `--colname-random-key STR` : Column name for random key. (Default: `random_key`)
+* `--seed INT` : Seed for random key generation. (Default: 0, which uses time)
+* `--use-gene-id` : Use gene IDs instead of gene names in output.
+* `--error-on-duplicate-gene-name` : Fail if duplicate gene names are found. Otherwise, duplicates are renamed.
 
 ## Expected Output
 
-TBA
+* `[out_prefix].tsv` (or specified suffix): The converted sparse TSV file.
+* `[out_prefix].json` (or specified suffix): Metadata file including feature dictionary and header info.
+* `[out_prefix].feature.counts.tsv` (or specified suffix): File containing total counts for each feature.
 
 ## Full Usage 
 
