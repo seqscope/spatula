@@ -167,14 +167,14 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
                 error("Column %s is not unique in the header line", colname_cnt.c_str());
             }
         }
-
-        for(int32_t i=0; i < tr.nfields; ++i) {
-            hprintf(wh, "%s", tr.str_field_at(i));
-            if ( i < tr.nfields - 1 )
-                hprintf(wh, "\t");
-        }
-        hprintf(wh, "\n");
     }
+
+    for(int32_t i=0; i < tr.nfields; ++i) {
+        hprintf(wh, "%s", tr.str_field_at(i));
+        if ( i < tr.nfields - 1 )
+            hprintf(wh, "\t");
+    }
+    hprintf(wh, "\n");
 
     if ( icol_x < 0 )
         error("Cannot find the name of X column %s", colname_X.c_str());
