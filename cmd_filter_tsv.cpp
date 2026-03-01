@@ -21,16 +21,16 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
     std::string in_tsv;
     std::string out_prefix;
 
-    std::string tsv_suffix("transcripts.tsv.gz");
-    std::string ftr_suffix("features.tsv.gz");
-    std::string minmax_suffix("minmax.tsv");
+    std::string tsv_suffix(".transcripts.tsv.gz");
+    std::string ftr_suffix(".features.tsv.gz");
+    std::string minmax_suffix(".minmax.tsv");
 
     // output column names for tsv files
     std::string colname_X("X");
     std::string colname_Y("Y");
     std::string colname_gene("gene");
     std::string colname_gid("gene_id");
-    std::string colname_cnt("gn");
+    std::string colname_cnt("count");
 
     // filtering option
     double in_xmin = -std::numeric_limits<double>::infinity();
@@ -56,6 +56,7 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
     LONG_STRING_PARAM("colname-y", &colname_Y, "Column name for Y-axis")
     LONG_STRING_PARAM("colname-gene", &colname_gene, "Column name for gene name")
     LONG_STRING_PARAM("colname-gid", &colname_gid, "Column name for gene ID")
+    LONG_STRING_PARAM("colname-count", &colname_cnt, "Column name for count")
 
     LONG_PARAM_GROUP("Spatial Filtering options", NULL)
     LONG_DOUBLE_PARAM("xmin", &in_xmin, "Minimum x-axis value")
@@ -103,6 +104,9 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
     if (!geojsonf.empty())
     {
         npolygons = load_polygons_from_geojson(geojsonf.c_str(), polygons);
+        if ( npolygons == 0 )
+            error("Failed to load any polygons from %s", geojsonf.c_str());
+        notice("Loading %d polygons from %s", npolygons, geojsonf.c_str());
     }
 
     // process input TSV file and separate into batches based on the Y-axis
@@ -191,7 +195,7 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
     double out_xmax = -std::numeric_limits<double>::infinity();
     double out_ymin = std::numeric_limits<double>::infinity();
     double out_ymax = -std::numeric_limits<double>::infinity();
-    uint64_t nlines = 0;
+    uint64_t nlines = 0, npass = 0, nskip = 0;
 
     bool has_spatial_filter = 
         ( in_xmin > -std::numeric_limits<double>::infinity() ) || 
@@ -203,6 +207,10 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
     bool has_gene_filter = !filt_genef.empty() || !filt_gidf.empty();
 
     while( tr.read_line() ) {
+        nlines++;
+        if ( nlines % 1000000 == 0 ) {
+            notice("Processed %llu lines, %llu passed, %llu skipped", nlines, npass, nskip);
+        }
         bool pass = true;
         double x = tr.double_field_at(icol_x);
         double y = tr.double_field_at(icol_y);
@@ -263,8 +271,34 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
                     hprintf(wh, "\t");
             }
             hprintf(wh, "\n");
+            ++npass;
+        }
+        else {
+            ++nskip;
         }
     } 
+    hts_close(wh);
+
+    // write the minmax file
+    wh = hts_open((out_prefix + minmax_suffix).c_str(), "w");
+    if ( wh == NULL )
+        error("Failed to open %s%s for writing", out_prefix.c_str(), minmax_suffix.c_str());
+    hprintf(wh, "xmin\t%.3lf\n", out_xmin);
+    hprintf(wh, "xmax\t%.3lf\n", out_xmax);
+    hprintf(wh, "ymin\t%.3lf\n", out_ymin);
+    hprintf(wh, "ymax\t%.3lf\n", out_ymax);
+    hts_close(wh);
+
+    // write the gene count file
+    wh = hts_open((out_prefix + ftr_suffix).c_str(), "wz");
+    if ( wh == NULL )
+        error("Failed to open %s%s for writing", out_prefix.c_str(), ftr_suffix.c_str());
+    std::map<std::string, uint64_t>::iterator gene2cnt_it;
+    for ( gene2cnt_it = gene2cnt.begin(); gene2cnt_it != gene2cnt.end(); ++gene2cnt_it ) {
+        std::string gkey = gene2cnt_it->first;
+        std::string gene = gkey.substr(0, gkey.find(":"));
+        hprintf(wh, "%s\t%llu\n", gene.c_str(), gene2cnt_it->second);
+    }
     hts_close(wh);
 
     notice("Analysis finished");
