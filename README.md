@@ -35,3 +35,7 @@ make
 ## list available package
 ../bin/spatula --help
 ```
+
+## References
+
+* Kang, H. M. (2026) spatula : A C++ toolkit for spatial transcriptomics. Zenodo https://doi.org/10.5281/zenodo.18327577

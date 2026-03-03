@@ -36,7 +36,7 @@ int32_t cmdAppendTopKTSV(int32_t argc, char **argv)
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
     LONG_PARAM_GROUP("Key Input/Output Options", NULL)
-    LONG_STRING_PARAM("in-tsv", &in_tsv, "Input pseudobulk TSV file")
+    LONG_STRING_PARAM("in-tsv", &in_tsv, "Input TSV file containing header columns followed by topic probabilities")
     LONG_STRING_PARAM("in-json", &in_json, "Input JSON file")
     LONG_STRING_PARAM("in-model", &in_model, "Input model file (required with --reorder)")
     LONG_STRING_PARAM("out-tsv", &out_tsv, "Output TSV file")

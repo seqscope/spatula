@@ -65,8 +65,8 @@ int32_t cmdFilterTSV(int32_t argc, char **argv)
     LONG_STRING_PARAM("polygon", &geojsonf, "GeoJSON file for polygon-based filtering")
 
     LONG_PARAM_GROUP("Gene Filtering options", NULL)
-    LONG_DOUBLE_PARAM("filt-gene", &filt_genef, "Only Include gene names present in the list")
-    LONG_DOUBLE_PARAM("filt-gid", &filt_gidf, "Only Include gene ids present in the list")
+    LONG_STRING_PARAM("filt-gene", &filt_genef, "Only Include gene names present in the list")
+    LONG_STRING_PARAM("filt-gid", &filt_gidf, "Only Include gene ids present in the list")
 
     END_LONG_PARAMS();
 

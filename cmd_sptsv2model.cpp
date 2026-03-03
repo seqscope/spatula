@@ -34,6 +34,7 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
     std::string keyname_n_units("n_units");
     std::string keyname_offset_data("offset_data");
     bool include_random_key = false;
+    double pseudocount = 1.0; // use (pseudocount / n_factors)
     std::string delim(":");
 
     paramList pl;
@@ -49,6 +50,7 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
     LONG_STRING_PARAM("out", &out_model, "Output model file to store (gene x factor) matrix")
 
     LONG_PARAM_GROUP("Auxiliary Input/Output Options", NULL)
+    LONG_DOUBLE_PARAM("pseudocount", &pseudocount, "Pseudocount to use when normalizing the feature counts (default: 1.0)")
     LONG_INT_PARAM("min-count", &min_feature_count, "Minimum feature count to include in the output.")
     LONG_STRING_PARAM("colname-random-key", &colname_random_key, "Column name for the random key in the output")
     LONG_PARAM("include-random-key", &include_random_key, "Include the random key in the output")
@@ -186,12 +188,28 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
     if ( !in_clust.empty() ) {     
         notice("Reading cluster assignment file %s", in_clust.c_str());
         mode_clust = true; // we are in cluster mode
-        tsv_reader tsv_tr(in_clust.c_str());
+        tsv_reader tsv_tr;
         if ( !tsv_tr.open(in_clust.c_str()) ) {
             error("Cannot open input TSV file %s for reading", in_clust.c_str());
         }   
         int32_t offset_tsv = offset_data + (include_random_key ? 0 : -1);
+        int32_t n_lines = 0;
+        bool has_header = false;
+        std::vector<std::string> header_fields;
         while( tsv_tr.read_line() ) {
+            // check if the first line is header
+            if ( n_lines == 0 ) {
+                const char* clust = tsv_tr.str_field_at(offset_tsv);
+                if ( std::isalpha(clust[0]) ) {
+                    has_header = true;
+                    for(int32_t i = 0; i < tsv_tr.nfields; ++i) {
+                        header_fields.push_back( tsv_tr.str_field_at(i) );
+                    }
+                    notice("Header line detected in the cluster assignment file");
+                    n_lines++;
+                    continue;
+                }
+            }
             std::string barcode;
             for(int32_t i = 0; i < offset_tsv; ++i) {
                 if ( barcode.empty() ) {
@@ -240,7 +258,7 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
     }
     else { // in_fit is not empty
         notice("Reading fit results file %s", in_fit.c_str());
-        tsv_reader tsv_tr(in_fit.c_str());
+        tsv_reader tsv_tr;
         if ( !tsv_tr.open(in_fit.c_str()) ) {
             error("Cannot open input TSV file %s for reading", in_clust.c_str());
         }   
@@ -299,7 +317,7 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
     int32_t n_skip_units = 0;
 
 
-    tsv_reader tsv_tr(in_tsv.c_str());
+    tsv_reader tsv_tr;
     if ( !tsv_tr.open(in_tsv.c_str()) ) {
         error("Cannot open input TSV file %s for reading", in_tsv.c_str());
     }   
@@ -405,7 +423,12 @@ int32_t cmdSpTSV2Model(int32_t argc, char **argv)
         const std::vector<double>& vec = iftr2vec_it->second;
         hprintf(wf, "%s", feature_names[iftr].c_str());
         for(int32_t i = 0; i < (int32_t)sorted_clust_ids.size(); ++i) {
-            hprintf(wf, "\t%.3f", vec[srt2unsrt_idx[i]]);
+            if ( vec[srt2unsrt_idx[i]] == 0.0 ) {
+                hprintf(wf, "\t%.3f", pseudocount / (double)sorted_clust_ids.size()); // add pseudocount
+            }
+            else {
+                hprintf(wf, "\t%.3f", vec[srt2unsrt_idx[i]]);
+            }
         }
         hprintf(wf, "\n");
     }

@@ -2,7 +2,8 @@
 #include "qgenlib/dataframe.h"
 #include "qgenlib/tsv_reader.h"
 #include "qgenlib/qgen_error.h"
-#include "sge2.h"
+#include "qgenlib/qgen_utils.h"
+//#include "sge2.h"
 #include "file_utils.h"
 #include <cmath>
 #include <ctime>
@@ -183,6 +184,7 @@ protected:
                     pt.vals.push_back(tr.str_field_at(j));
                 }
             }
+            tr.close();
             notice("Loaded %zu points from file %d", cloud.pts.size(), cloud.pts.size());
         }
 
@@ -265,6 +267,7 @@ protected:
                 notice("Thread %d, Tile %llu, Processed %llu lines", threadId, tile_id, nlines);
             }
         }
+        tr.close();
         fclose(wf);
 
         // remove the kd-trees
@@ -372,6 +375,8 @@ protected:
 
         std::map<uint64_t, FILE*> tile2files;
         std::map<uint64_t, FILE*>::iterator it_tile2files;
+        std::deque<uint64_t> open_file_q;
+        std::set<uint64_t> seen_tiles;
         // read the data lines
         int32_t nlines = 0;
         while( tr.read_line() ) {
@@ -384,12 +389,24 @@ protected:
             it_tile2files = tile2files.find(tile_id);
             FILE* fp = NULL;
             if ( it_tile2files == tile2files.end() ) { // create a new file
+                if ( tile2files.size() >= 32 ) {
+                    uint64_t old_tile = open_file_q.front();
+                    open_file_q.pop_front();
+                    fclose(tile2files[old_tile]);
+                    tile2files.erase(old_tile);
+                }
                 std::string tmpFile = tmpDir + "/" + std::to_string(tile_id) + ".tsv";
-                fp = fopen(tmpFile.c_str(), "w");
+                if ( seen_tiles.find(tile_id) == seen_tiles.end() ) {
+                    fp = fopen(tmpFile.c_str(), "w");
+                    seen_tiles.insert(tile_id);
+                } else {
+                    fp = fopen(tmpFile.c_str(), "a");
+                }
                 if ( fp == NULL ) {
                     error("Cannot open %s for writing", tmpFile.c_str());
                 }
                 tile2files[tile_id] = fp;
+                open_file_q.push_back(tile_id);
             }
             else { // use the existing file
                 fp = it_tile2files->second;
@@ -407,6 +424,7 @@ protected:
                 notice("split_file_worker thread %d: %d lines processed", threadId, nlines);
             }
         }
+        tr.close();
         // close the files
         for(it_tile2files = tile2files.begin(); it_tile2files != tile2files.end(); ++it_tile2files) {
             fclose(it_tile2files->second);
@@ -415,8 +433,8 @@ protected:
         // update the global tile2idxs map
         {
             std::lock_guard<std::mutex> lock(global_mutex);
-            for(it_tile2files = tile2files.begin(); it_tile2files != tile2files.end(); ++it_tile2files) {
-                uint64_t tile_id = it_tile2files->first;
+            for(std::set<uint64_t>::iterator it = seen_tiles.begin(); it != seen_tiles.end(); ++it) {
+                uint64_t tile_id = *it;
                 tile2idxs[tile_id].insert(idx_file);
             }
         }
@@ -444,6 +462,7 @@ protected:
             for(int32_t j=2; j < tr.nfields; ++j) {
                 outfile << "\t" << tr.str_field_at(j);
             }
+            tr.close();
             std::remove(hdr_file.c_str());
         }
         outfile << std::endl;
@@ -708,19 +727,27 @@ int32_t cmdJoinPixelDecode(int32_t argc, char **argv)
     }
 
     // synchronize the filesystem to ensure all files are written
-    notice("Synchronizing the filesystem to ensure all files are written");
-    sync();
+    //notice("Synchronizing the filesystem to ensure all files are written");
+    //sync();
+
+    //notice("Finishied synchronizing the filesystem to ensure all files are written");
+
+    notice("Removing temporary directories..");
+
 
     // remove the temporary directory
+    usleep(999999); // sleep for 1 second to allow the filesystem to catch up
     for(int32_t i=0; i <= (int32_t)decode_prefix_tsvs.size(); ++i) {
         std::string tmpDir = dj.tmp_dir + "/files/" + std::to_string(i);
         if ( !removeDir(tmpDir) ) {
             warning("Cannot remove %s", tmpDir.c_str());
         }
     }
+    usleep(999999); // sleep for 1 second to allow the filesystem to catch up
     if ( !removeDir(dj.tmp_dir + "/files") ) {
         warning("Cannot remove %s", (dj.tmp_dir + "/files").c_str());
     }
+    usleep(999999); // sleep for 1 second to allow the filesystem to catch up
     if ( ! removeDir(dj.tmp_dir + "/tiles") ) {
         warning("Cannot remove %s", (dj.tmp_dir + "/tiles").c_str());
     }

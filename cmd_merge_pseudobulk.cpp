@@ -42,6 +42,7 @@ int32_t cmdMergePseudobulk(int32_t argc, char **argv)
     if ( !listf.empty() ) {
         // read the list of TSV files
         tsv_reader tf(listf.c_str());
+        tf.delimiter = '\t';
         while ( tf.read_line() ) {
             if ( tf.nfields < 1 ) {
                 error("Empty line in the list file %s", listf.c_str());

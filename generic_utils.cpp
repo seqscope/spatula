@@ -301,7 +301,8 @@ bool pseudobulk_matrix::add(const pseudobulk_matrix& other) {
 }
 
 bool pseudobulk_matrix::write(const char* filename) {
-    htsFile* wf = hts_open(filename, "w");
+    // "w" mode for writing, "wz" for compressed writing
+    htsFile* wf = hts_open(filename, (strlen(filename) >= 3 && strcmp(filename + strlen(filename) - 3, ".gz") == 0) ? "wz" : "w");
     if ( wf == NULL) {
         error("Cannot open file %s for writing", filename);
         return false;

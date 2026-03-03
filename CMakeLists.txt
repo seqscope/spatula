@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 2.8...3.23)
-project(spatula)
+project(spatula VERSION 1.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -std=c++11")
+
+configure_file(
+    "${CMAKE_SOURCE_DIR}/version.h.in"
+    "${CMAKE_BINARY_DIR}/generated/version.h"
+)
+
+include_directories("${CMAKE_BINARY_DIR}/generated")
 
 if(APPLE)
     # On macOS, CMake typically finds Apple Clang by default.
@@ -81,10 +88,14 @@ message(STATUS "QGEN lib: ${QGEN_LIBRARIES}")
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_pixels2cells.cpp
+    cmd_draw_polygons.cpp
+    cmd_merge_sptsv.cpp
     cmd_mex_subset.cpp
     cmd_sptsv2mex.cpp
     cmd_sptsv2model.cpp
     cmd_mex2sptsv.cpp
+    cmd_pixel2sptsv.cpp
     cmd_png_mono2rgba.cpp
     cmd_join_pixel_decode.cpp
     cmd_append_topk_tsv.cpp
