@@ -193,20 +193,16 @@ else()
     set(LZMA ${LZMA_LIBRARIES})
 endif()
 
-set(LIBDEFLATE_LIBRARY "") # Initialize variable
+# --- Find libdeflate dynamically ---
+find_library(DEFLATE_LIBRARY NAMES deflate libdeflate HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ /opt/homebrew/lib)
 
-if(USE_LIBDEFLATE)
-    find_library(DEFLATELIB_PATH deflate libdeflate.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../libdeflate/)
-    if(NOT DEFLATELIB_PATH)
-        message(WARNING "USE_LIBDEFLATE is ON, but libdeflate (libdeflate.a, libdeflate.so, libdeflate.dylib, etc.) was not found. "
-        "If your htslib requires it, linking may fail or you might encounter runtime errors. "
-        "Ensure libdeflate is installed in a standard location, or provide its path via CMAKE_PREFIX_PATH or LIBDEFLATE_DIR (environment variable pointing to the installation prefix).")
-    else()
-        set(DEFLATELIB ${DEFLATELIB_PATH})
-        message(STATUS "Found libdeflate for linking: ${DEFLATELIB}")
-    endif()
+if(DEFLATE_LIBRARY)
+    message(STATUS "Found libdeflate: ${DEFLATE_LIBRARY}")
+else()
+    message(STATUS "libdeflate not found. Skipping.")
+    # Set to empty so target_link_libraries doesn't try to link a "NOTFOUND" variable
+    set(DEFLATE_LIBRARY "") 
 endif()
-
 
 find_library(CRYPTOLIB crypto HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
 if(NOT CRYPTOLIB)
@@ -221,8 +217,7 @@ add_compile_definitions(cimg_use_png)
 #TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${DEFLATELIB} ${CRYPTOLIB} "${OpenMP_CXX_FLAGS}")
 #target_compile_options(${APP_EXE} PRIVATE "${OpenMP_CXX_FLAGS}")
 
-set(DEFLATELIB deflate)
-TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} ${DEFLATELIB} PNG::PNG)
+TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} ${DEFLATE_LIBRARY} PNG::PNG)
 
 target_compile_options(${APP_EXE} PRIVATE)
 
