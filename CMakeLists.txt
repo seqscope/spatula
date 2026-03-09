@@ -45,29 +45,49 @@ endif()
 
 message(STATUS ${HTS_INCLUDE_DIRS})
 
-find_library(HTS_LIBRARIES libhts.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/htslib/ ../htslib/)
+find_library(HTS_LIBRARIES hts
+  HINTS
+    submodules/htslib/
+    ../htslib/
+    /usr/lib/x86_64-linux-gnu/
+    /usr/lib/
+    /usr/lib64/
+)
 if(NOT HTS_LIBRARIES)
     message(FATAL_ERROR "libhts HTS_LIBRARIES not found")
 endif()
+message(STATUS "HTS: ${HTS_LIBRARIES}")
 
-message(STATUS ${HTS_LIBRARIES})
-
-find_path(QGEN_INCLUDE_DIRS qgenlib/qgen_error.h  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/qgenlib ../qgenlib)
+find_path(QGEN_INCLUDE_DIRS qgenlib/qgen_error.h
+  HINTS
+    submodules/qgenlib
+    ../qgenlib
+    /usr/lib/x86_64-linux-gnu/
+    /usr/lib/
+    /usr/lib64/
+)
 if(NOT QGEN_INCLUDE_DIRS )
     message(FATAL_ERROR "libqgen QGEN_INCLUDE_DIRS not found")
 endif()
+message(STATUS "QGEN include: ${QGEN_INCLUDE_DIRS}")
 
-message(STATUS ${QGEN_INCLUDE_DIRS})
+find_library(QGEN_LIBRARIES qgen
+  HINTS
+    submodules/qgenlib/lib
+    ../qgenlib/lib/
+    /usr/lib/x86_64-linux-gnu/
+    /usr/lib/
+    /usr/lib64/
+)
 
-find_library(QGEN_LIBRARIES libqgen.a  HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ submodules/qgenlib/lib ../qgenlib/lib/)
 if(NOT QGEN_LIBRARIES)
     message(FATAL_ERROR "libqgen QGEN_LIBRARIES not found")
 endif()
+message(STATUS "QGEN lib: ${QGEN_LIBRARIES}")
 
-# find_package(PNG REQUIRED)
+# Enable libpng for CImg to avoid ImageMagick resource limits on large images
+find_package(PNG REQUIRED)
 # find_package(ZLIB REQUIRED)
-
-message(STATUS ${QGEN_LIBRARIES})
 
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
@@ -173,36 +193,32 @@ else()
     set(LZMA ${LZMA_LIBRARIES})
 endif()
 
-set(LIBDEFLATE_LIBRARY "") # Initialize variable
+# --- Find libdeflate dynamically ---
+find_library(DEFLATE_LIBRARY NAMES deflate libdeflate HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ /opt/homebrew/lib)
 
-if(USE_LIBDEFLATE)
-    find_library(DEFLATELIB_PATH deflate libdeflate.a HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/ ../libdeflate/)
-    if(NOT DEFLATELIB_PATH)
-        message(WARNING "USE_LIBDEFLATE is ON, but libdeflate (libdeflate.a, libdeflate.so, libdeflate.dylib, etc.) was not found. "
-        "If your htslib requires it, linking may fail or you might encounter runtime errors. "
-        "Ensure libdeflate is installed in a standard location, or provide its path via CMAKE_PREFIX_PATH or LIBDEFLATE_DIR (environment variable pointing to the installation prefix).")
-    else()
-        set(DEFLATELIB ${DEFLATELIB_PATH})
-        message(STATUS "Found libdeflate for linking: ${DEFLATELIB}")
-    endif()
+if(DEFLATE_LIBRARY)
+    message(STATUS "Found libdeflate: ${DEFLATE_LIBRARY}")
+else()
+    message(STATUS "libdeflate not found. Skipping.")
+    # Set to empty so target_link_libraries doesn't try to link a "NOTFOUND" variable
+    set(DEFLATE_LIBRARY "") 
 endif()
-
 
 find_library(CRYPTOLIB crypto HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
 if(NOT CRYPTOLIB)
     message(FATAL_ERROR "libcrypto library not found")
 endif()
 
-# # add PNG library
-# find_library(PNGLIB png HINTS /usr/lib/x86_64-linux-gnu/ /usr/lib/ /usr/lib64/)
-# if(NOT PNGLIB)
-#     message(FATAL_ERROR "libpng library not found")
-# endif()
+# PNG library is found via find_package(PNG) above
+# Add cimg_use_png define to enable native PNG support in CImg
+# This avoids ImageMagick resource limits that cause truncated PNGs for large images
+add_compile_definitions(cimg_use_png)
 
 #TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${DEFLATELIB} ${CRYPTOLIB} "${OpenMP_CXX_FLAGS}")
 #target_compile_options(${APP_EXE} PRIVATE "${OpenMP_CXX_FLAGS}")
-#TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB})
-TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} ${DEFLATELIB})
+
+TARGET_LINK_LIBRARIES(${APP_EXE} PRIVATE ${QGEN_LIBRARIES} ${HTS_LIBRARIES} ${ZLIB} ${LZMA} ${BZIP2} ${CURLLIB} ${CRYPTOLIB} ${DEFLATE_LIBRARY} PNG::PNG)
+
 target_compile_options(${APP_EXE} PRIVATE)
 
 install(TARGETS ${APP_EXE} RUNTIME DESTINATION bin)
