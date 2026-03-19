@@ -46,6 +46,7 @@ int32_t cmdJoinPixelDecode(int32_t argc, char **argv);
 int32_t cmdMergeSpTSV(int32_t argc, char **argv);
 int32_t cmdDrawPolygons(int32_t argc, char **argv);
 int32_t cmdPixels2Cells(int32_t argc, char **argv);
+int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
 {
@@ -93,6 +94,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("sptsv2mex", &cmdSpTSV2MEX, "Convert Sparse TSV format in FICTURE2 to 10x Market Exchange (MEX) formatted DGE")
   LONG_COMMAND("sptsv2model", &cmdSpTSV2Model, "Create model matrix from Sparse TSV format in FICTURE2 with cluster assignment")
   LONG_COMMAND("pixels2cells", &cmdPixels2Cells, "Assign pixels to cell IDs based on boundary polygons")
+  LONG_COMMAND("split-molecule-counts", &cmdSplitMoleculeCounts, "Split molecule counts into pixel-level bins based on gene names")
 
   LONG_COMMAND_GROUP("FASTQ Tools", NULL)
   LONG_COMMAND("custom-demux-fastq", &cmdCustomDemuxFASTQ, "Demultiplex FASTQ files based in a customized manner")

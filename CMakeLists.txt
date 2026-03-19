@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8...3.23)
-project(spatula VERSION 1.1.0 LANGUAGES CXX)
+project(spatula VERSION 1.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -std=c++11")
@@ -92,6 +92,7 @@ find_package(PNG REQUIRED)
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_split_molecule_counts.cpp
     cmd_pixels2cells.cpp
     cmd_draw_polygons.cpp
     cmd_merge_sptsv.cpp
