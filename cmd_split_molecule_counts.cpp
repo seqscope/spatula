@@ -65,6 +65,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     notice("Analysis started");
 
     // read the feature count TSV file and assign each gene into ordered bins
+    notice("Reading feature count TSV file %s", in_ftr_tsv.c_str());
     tsv_reader tr_ftr(in_ftr_tsv.c_str());
     tr_ftr.delimiter = in_ftr_tsv_delim[0];
     std::map<std::string, int32_t> ftr2cnts;
@@ -211,12 +212,18 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
 
     // write the index file for each bin
     htsFile* wf_index = hts_open((out_prefix + out_index_suffix).c_str(), out_index_gz ? "wz" : "w");
+    // take only the basename of the output files for better readability in the index file
+    std::string out_prefix_basename = out_prefix;
+    size_t last_slash_pos = out_prefix.find_last_of("/\\");
+    if ( last_slash_pos != std::string::npos ) {
+        out_prefix_basename = out_prefix.substr(last_slash_pos + 1);
+    }
     hprintf(wf_index, "bin_id\tmolecule_count\tfeatures_count\tmolecules_path\tfeatures_path\n");
     if ( !skip_original ) {
-        hprintf(wf_index, "all\t%llu\t%zu\t%s_all_%s\t%s_all_%s\n", mol_cnt, ftr2cnts.size(), out_prefix.c_str(), out_mol_suffix.c_str(), out_prefix.c_str(), out_ftr_suffix.c_str());
+        hprintf(wf_index, "all\t%llu\t%zu\t%s_all_%s\t%s_all_%s\n", mol_cnt, ftr2cnts.size(), out_prefix_basename.c_str(), out_mol_suffix.c_str(), out_prefix_basename.c_str(), out_ftr_suffix.c_str());
     }
     for(int32_t i=0; i < bin_count; ++i) {
-        hprintf(wf_index, "%d\t%llu\t%d\t%s_bin%d_%s\t%s_bin%d_%s\n", i+1, bin_mol_cnts[i], bin_ftr_cnts[i], out_prefix.c_str(), i+1, out_mol_suffix.c_str(), out_prefix.c_str(), i+1, out_ftr_suffix.c_str());
+        hprintf(wf_index, "%d\t%llu\t%d\t%s_bin%d_%s\t%s_bin%d_%s\n", i+1, bin_mol_cnts[i], bin_ftr_cnts[i], out_prefix_basename.c_str(), i+1, out_mol_suffix.c_str(), out_prefix_basename.c_str(), i+1, out_ftr_suffix.c_str());
     }
     hts_close(wf_index);
 
