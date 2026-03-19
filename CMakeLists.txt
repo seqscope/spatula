@@ -92,6 +92,7 @@ find_package(PNG REQUIRED)
 include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
+    cmd_split_molecule_counts.cpp
     cmd_pixels2cells.cpp
     cmd_draw_polygons.cpp
     cmd_merge_sptsv.cpp
