@@ -57,6 +57,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     LONG_STRING_PARAM("out-mol-tsv-delim", &out_mol_tsv_delim, "Delimiter for the output molecule TSV file")
     LONG_STRING_PARAM("out-feature-tsv-delim", &out_ftr_tsv_delim, "Delimiter for the output feature TSV file")
     LONG_STRING_PARAM("out-mol-suffix", &out_mol_suffix, "Suffix for the output molecule TSV file")
+    LONG_STRING_PARAM("out-json-suffix", &out_json_suffix, "Suffix for the output JSON file containing bin counts and other metadata")
     LONG_STRING_PARAM("out-feature-suffix", &out_ftr_suffix, "Suffix for the output feature TSV file")
     LONG_STRING_PARAM("strip-comment-char", &strip_comment_char, "Character to strip from the beginning of lines in the input files (if any)")
     END_LONG_PARAMS();
@@ -244,6 +245,9 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
         it != ftr2cnts.end(); ++it) {
         std::map<std::string, int32_t>::iterator it2 = ftr2bin.find(it->first);
         int32_t bin_idx = it2 != ftr2bin.end() ? it2->second : -1;
+        if ( it != ftr2cnts.begin() ) {
+            hprintf(wf_json, ",\n");
+        }
         hprintf(wf_json, "{\"gene\":\"%s\",\"count\":%d,\"bin\":%d}", it->first.c_str(), it->second, bin_idx);
     }
     hprintf(wf_json, "]\n");
