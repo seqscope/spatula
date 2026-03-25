@@ -28,6 +28,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     std::string out_index_suffix = "_index.tsv"; 
     std::string colname_feature = "gene"; // Column name for gene name
     std::string colname_count = "count"; // Column name for gene count
+    std::string strip_comment_char = "#"; // Character to strip from the beginning of lines in the input files (if any)
     std::vector<std::string> col_renames; // Columns to rename in the output file. Format: old_name1:new_name1 old_name2:new_name2 ...
     int32_t bin_count = 50; // When --equal-bins is used, determine the number of bins to split the data into the same bin
     bool skip_original = false; // Whether to skip writing the original file
@@ -56,6 +57,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     LONG_STRING_PARAM("out-feature-tsv-delim", &out_ftr_tsv_delim, "Delimiter for the output feature TSV file")
     LONG_STRING_PARAM("out-mol-suffix", &out_mol_suffix, "Suffix for the output molecule TSV file")
     LONG_STRING_PARAM("out-feature-suffix", &out_ftr_suffix, "Suffix for the output feature TSV file")
+    LONG_STRING_PARAM("strip-comment-char", &strip_comment_char, "Character to strip from the beginning of lines in the input files (if any)")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));
@@ -124,7 +126,11 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     std::string out_line;
     int32_t col_idx_feature = -1;
     if ( tr_mol.read_line() > 0 ) {
-        out_line = tr_mol.str_field_at(0);    
+        const char* first_col = tr_mol.str_field_at(0);
+        while( strip_comment_char.size() > 0 && first_col[0] == strip_comment_char[0] ) {
+            ++first_col;
+        }
+        out_line = first_col;
         if ( strcmp(tr_mol.str_field_at(0), colname_feature.c_str()) == 0 ) {
             col_idx_feature = 0;
         }
