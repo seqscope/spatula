@@ -26,6 +26,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     std::string out_mol_suffix = "molecules.tsv.gz"; // Suffix for the output molecule TSV file
     std::string out_ftr_suffix = "features.tsv.gz"; // Suffix for the output feature TSV file
     std::string out_index_suffix = "_index.tsv"; 
+    std::string out_json_suffix = "_bin_counts.json"; // Suffix for the output JSON file containing bin counts and other metadata
     std::string colname_feature = "gene"; // Column name for gene name
     std::string colname_count = "count"; // Column name for gene count
     std::string strip_comment_char = "#"; // Character to strip from the beginning of lines in the input files (if any)
@@ -232,6 +233,22 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
         hprintf(wf_index, "%d\t%llu\t%d\t%s_bin%d_%s\t%s_bin%d_%s\n", i+1, bin_mol_cnts[i], bin_ftr_cnts[i], out_prefix_basename.c_str(), i+1, out_mol_suffix.c_str(), out_prefix_basename.c_str(), i+1, out_ftr_suffix.c_str());
     }
     hts_close(wf_index);
+    notice("Finished writing index file");
+
+    // write the JSON file containing bin counts and other metadata
+    // Output is a list of "gene", "count", and "bin" for each gene
+    std::string out_json_path = out_prefix + out_json_suffix;
+    htsFile* wf_json = hts_open(out_json_path.c_str(), "w");
+    hprintf(wf_json, "[");
+    for(std::map<std::string, int32_t>::iterator it = ftr2cnts.begin();
+        it != ftr2cnts.end(); ++it) {
+        std::map<std::string, int32_t>::iterator it2 = ftr2bin.find(it->first);
+        int32_t bin_idx = it2 != ftr2bin.end() ? it2->second : -1;
+        hprintf(wf_json, "{\"gene\":\"%s\",\"count\":%d,\"bin\":%d}", it->first.c_str(), it->second, bin_idx);
+    }
+    hprintf(wf_json, "]\n");
+    hts_close(wf_json);
+    notice("Finished writing JSON file with bin counts");
 
     notice("Analysis finished");
 
