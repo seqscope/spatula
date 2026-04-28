@@ -246,9 +246,9 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
         std::map<std::string, int32_t>::iterator it2 = ftr2bin.find(it->first);
         int32_t bin_idx = it2 != ftr2bin.end() ? it2->second : -1;
         if ( it != ftr2cnts.begin() ) {
-            hprintf(wf_json, ",\n");
+            hprintf(wf_json, ",");
         }
-        hprintf(wf_json, "{\"gene\":\"%s\",\"count\":%d,\"bin\":%d}", it->first.c_str(), it->second, bin_idx);
+        hprintf(wf_json, "{\"gene\":\"%s\",\"count\":%d,\"bin\":%d}", it->first.c_str(), it->second, bin_idx+1);
     }
     hprintf(wf_json, "]\n");
     hts_close(wf_json);
