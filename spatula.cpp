@@ -35,6 +35,7 @@ int32_t cmdFilterCommonBarcodes(int32_t argc, char **argv);
 int32_t cmdStratifyFASTQByBarcodes(int32_t argc, char **argv);
 int32_t cmdCustomDemuxFASTQ(int32_t argc, char **argv);
 int32_t cmdJoinPixelTSV(int32_t argc, char **argv);
+int32_t cmdPairPseudobulkFromDecode(int32_t argc, char **argv);
 int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv);
 int32_t cmdDiffExpDecode(int32_t argc, char **argv);
 int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv);
@@ -89,6 +90,7 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("mex2sptsv", &cmdMEX2SpTSV, "Convert 10x Market Exchange (MEX) formatted DGE to Sparse TSV format in FICTURE2")
   LONG_COMMAND("paste-pixel-tsv", &cmdPastePixelTSV, "Paste pixel-level output from FICTURE2 with raw transcript-level TSV files")
   LONG_COMMAND("pseudobulk-from-decode", &cmdPseudobulkFromDecode, "Write pseudobulk matrix from pixel-level decode output")
+  LONG_COMMAND("pair-pseudobulk-from-decode", &cmdPairPseudobulkFromDecode, "Write pairwise pseudobulk matrix from pixel-level decode output")
   LONG_COMMAND("pixel2sptsv", &cmdPixel2SpTSV, "Convert pixel-level TSV to Sparse TSV based on assigned cell IDs")
   LONG_COMMAND("subset-mex", &cmdMEXSubset, "Subset 10x Market Exchange (MEX) formatted DGE to specific features and barcodes")
   LONG_COMMAND("sptsv2mex", &cmdSpTSV2MEX, "Convert Sparse TSV format in FICTURE2 to 10x Market Exchange (MEX) formatted DGE")
