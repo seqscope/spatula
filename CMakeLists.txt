@@ -105,6 +105,7 @@ set(SOURCE_FILES
     cmd_join_pixel_decode.cpp
     cmd_append_topk_tsv.cpp
     cmd_reformat_tsv.cpp
+    cmd_pair_pseudobulk_from_decode.cpp
     cmd_pseudobulk_from_decode.cpp
     cmd_diffexp_decode.cpp
     cmd_diffexp_model_matrix.cpp
