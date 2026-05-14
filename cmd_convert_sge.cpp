@@ -123,7 +123,7 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     LONG_PARAM_GROUP("Key Output Options", NULL)
     LONG_DOUBLE_PARAM("units-per-um", &units_per_um, "Coordinate unit per um (conversion factor)")
     LONG_INT_PARAM("precision-um", &precision_um, "Output precision below the decimal point")
-    LONG_DOUBLE_PARAM("jitter-xy", &jitter_xy, "Jitter the coordinates by a random value between [-jitter_xy, jitter_xy] (default: 0, no jittering)")
+    LONG_DOUBLE_PARAM("jitter-xy", &jitter_xy, "Jitter the coordinates by a random value between [-jitter_xy, jitter_xy]. This only applies to --out-tsv output (default: 0, no jittering)")
     LONG_INT_PARAM("random-seed", &random_seed, "Random seed for jittering the coordinates (default: 0)")   
 
     LONG_PARAM_GROUP("Auxilary Output Options for TSV output", NULL)
@@ -375,13 +375,13 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
             um_x = ssr.cur_sbcd.px / units_per_um;
             um_y = ssr.cur_sbcd.py / units_per_um;
 
-            // add jitter if specified
-            if (jitter_xy > 0.0) {
-                double jitter_x = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
-                double jitter_y = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
-                um_x += jitter_x;
-                um_y += jitter_y;
-            }
+            // // add jitter if specified
+            // if (jitter_xy > 0.0) {
+            //     double jitter_x = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
+            //     double jitter_y = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
+            //     um_x += jitter_x;
+            //     um_y += jitter_y;
+            // }
 
             // update the bounding box
             xmax = xmax > um_x ? xmax : um_x;
@@ -412,11 +412,19 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
             }                   
 
             if ( wh_tsv != NULL ) {
+                // jitter each spatial coordinate independently
+                double jitter_x = 0.0;
+                double jitter_y = 0.0;
+                if (jitter_xy > 0.0) {
+                    jitter_x = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
+                    jitter_y = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
+                }
+
                 if ( floor(um_x) != um_x || floor(um_y) != um_y ) { // non-integer coordinates, use the precision
-                    hprintf(wh_tsv, "%.*f\t%.*f\t%s", precision_um, um_x, precision_um, um_y, ftr_names[ssr.cur_iftr-1].c_str());
+                    hprintf(wh_tsv, "%.*f\t%.*f\t%s", precision_um, um_x + jitter_x, precision_um, um_y + jitter_y, ftr_names[ssr.cur_iftr-1].c_str());
                 }
                 else { // integer coordinates, ignore the precision
-                    hprintf(wh_tsv, "%d\t%d\t%s", (int)floor(um_x), (int)floor(um_y), ftr_names[ssr.cur_iftr-1].c_str());
+                    hprintf(wh_tsv, "%d\t%d\t%s", (int)floor(um_x + jitter_x), (int)floor(um_y + jitter_y), ftr_names[ssr.cur_iftr-1].c_str());
                 }
                 if (print_feature_id)
                     hprintf(wh_tsv, "\t%s", ftr_ids[ssr.cur_iftr-1].c_str());
