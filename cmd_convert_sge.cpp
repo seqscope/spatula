@@ -59,6 +59,8 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     std::string colname_y("Y");
     bool print_feature_id = false;
     bool allow_duplicate_gene_names = false;
+    double jitter_xy = 0.0; // jitter the coordinates by a random value between [-jitter_xy, jitter_xy] (default: 0, no jittering)
+    int random_seed = 0; // random seed for jittering the coordinates
 
     // common output options
     double units_per_um = 1.0;  // Output conversion factor 
@@ -121,6 +123,8 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     LONG_PARAM_GROUP("Key Output Options", NULL)
     LONG_DOUBLE_PARAM("units-per-um", &units_per_um, "Coordinate unit per um (conversion factor)")
     LONG_INT_PARAM("precision-um", &precision_um, "Output precision below the decimal point")
+    LONG_DOUBLE_PARAM("jitter-xy", &jitter_xy, "Jitter the coordinates by a random value between [-jitter_xy, jitter_xy] (default: 0, no jittering)")
+    LONG_INT_PARAM("random-seed", &random_seed, "Random seed for jittering the coordinates (default: 0)")   
 
     LONG_PARAM_GROUP("Auxilary Output Options for TSV output", NULL)
     LONG_PARAM("print-feature-id", &print_feature_id, "Print feature ID in output file")
@@ -172,6 +176,14 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     }
 
     notice("Analysis started");
+
+    // set the random seed
+    if ( random_seed != 0 ) {
+        srand(random_seed);
+    }
+    else {
+        srand(time(NULL));
+    }
 
     // only one of the include and exclude options can be used
     int32_t include_sum = ( include_ftr_list.empty() ? 0 : 1 ) + ( include_ftr_regex.empty() ? 0 : 1 ) + ( include_ftr_substr.empty() ? 0 : 1 );
@@ -362,6 +374,14 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
             //notice("foo");
             um_x = ssr.cur_sbcd.px / units_per_um;
             um_y = ssr.cur_sbcd.py / units_per_um;
+
+            // add jitter if specified
+            if (jitter_xy > 0.0) {
+                double jitter_x = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
+                double jitter_y = ((double)rand() / RAND_MAX) * 2 * jitter_xy - jitter_xy; // random value between [-jitter_xy, jitter_xy]
+                um_x += jitter_x;
+                um_y += jitter_y;
+            }
 
             // update the bounding box
             xmax = xmax > um_x ? xmax : um_x;
