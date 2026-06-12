@@ -6,6 +6,7 @@
 #include "qgenlib/qgen_error.h"
 
 // find integer index by key in a dictionary
+double standard_normal_quantile(double p);
 int32_t find_idx_by_key(std::map<std::string, int32_t>& dict, const char* key, bool required);
 double chisq1_log10p(double chi2);
 bool unquote_string(std::string& s);
@@ -13,6 +14,7 @@ double stable_cauchy_combination_test(const std::vector<double>& log10pvals, con
 double stable_cauchy_combination_test(const std::vector<double>& log10pvals);
 double log_add(double loga, double logb);
 double log_sub(double loga, double logb);
+
 
 class pseudobulk_matrix {
 public:
