@@ -23,6 +23,9 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
     double pseudocount = 0.5;
     bool test_pairwise = false;
     bool ignore_mismatch = false;
+    double inflation_factor = 1.0;
+    bool output_fc_lb = false;
+    double alpha_fc_lb = 0.001;
 
     paramList pl;
     BEGIN_LONG_PARAMS(longParameters)
@@ -38,6 +41,9 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
     LONG_DOUBLE_PARAM("pseudocount", &pseudocount, "Pseudocount to add to the counts")
     LONG_PARAM("test-pairwise", &test_pairwise, "Perform pairwise test (1 sample test only)")
     LONG_PARAM("ignore-mismatch", &ignore_mismatch, "Ignore mismatching factors between tsv1 and tsv2. If set, only overlapping factors will be used for the test")
+    LONG_DOUBLE_PARAM("inflation-factor", &inflation_factor, "Inflation factor to inflate the chi-square statistic to account for potential confounding factors (default: 1, no inflation)")
+    LONG_PARAM("output-fc-lb", &output_fc_lb, "Output lower bound of fold change")
+    LONG_DOUBLE_PARAM("alpha-fc-lb", &alpha_fc_lb, "Alpha level for the lower bound of fold change")
     END_LONG_PARAMS();
 
     pl.Add(new longParams("Available Options", longParameters));
@@ -52,6 +58,13 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
     pseudobulk_matrix pbm1(tsv1f.c_str());
     double log10_max_pval = -std::log10(max_pval);
 
+    // compute z_{1-\alpha} value based on alpha_fc_lb value
+    double z_alpha_fc_lb = 0.0;
+    if ( output_fc_lb ) {
+        z_alpha_fc_lb = 0-standard_normal_quantile(alpha_fc_lb/2.0);
+        notice("z_alpha_fc_lb for alpha_fc_lb = %.3g is %.3f", alpha_fc_lb, z_alpha_fc_lb);
+    }
+
     if ( tsv2f.empty() ) {
         // perform DE test for each gene x factor pair
         notice("Performing DE test for each gene x factor pair in %s", tsv1f.c_str());
@@ -63,7 +76,11 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         if ( wf == NULL ) {
             error("Cannot open output file %s", (outprefix + suffix_marginal).c_str());
         }
-        hprintf(wf, "%s\tfactor\tChi2\tpval\tFoldChange\tgene_total\tlog10pval\n", pbm1.feature_name.c_str());
+        hprintf(wf, "%s\tfactor\tChi2\tpval\tFoldChange\tgene_total\tlog10pval", pbm1.feature_name.c_str());
+        if ( output_fc_lb ) {
+            hprintf(wf, "\tFoldChangeLowerBound");
+        }
+        hprintf(wf, "\n");
 
         // make sure that at least one top gene is printed per factor
         std::vector<int32_t> npassed(pbm1.factors.size(), 0);
@@ -103,10 +120,17 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 npassed[j]++;
                 const std::string& factor = pbm1.factors[j];
                 // print the results
-                hprintf(wf, "%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f\n",
+                hprintf(wf, "%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f",
                         feature.c_str(), factor.c_str(),
                         chi2, std::pow(10.0, -log10pval), fc,
                         pbm1.rowsums[i], log10pval);
+                if ( output_fc_lb ) { // calculate lower_bound of fold change
+                    double se_log_fc = std::sqrt( (1.0/a + 1.0/b + 1.0/c + 1.0/d) * inflation_factor );
+                    double log_fc_lb = std::log(fc) - z_alpha_fc_lb * se_log_fc;
+                    double fc_lb = std::exp(log_fc_lb);
+                    hprintf(wf, "\t%.2f", fc_lb);
+                }
+                hprintf(wf, "\n");
             }
         }
         // make sure that at least one feature is printed per factor
@@ -128,10 +152,17 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                     double fc = (a * d) / ( b * c );
                     double chi2 = (a * d - b * c) * (a * d - b * c) / ((a + b) * (c + d) * (a + c) * (b + d)) * (a + b + c + d);
                     double log10pval = chisq1_log10p(chi2);
-                    hprintf(wf, "%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f\n",
+                    hprintf(wf, "%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f",
                             feature.c_str(), factor.c_str(),
                             chi2, std::pow(10.0, -log10pval), fc,
                             pbm1.rowsums[i], log10pval);
+                    if ( output_fc_lb ) { // calculate lower_bound of fold change
+                        double se_log_fc = std::sqrt( (1.0/a + 1.0/b + 1.0/c + 1.0/d) * inflation_factor );
+                        double log_fc_lb = std::log(fc) - z_alpha_fc_lb * se_log_fc;
+                        double fc_lb = std::exp(log_fc_lb);
+                        hprintf(wf, "\t%.2f", fc_lb);
+                    }
+                    hprintf(wf, "\n");
                 }
                 else {
                     notice("WARNING: No feature passed the DE test for factor %s, and no feature found to force print", pbm1.factors[j].c_str());
@@ -149,7 +180,11 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
             if ( wf == NULL ) {
                 error("Cannot open output file %s", (outprefix + suffix_marginal).c_str());
             }
-            hprintf(wf, "%s\tfactor1\tfactor2\tChi2\tpval\tFoldChange\tgene_total\tlog10p\tfrac1\tfrac2\n", pbm1.feature_name.c_str());
+            hprintf(wf, "%s\tfactor1\tfactor2\tChi2\tpval\tFoldChange\tgene_total\tlog10p\tfrac1\tfrac2", pbm1.feature_name.c_str());
+            if ( output_fc_lb ) {
+                hprintf(wf, "\tFoldChangeLowerBound");
+            }
+            hprintf(wf, "\n");
             for(int32_t i=0; i < (int32_t)pbm1.features.size(); ++i) {
                 const std::string& feature = pbm1.features[i];
                 for(int32_t j=1; j < (int32_t)pbm1.factors.size(); ++j) {
@@ -195,12 +230,19 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                         }
                         // print the results
                         const std::string& factor2 = pbm1.factors[k];
-                        hprintf(wf, "%s\t%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f\t%.5g\t%.5g\n",
+                        hprintf(wf, "%s\t%s\t%s\t%.2f\t%.2e\t%.2f\t%.1f\t%.2f\t%.5g\t%.5g",
                                 feature.c_str(), 
                                 swapped ? factor2.c_str() : factor1.c_str(),
                                 swapped ? factor1.c_str() : factor2.c_str(),
                                 chi2, std::pow(10.0, -log10pval), fc,
                                 a + b - pseudocount * 2, log10pval, a/(a+c), b/(b+d));
+                        if ( output_fc_lb ) { // calculate lower_bound of fold change
+                            double se_log_fc = std::sqrt( (1.0/a + 1.0/b + 1.0/c + 1.0/d) * inflation_factor );
+                            double log_fc_lb = std::log(fc) - z_alpha_fc_lb * se_log_fc;
+                            double fc_lb = std::exp(log_fc_lb);
+                            hprintf(wf, "\t%.2f", fc_lb);
+                        }
+                        hprintf(wf, "\n");
                     }
                 }
             }
@@ -305,7 +347,11 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         if ( wf_bulk_factor == NULL ) {
             error("Cannot open output file %s", (outprefix + suffix_bulk_factor).c_str());
         }
-        hprintf(wf_bulk_factor, "Factor\tCount1\tCount2\tFrac1\tFrac2\tlog2FC\tChi2\tpval\tlog10p\n");
+        hprintf(wf_bulk_factor, "Factor\tCount1\tCount2\tFrac1\tFrac2\tlog2FC\tChi2\tpval\tlog10p");
+        if ( output_fc_lb ) {
+            hprintf(wf_bulk_factor, "\tlog2FC_LowerBound");
+        }
+        hprintf(wf_bulk_factor, "\n");
         double log2fc_thres = std::log2(min_fc);
         for(int32_t i=0; i < (int32_t)idx1_factors.size(); ++i) {
             int32_t i1 = idx1_factors[i];
@@ -335,11 +381,18 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
             //     continue; // skip factors with high p-value
             // }
             // print the results
-            hprintf(wf_bulk_factor, "%s\t%.2f\t%.2f\t%.5g\t%.5g\t%.4f\t%.2f\t%.2e\t%.2f\n",
+            hprintf(wf_bulk_factor, "%s\t%.2f\t%.2f\t%.5g\t%.5g\t%.4f\t%.2f\t%.2e\t%.2f",
                     pbm1.factors[i].c_str(),
                     a, b,
                     a / pbm1.total, b / pbm2.total,
                     log2fc, chi2, std::pow(10.0, -log10pval), log10pval);
+            if ( output_fc_lb ) {
+                double se_log_fc = std::sqrt( (1.0/a + 1.0/b + 1.0/c + 1.0/d) * inflation_factor );
+                double log_fc_lb = std::log(log2fc) - z_alpha_fc_lb * se_log_fc;
+                double fc_lb = std::exp(log_fc_lb);
+                hprintf(wf_bulk_factor, "\t%.2f", fc_lb);
+            }
+            hprintf(wf_bulk_factor, "\n");
         }
         hts_close(wf_bulk_factor);
 
@@ -349,7 +402,12 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         if ( wf_bulk_feature == NULL ) {
             error("Cannot open output file %s", (outprefix + suffix_bulk_feature).c_str());
         }
-        hprintf(wf_bulk_feature, "Feature\tCount1\tCount2\tFrac1\tFrac2\tlog2FC\tChi2\tpval\tlog10p\n");
+        hprintf(wf_bulk_feature, "Feature\tCount1\tCount2\tFrac1\tFrac2\tlog2FC\tChi2\tpval\tlog10p");
+        if ( output_fc_lb ) {
+            hprintf(wf_bulk_feature, "\tlog2FC_LowerBound");
+        }
+        hprintf(wf_bulk_feature, "\n");
+        //double log2fc_thres = std::log2(min_fc);
         for(int32_t i=0; i < (int32_t)idx1_features.size(); ++i) {
             int32_t i1 = idx1_features[i];
             int32_t i2 = idx2_features[i];
@@ -378,11 +436,18 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 continue; // skip features with high p-value
             }
             // print the results
-            hprintf(wf_bulk_feature, "%s\t%.2f\t%.2f\t%.5g\t%.5g\t%.4f\t%.2f\t%.2e\t%.2f\n",
+            hprintf(wf_bulk_feature, "%s\t%.2f\t%.2f\t%.5g\t%.5g\t%.4f\t%.2f\t%.2e\t%.2f",
                     pbm1.features[i].c_str(),
                     a, b,
                     a / pbm1.total, b / pbm2.total,
                     log2fc, chi2, std::pow(10.0, -log10pval), log10pval);
+            if ( output_fc_lb ) {
+                double se_log_fc = std::sqrt( (1.0/a + 1.0/b + 1.0/c + 1.0/d) * inflation_factor );
+                double log_fc_lb = std::log(log2fc) - z_alpha_fc_lb * se_log_fc;
+                double fc_lb = std::exp(log_fc_lb);
+                hprintf(wf_bulk_feature, "\t%.2f", fc_lb);
+            }
+            hprintf(wf_bulk_feature, "\n");
         }
         hts_close(wf_bulk_feature);
         notice("Bulk DE tests completed, results written to %s and %s", 
@@ -401,7 +466,11 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
         // if ( wf_combined_feature == NULL ) {
         //     error("Cannot open output file %s", (outprefix + suffix_combined_feature).c_str());
         // }
-        hprintf(wf_conditional_feature, "Feature\tFactor\tCount1\tCount2\tFrac1\tFrac2\tlog2FC\tChi2\tpval\tlog10p\n");
+        hprintf(wf_conditional_feature, "Feature\tFactor\tCount1\tCount2\tFrac1\tFrac2\tlog2FC\tChi2\tpval\tlog10p");
+        if ( output_fc_lb ) {
+            hprintf(wf_conditional_feature, "\tlog2FC_LowerBound");
+        }
+        hprintf(wf_conditional_feature, "\n");
         //hprintf(wf_combined_feature, "Feature\tCount1\tCount2\tFrac1\tFrac2\tTopFactor\tTopLog2FC\tTopLog10p\tCombinedLog10p\n");
         for(int32_t i=0; i < (int32_t)idx1_features.size(); ++i) {
             std::vector<double> log10pvals(idx1_factors.size(), 0.0);
@@ -453,12 +522,18 @@ int32_t cmdDiffExpModelMatrix(int32_t argc, char **argv)
                 }
 
                 // print the results
-                hprintf(wf_conditional_feature, "%s\t%s\t%.2f\t%.2f\t%.5g\t%.5g\t%.4f\t%.2f\t%.2e\t%.2f\n",
+                hprintf(wf_conditional_feature, "%s\t%s\t%.2f\t%.2f\t%.5g\t%.5g\t%.4f\t%.2f\t%.2e\t%.2f",
                         pbm1.features[i].c_str(), pbm1.factors[j].c_str(),
                         a, b,
                         a / pbm1.total, b / pbm2.total,
                         log2fc, chi2, std::pow(10.0, -log10pval), log10pval);
-
+                if ( output_fc_lb ) {
+                    double se_log_fc = std::sqrt( (1.0/a + 1.0/b + 1.0/c + 1.0/d) * inflation_factor );
+                    double log_fc_lb = std::log(log2fc) - z_alpha_fc_lb * se_log_fc;
+                    double log2_fc_lb = log_fc_lb / std::log(2.0);
+                    hprintf(wf_conditional_feature, "\t%.4f", log2_fc_lb);
+                }
+                hprintf(wf_conditional_feature, "\n");
             }
             // // perform cauchy-combined test
             // if ( top_factor_idx >= 0 ) {

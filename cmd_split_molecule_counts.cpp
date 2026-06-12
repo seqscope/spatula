@@ -75,6 +75,9 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     std::map<std::string, int32_t> ftr2cnts;
     uint64_t sum_cnt = 0;
     while (tr_ftr.read_line() > 0) {
+        if (tr_ftr.str_field_at(0)[0] == strip_comment_char[0]) {
+            continue; // skip comment lines
+        }
         int32_t cnt = tr_ftr.int_field_at(1);
         if ( cnt > 0 ) {
             ftr2cnts[tr_ftr.str_field_at(0)] = cnt;            
@@ -94,9 +97,14 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     int32_t j = 0;
     std::vector<uint64_t> bin_mol_cnts(bin_count, 0);
     std::vector<int32_t> bin_ftr_cnts(bin_count, 0);
+    int32_t actual_bin_count = 0;
     for(int32_t i=0; i < bin_count; ++i) {
-        // determine threshold
+        // determine threshold - average number of molecules among the remaining bins
         int32_t bin_thres = i == bin_count - 1 ? INT_MAX : (sum_cnt - cumsum_cnt) / (bin_count - i);
+        //notice("sum_cnt = %llu, cumsum_cnt = %llu, remaining_cnt = %llu, bin_thres = %d", sum_cnt, cumsum_cnt, sum_cnt - cumsum_cnt, bin_thres);
+        if ( bin_thres == 0 ) { // include at least one gene in each bin if there are still genes left
+            bin_thres = 1;
+        }
         uint64_t current_bin_cnt = 0;
         int32_t current_bin_ngenes = 0;
         while (j < ftr_cnt_vec.size() && current_bin_cnt < bin_thres) {
@@ -105,11 +113,18 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
             ++j;
             ++current_bin_ngenes;
         }
-        cumsum_cnt += current_bin_cnt;
-        bin_mol_cnts[i] = current_bin_cnt;
-        bin_ftr_cnts[i] = current_bin_ngenes;
-        notice("Bin %d: %d / %d genes, %llu molecules, (%.3f%% cumulative)", i, current_bin_ngenes, ftr_cnt_vec.size(), current_bin_cnt, (double)cumsum_cnt / sum_cnt * 100);
+        if ( current_bin_ngenes > 0 ) {
+            cumsum_cnt += current_bin_cnt;
+            bin_mol_cnts[i] = current_bin_cnt;
+            bin_ftr_cnts[i] = current_bin_ngenes;
+            notice("Bin %d: %d / %d genes, %llu molecules, (%.3f%% cumulative, threshold = %d)", i, current_bin_ngenes, ftr_cnt_vec.size(), current_bin_cnt, (double)cumsum_cnt / sum_cnt * 100, bin_thres);
+            ++actual_bin_count;
+        }
+        else { // no more genes to assign, stop here
+            break;
+        }
     }
+    notice("Total %d bins assigned, %d genes, %llu molecules", actual_bin_count, (int32_t)ftr2bin.size(), sum_cnt);
 
     // create output files all at once
     bool out_mol_gz = out_mol_suffix.size() > 3 && out_mol_suffix.substr(out_mol_suffix.size() - 3) == ".gz";
@@ -117,8 +132,8 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     bool out_index_gz = out_index_suffix.size() > 3 && out_index_suffix.substr(out_index_suffix.size() - 3) == ".gz";
 
     htsFile* wf_mol_all = skip_original ? NULL : hts_open((out_prefix + "_all_" + out_mol_suffix).c_str(), out_mol_gz ?  "wz" : "w");
-    std::vector<htsFile*> wf_mol_bins(bin_count, NULL);
-    for(int32_t i=0; i < bin_count; ++i) {
+    std::vector<htsFile*> wf_mol_bins(actual_bin_count, NULL);
+    for(int32_t i=0; i < actual_bin_count; ++i) {
         wf_mol_bins[i] = hts_open((out_prefix + "_bin" + std::to_string(i+1) + "_" + out_mol_suffix).c_str(), out_mol_gz ?  "wz" : "w");
     }
 
@@ -153,7 +168,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     if ( !skip_original ) {
         hprintf(wf_mol_all, "%s\n", out_line.c_str());
     }
-    for(int32_t i=0; i < bin_count; ++i) {
+    for(int32_t i=0; i < actual_bin_count; ++i) {
         hprintf(wf_mol_bins[i], "%s\n", out_line.c_str());
     }
 
@@ -185,7 +200,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     if ( !skip_original ) {
         hts_close(wf_mol_all);
     }
-    for(int32_t i=0; i < bin_count; ++i) {
+    for(int32_t i=0; i < actual_bin_count; ++i) {
         hts_close(wf_mol_bins[i]);
     }
 
@@ -196,8 +211,8 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     if ( !skip_original ) {
         hprintf(wf_ftr_all, "%s\t%s\n", colname_feature.c_str(), colname_count.c_str());
     }
-    std::vector<htsFile*> wf_ftr_bins(bin_count, NULL);
-    for(int32_t i=0; i < bin_count; ++i) {
+    std::vector<htsFile*> wf_ftr_bins(actual_bin_count, NULL);
+    for(int32_t i=0; i < actual_bin_count; ++i) {
         wf_ftr_bins[i] = hts_open((out_prefix + "_bin" + std::to_string(i+1) + "_" + out_ftr_suffix).c_str(), out_ftr_gz ?  "wz" : "w");
         hprintf(wf_ftr_bins[i], "%s\t%s\n", colname_feature.c_str(), colname_count.c_str());
     }
@@ -212,7 +227,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
         }
     }
     hts_close(wf_ftr_all);
-    for(int32_t i=0; i < bin_count; ++i) {
+    for(int32_t i=0; i < actual_bin_count; ++i) {
         hts_close(wf_ftr_bins[i]);
     }
 
@@ -230,7 +245,7 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     if ( !skip_original ) {
         hprintf(wf_index, "all\t%llu\t%zu\t%s_all_%s\t%s_all_%s\n", mol_cnt, ftr2cnts.size(), out_prefix_basename.c_str(), out_mol_suffix.c_str(), out_prefix_basename.c_str(), out_ftr_suffix.c_str());
     }
-    for(int32_t i=0; i < bin_count; ++i) {
+    for(int32_t i=0; i < actual_bin_count; ++i) {
         hprintf(wf_index, "%d\t%llu\t%d\t%s_bin%d_%s\t%s_bin%d_%s\n", i+1, bin_mol_cnts[i], bin_ftr_cnts[i], out_prefix_basename.c_str(), i+1, out_mol_suffix.c_str(), out_prefix_basename.c_str(), i+1, out_ftr_suffix.c_str());
     }
     hts_close(wf_index);
