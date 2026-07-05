@@ -27,11 +27,14 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     std::string out_ftr_suffix = "features.tsv.gz"; // Suffix for the output feature TSV file
     std::string out_index_suffix = "_index.tsv"; 
     std::string out_json_suffix = "_bin_counts.json"; // Suffix for the output JSON file containing bin counts and other metadata
+    std::string colname_x = "X"; // Column name for X coordinate
+    std::string colname_y = "Y"; // Column name for Y coordinate
     std::string colname_feature = "gene"; // Column name for gene name
     std::string colname_count = "count"; // Column name for gene count
     std::string strip_comment_char = "#"; // Character to strip from the beginning of lines in the input files (if any)
     std::vector<std::string> col_renames; // Columns to rename in the output file. Format: old_name1:new_name1 old_name2:new_name2 ...
     int32_t bin_count = 50; // When --equal-bins is used, determine the number of bins to split the data into the same bin
+    bool compact_bin = false; // Whether to compact the bins to store minimal information.
     bool skip_original = false; // Whether to skip writing the original file
 
 
@@ -45,10 +48,13 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     LONG_PARAM_GROUP("Key Parameters", NULL)
     LONG_INT_PARAM("bin-count", &bin_count, "When --equal-bins is used, determine the number of bins to split the data into the same bin")
     LONG_PARAM("skip-original", &skip_original, "Whether to skip writing the original file")
+    LONG_PARAM("compact-bin", &compact_bin, "Compact the bins to store minimal information")
 
     LONG_PARAM_GROUP("Expected columns in input and output", NULL)
     LONG_STRING_PARAM("colname-feature", &colname_feature, "Column name for gene name")
     LONG_STRING_PARAM("colname-count", &colname_count, "Column name for gene count")
+    LONG_STRING_PARAM("colname-x", &colname_x, "Column name for X coordinate")
+    LONG_STRING_PARAM("colname-y", &colname_y, "Column name for Y coordinate")
     LONG_MULTI_STRING_PARAM("col-rename", &col_renames, "Columns to rename in the output file. Format: old_name1:new_name1 old_name2:new_name2 ...")
 
     LONG_PARAM_GROUP("Auxilary Input/Output Parameters", NULL)
@@ -141,15 +147,28 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
     tsv_reader tr_mol(in_mol_tsv.c_str());
     tr_mol.delimiter = in_mol_tsv_delim[0];
     std::string out_line;
+    std::string out_compact_line;
     int32_t col_idx_feature = -1;
+    int32_t col_idx_x = -1;
+    int32_t col_idx_y = -1;
+    int32_t col_idx_count = -1;
     if ( tr_mol.read_line() > 0 ) {
         const char* first_col = tr_mol.str_field_at(0);
         while( strip_comment_char.size() > 0 && first_col[0] == strip_comment_char[0] ) {
             ++first_col;
         }
         out_line = first_col;
-        if ( strcmp(tr_mol.str_field_at(0), colname_feature.c_str()) == 0 ) {
+        if ( strcmp(first_col, colname_feature.c_str()) == 0 ) {
             col_idx_feature = 0;
+        }
+        if ( strcmp(first_col, colname_x.c_str()) == 0 ) {
+            col_idx_x = 0;
+        }
+        if ( strcmp(first_col, colname_y.c_str()) == 0 ) {
+            col_idx_y = 0;
+        }
+        if ( strcmp(first_col, colname_count.c_str()) == 0 ) {
+            col_idx_count = 0;
         }
         for(int32_t i=1; i < tr_mol.nfields; ++i) {
             out_line += (out_mol_tsv_delim + tr_mol.str_field_at(i));
@@ -159,17 +178,57 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
                 }
                 col_idx_feature = i;
             }
+            if ( strcmp(tr_mol.str_field_at(i), colname_x.c_str()) == 0 ) {
+                if ( col_idx_x != -1 ) {
+                    error("Duplicate column name %s found in the molecule TSV file %s", colname_x.c_str(), in_mol_tsv.c_str());
+                }
+                col_idx_x = i;
+            }
+            if ( strcmp(tr_mol.str_field_at(i), colname_y.c_str()) == 0 ) {
+                if ( col_idx_y != -1 ) {
+                    error("Duplicate column name %s found in the molecule TSV file %s", colname_y.c_str(), in_mol_tsv.c_str());
+                }
+                col_idx_y = i;
+            }
+            if ( strcmp(tr_mol.str_field_at(i), colname_count.c_str()) == 0 ) {
+                if ( col_idx_count != -1 ) {
+                    error("Duplicate column name %s found in the molecule TSV file %s", colname_count.c_str(), in_mol_tsv.c_str());
+                }
+                col_idx_count = i;
+            }
+        }
+        if ( compact_bin ) {
+            out_compact_line = colname_x + out_mol_tsv_delim + colname_y + out_mol_tsv_delim + colname_feature + out_mol_tsv_delim + colname_count;
         }
     }
     else {
         error("No header line found in the molecule TSV file %s", in_mol_tsv.c_str());
     }
+
+    if ( col_idx_feature == -1 ) {
+        error("Column name %s not found in the molecule TSV file %s", colname_feature.c_str(), in_mol_tsv.c_str());
+    }
+    if ( col_idx_x == -1 ) {
+        error("Column name %s not found in the molecule TSV file %s", colname_x.c_str(), in_mol_tsv.c_str());
+    }
+    if ( col_idx_y == -1 ) {
+        error("Column name %s not found in the molecule TSV file %s", colname_y.c_str(), in_mol_tsv.c_str());
+    }
+    if ( col_idx_count == -1 ) {
+        error("Column name %s not found in the molecule TSV file %s", colname_count.c_str(), in_mol_tsv.c_str());
+    }
+
     // print the header line to all output files
     if ( !skip_original ) {
         hprintf(wf_mol_all, "%s\n", out_line.c_str());
     }
     for(int32_t i=0; i < actual_bin_count; ++i) {
-        hprintf(wf_mol_bins[i], "%s\n", out_line.c_str());
+        if (compact_bin ) {
+            hprintf(wf_mol_bins[i], "%s\n", out_compact_line.c_str());
+        }
+        else {
+            hprintf(wf_mol_bins[i], "%s\n", out_line.c_str());
+        }
     }
 
     uint64_t mol_cnt = 0;
@@ -187,13 +246,21 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
         }
         if ( it != ftr2bin.end() ) {
             int32_t bin_idx = it->second;
-            hprintf(wf_mol_bins[bin_idx], "%s\n", out_line.c_str());
+            if ( compact_bin ) {
+                hprintf(wf_mol_bins[bin_idx], "%s%s%s%s%s%s%s\n", tr_mol.str_field_at(col_idx_x), out_mol_tsv_delim.c_str(), tr_mol.str_field_at(col_idx_y), out_mol_tsv_delim.c_str(), tr_mol.str_field_at(col_idx_feature), out_mol_tsv_delim.c_str(), tr_mol.str_field_at(col_idx_count));
+            }
+            else {
+                hprintf(wf_mol_bins[bin_idx], "%s\n", out_line.c_str());
+            }
             ++assigned_mol_cnt;
         }
         ++mol_cnt;
         if ( mol_cnt % 1000000 == 0 ) {
             notice("%llu molecules processed: (%.2f%%) assigned to bins", mol_cnt, (double)assigned_mol_cnt / mol_cnt * 100);
         }
+    }
+    if ( assigned_mol_cnt == 0 ) {
+        error("No molecules were assigned to any bins. Please check the input files and parameters.");
     }
     notice("%llu molecules processed in total, %llu (%.2f%%) assigned to bins", mol_cnt, assigned_mol_cnt, (double)assigned_mol_cnt / mol_cnt * 100);
 
