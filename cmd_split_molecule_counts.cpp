@@ -91,6 +91,18 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
         }
     }
 
+    std::map<std::string, std::string> col_rename_map;
+    for(int32_t i=0; i < col_renames.size(); ++i) {
+        std::string rename_str = col_renames[i];
+        size_t colon_pos = rename_str.find(':');
+        if ( colon_pos == std::string::npos ) {
+            error("Invalid column rename format: %s. Expected format: old_name:new_name", rename_str.c_str());
+        }
+        std::string old_name = rename_str.substr(0, colon_pos);
+        std::string new_name = rename_str.substr(colon_pos + 1);
+        col_rename_map[old_name] = new_name;
+    }
+
     // sort the genes by their counts and assign bins
     std::vector<std::pair<std::string, int32_t>> ftr_cnt_vec(ftr2cnts.begin(), ftr2cnts.end());
     std::sort(ftr_cnt_vec.begin(), ftr_cnt_vec.end(), [](const std::pair<std::string, int32_t>& a, const std::pair<std::string, int32_t>& b) {
@@ -157,7 +169,12 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
         while( strip_comment_char.size() > 0 && first_col[0] == strip_comment_char[0] ) {
             ++first_col;
         }
-        out_line = first_col;
+        if ( col_rename_map.find(first_col) != col_rename_map.end() ) {
+            out_line = col_rename_map[first_col].c_str();
+        }
+        else {
+            out_line = first_col;
+        }
         if ( strcmp(first_col, colname_feature.c_str()) == 0 ) {
             col_idx_feature = 0;
         }
@@ -171,7 +188,14 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
             col_idx_count = 0;
         }
         for(int32_t i=1; i < tr_mol.nfields; ++i) {
-            out_line += (out_mol_tsv_delim + tr_mol.str_field_at(i));
+            std::string colname = tr_mol.str_field_at(i);
+            // rename the column if specified
+            if ( col_rename_map.find(colname) != col_rename_map.end() ) {
+                colname = col_rename_map[colname];
+            }
+            //out_line += (out_mol_tsv_delim + tr_mol.str_field_at(i));
+            out_line += (out_mol_tsv_delim + colname);
+
             if ( strcmp(tr_mol.str_field_at(i), colname_feature.c_str()) == 0 ) {
                 if ( col_idx_feature != -1 ) {
                     error("Duplicate column name %s found in the molecule TSV file %s", colname_feature.c_str(), in_mol_tsv.c_str());
@@ -198,7 +222,11 @@ int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv)
             }
         }
         if ( compact_bin ) {
-            out_compact_line = colname_x + out_mol_tsv_delim + colname_y + out_mol_tsv_delim + colname_feature + out_mol_tsv_delim + colname_count;
+            std::string out_colname_x = col_rename_map.find(colname_x) != col_rename_map.end() ? col_rename_map[colname_x] : colname_x;
+            std::string out_colname_y = col_rename_map.find(colname_y) != col_rename_map.end() ? col_rename_map[colname_y] : colname_y;
+            std::string out_colname_feature = col_rename_map.find(colname_feature) != col_rename_map.end() ? col_rename_map[colname_feature] : colname_feature;
+            std::string out_colname_count = col_rename_map.find(colname_count) != col_rename_map.end() ? col_rename_map[colname_count] : colname_count;
+            out_compact_line = out_colname_x + out_mol_tsv_delim + out_colname_y + out_mol_tsv_delim + out_colname_feature + out_mol_tsv_delim + out_colname_count;
         }
     }
     else {
