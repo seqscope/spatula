@@ -32,7 +32,7 @@ struct _sge2_sbcd_t
 
     // debug message - temporary
     if (rand() % 5000000 == 0)
-      notice("strid = %s, nid = %llu, px = %llu, py = %llu", strid.c_str(), nid, px, py);
+      notice("strid = %s, nid = %llu, px = %.6f, py = %.6f", strid.c_str(), nid, px, py);
   }
 };
 
