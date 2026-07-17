@@ -50,6 +50,7 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     std::vector<int32_t> v_icols_mtx;
 
     // output column names for tsv files
+    std::string bcd_delim; // delimiter for the barcode to extract X/Y coordinate
     std::string colname_gene_name("gene");
     std::string colname_gene_id("gene_id");
     //std::string colname_count("Count");
@@ -100,6 +101,7 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     LONG_INT_PARAM("icol-bcd-y", &in_icol_bcd_py, "1-based column index of y coordinate in the barcode file")
     LONG_INT_PARAM("icol-ftr-id", &in_icol_ftr_id, "1-based column index of feature ID in the barcode file")
     LONG_INT_PARAM("icol-ftr-name", &in_icol_ftr_name, "1-based column index of feature name in the barcode file")
+    LONG_STRING_PARAM("bcd-delim", &bcd_delim, "Delimiter for the barcode to extract X/Y coordinate")
 
     LONG_PARAM_GROUP("Thrsholding options", NULL)
     LONG_INT_PARAM("icol-thres", &in_icol_mtx_thres, "1-based column index of the threshold in the matrix file (default: -1)")    
@@ -333,6 +335,11 @@ int32_t cmdConvertSGE(int32_t argc, char **argv)
     ssr.icol_bcd_py = in_icol_bcd_py - 1;
     ssr.icol_ftr_id = in_icol_ftr_id - 1;
     ssr.icol_ftr_name = in_icol_ftr_name - 1;
+    if ( !bcd_delim.empty() ) {
+        if ( bcd_delim.size() != 1 )
+            error("The barcode delimiter must be a single character");
+        ssr.bcd_tr.delimiter = bcd_delim[0];
+    }
     ssr.open((in_sgedir + "/" + sge_bcdf).c_str(), (in_sgedir + "/" + sge_ftrf).c_str(), (in_sgedir + "/" + sge_mtxf).c_str());
 
     htsFile* wh_tsv = out_tsvdir.empty() ? NULL : hts_open((out_tsvdir + "/" + tsv_mtxf).c_str(), "wz");
