@@ -71,7 +71,7 @@ Available Options:
 == Input options ==
    --fq         [STR: ]             : Input FASTQ file that contains spatial barcode in the readname
    --format     [STR: ]             : Format of the spatial barcodes (e.g. DraI32, HDMI20, T7-30, etc)
-   --platform   [STR: Illumina]     : Platform of the sequencing data to determine the rule to parse the readnames (e.g. Illumina)
+   --platform   [STR: Illumina]     : Platform of the sequencing data to determine the rule to parse the readnames (e.g. Illumina, SalusGlobal)
    --force-lane [INT: 0]            : Force a lane number. Required a positive value for Salus/SalusGlobal platforms
 
 == Output Options ==

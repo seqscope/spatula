@@ -72,37 +72,58 @@ nav:
   - Home: index.md
   - Quickstart: quickstart.md
   - Install: install.md
-  - Tools: 
+  - Tools:
     - Introduction: tools.md
     - Seq-Scope Tools:
       - build-sbcds: tools/build_sbcds.md
       - combine-sbcds: tools/combine_sbcds.md
-      - eval-dups-sbcds: tools/eval_dups_sbcds.md
-      - match-sbcds: tools/match_sbcds.md
+      - combine-sge: tools/combine_sge.md
       - dge2sge: tools/dge2sge.md
+      - eval-dups-sbcds: tools/eval_dups_sbcds.md
+      - filter-tsv: tools/filter_tsv.md
+      - make-sdge: tools/make_sdge.md
+      - match-sbcds: tools/match_sbcds.md
+      - match-tag: tools/match_tag.md
+      - merge-matched-tags: tools/merge_matched_tags.md
+      - search-tag: tools/search_tag.md
+      - segment-sge: tools/segment_sge.md
+      - sge2tsv: tools/sge2tsv.md
       - subset-sge: tools/subset_sge.md
     - FICTURE Tools:
       - append-topk-tsv: tools/append_topk_tsv.md
+      - assign-feature2bin: tools/assign_feature2bin.md
       - convert-sge: tools/convert_sge.md
+      - diffexp-decode: tools/diffexp_decode.md
       - diffexp-model-matrix: tools/diffexp_model_matrix.md
       - join-pixel-decode: tools/join_pixel_decode.md
       - join-pixel-tsv: tools/join_pixel_tsv.md
       - merge-pseudobulk: tools/merge_pseudobulk.md
       - merge-sptsv: tools/merge_sptsv.md
       - mex2sptsv: tools/mex2sptsv.md
+      - pair-pseudobulk-from-decode: tools/pair_pseudobulk_from_decode.md
+      - paste-pixel-tsv: tools/paste_pixel_tsv.md
+      - pixel2sptsv: tools/pixel2sptsv.md
+      - pixels2cells: tools/pixels2cells.md
       - pseudobulk-from-decode: tools/pseudobulk_from_decode.md
+      - split-mol2bin: tools/split_mol2bin.md
+      - split-molecule-counts: tools/split_molecule_counts.md
       - sptsv2mex: tools/sptsv2mex.md
       - sptsv2model: tools/sptsv2model.md
-    - FASTQ Tools: 
+      - subset-mex: tools/subset_mex.md
+      - tsv-add-cell-id: tools/tsv_add_cell_id.md
+    - FASTQ Tools:
       - custom-demux-fastq: tools/custom_demux_fastq.md
       - filter-common-barcodes: tools/filter_common_barcodes.md
       - filter-fastqs: tools/filter_fastqs.md
       - reformat-fastqs: tools/reformat_fastqs.md
-    - Image Tools: 
+      - reformat-fastqs-mt: tools/reformat_fastqs_mt.md
+      - stratify-fastq-by-barcodes: tools/stratify_fastq_by_barcodes.md
+    - Image Tools:
       - draw-3way: tools/draw_3way.md
       - draw-sge: tools/draw_sge.md
-      - draw-xy: tools/draw_xy.md
       - draw-tsv: tools/draw_tsv.md
+      - draw-xy: tools/draw_xy.md
+      - draw-polygons: tools/draw_polygons.md
       - png-mono2rgba: tools/png_mono2rgba.md
     - Other Tools:
       - hist: tools/hist.md

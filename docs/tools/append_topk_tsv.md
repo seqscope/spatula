@@ -57,7 +57,7 @@ Detailed instructions of parameters are available. Ones with "[]" are in effect:
 Available Options:
 
 == Key Input/Output Options ==
-   --in-tsv          [STR: ]             : Input pseudobulk TSV file
+   --in-tsv          [STR: ]             : Input TSV file containing header columns followed by topic probabilities
    --in-json         [STR: ]             : Input JSON file
    --in-model        [STR: ]             : Input model file (required with --reorder)
    --out-tsv         [STR: ]             : Output TSV file

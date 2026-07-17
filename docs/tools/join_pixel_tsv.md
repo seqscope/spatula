@@ -54,7 +54,7 @@ To join these files together, you may run the following command:
 ```bash
 ## assume that the output file names are transcripts_ficture_joined.tsv.gz
 spatula join-pixel-tsv \
-    --in-tsv transcripts.sorted.tsv.gz \
+    --mol-tsv transcripts.sorted.tsv.gz \
     --pix-prefix-tsv nF12__,nF12.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz \
     --pix-prefix-tsv nF24__,nF24.d_12.decode.prj_12.r_4_5.pixel.sorted_by_major_axis.tsv.gz \
     --out-prefix transcripts_ficture_joined \
@@ -99,6 +99,7 @@ Note that you may observe many lines with `NA` in the beginning of the files bec
 
 ## Additional options
 * `--bin-um` : The unit of binning (in um) to search for nearest match. Default value 1um is recommended.
+* `--mu-scale` : Scale factor applied to the `mu` values. Default is `1.00`.
 * `--colname-x` : Column name for X-coordinate in the output file (default is `X`).
 * `--colname-y` : Column name for Y-coordinate in the output file (default is `Y`).
 * `--colnames-include` : Comma-separated column names to include in the output TSV file.
@@ -136,6 +137,7 @@ Available Options:
 == Key Parameters ==
    --bin-um             [FLT: 1.00]         : Bin size for grouping the pixel-level output for indexing
    --max-dist-um        [FLT: 0.50]         : Maximum distance in um to consider a match
+   --mu-scale           [FLT: 1.00]         : Scale factor for the mu values
 
 == Expected columns in input and output ==
    --colname-x          [STR: X]            : Column name for X-axis

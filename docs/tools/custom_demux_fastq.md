@@ -70,6 +70,7 @@ Note that, if you have a very large number of samples (e.g. >10) demultiplexed i
 * `--cmd` : The command to run for compressing output files. Each file is compressed with the command specified. The default is `gzip -c`. Another popular choice could be `pigz -p 4 -c`, which is faster than `gzip -c` if `pigz` is installed.
 * `--max-mismatch` : The maximum number of mismatches allowed to be considered as a match. The default is 2.
 * `--min-diff` : Minimum difference in the hamming distance with the index sequence between the best and second best match. The default is 2.
+* `--verbose-chunk` : Number of records to process between progress messages. The default is 1000000.
 * `--suffix-R1` : The suffix of Read 1 output files. The default is `.R1.fastq.gz`.
 * `--suffix-R2` : The suffix of Read 2 output files. The default is `.R2.fastq.gz`.
 * `--suffix-I1` : The suffix of Index 1 output files. The default is `.I1.fastq.gz`.
@@ -113,6 +114,7 @@ Available Options:
    --consider-N-as-mismatch [FLG: OFF]          : Consider N as mismatch (default: false)
    --max-mismatch           [INT: 2]            : Maximum number of mismatch allowed
    --min-diff               [INT: 2]            : Minimum difference between the best and second best match
+   --verbose-chunk          [INT: 1000000]      : Number of records to print output messages (default: 1000000)
 
 == Output Options ==
    --out                    [STR: ]             : Output prefix

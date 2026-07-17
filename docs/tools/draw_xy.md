@@ -36,6 +36,13 @@ See below for a more detailed usage description.
 * `--intensity-per-obs` : The intensity (max 255) of individual points to contribute to the pixel. The default is 1.0.
 * `--icol-x` : The (0-based) column index of the X coordinate in the input TSV file. The default is 0.
 * `--icol-y` : The (0-based) column index of the Y coordinate in the input TSV file. The default is 1.
+* `--icol-cnt` : The (0-based) column index of a count column in the input TSV file. Each observation contributes its count to the pixel intensity. The default is -1 (each row counts as 1).
+* `--skip-lines` : Number of lines to skip at the beginning of the input file. The default is 0.
+* `--ullr` : Comma-separated bounding box `xmin,ymin,xmax,ymax` restricting the drawn area. If not specified, the extent is determined from the data.
+* `--auto-adjust` : Automatically adjust the intensity based on the maximum count. The default is OFF.
+* `--invert` : Invert the image (light background / dark points). The default is OFF.
+* `--adjust-quantile` : Quantile of (non-zero) pixels used for auto-adjustment. The default is 0.99.
+* `--max-intensity` : Maximum possible intensity value. The default is 255.
 
 ## Expected Output
 
@@ -60,12 +67,19 @@ Available Options:
    --tsv               [STR: ]             : tsv file to draw the x-y coordinates. /dev/stdin for stdin
    --icol-x            [INT: 0]            : 0-based index of the column for x
    --icol-y            [INT: 1]            : 0-based index of the column for y
+   --icol-cnt          [INT: -1]           : 0-based index of the column for count
+   --skip-lines        [INT: 0]            : Number of lines to skip
 
 == Settings ==
    --width             [INT: 0]            : Width of the image
    --height            [INT: 0]            : Height of the image
+   --ullr              [STR: ]             : Comma-separated bounding box (xmin,ymin,xmax,ymax)
    --coord-per-pixel   [FLT: 1.00]         : Number of coordinate units per pixel
    --intensity-per-obs [INT: 1]            : Intensity per pixel per observation
+   --auto-adjust       [FLG: OFF]          : Automatically adjust the intensity of the color based on the maximum count
+   --invert            [FLG: OFF]          : Invert the image
+   --adjust-quantile   [FLT: 0.99]         : Quantile of pixel to use for auto-adjustment among non-zero pixels
+   --max-intensity     [INT: 255]          : Maximum value of possible intensity
 
 == Output Options ==
    --out               [STR: ]             : Output file name

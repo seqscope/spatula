@@ -106,7 +106,7 @@ Available Options:
 == Genes to visualize ==
    --color-gene      [V_STR: ]           : [color_code]:[gene1],[gene2],... as a visualization unit. Adding :[idx] at the end is optional
    --color-regex     [V_STR: ]           : [color_code]:[regex](:[idx]) as a visualization unit. [regex] is a regulat expression. Adding :[idx] at the end is optional
-   --color-list      [V_STR: ]           : [color_code]:[list_file](:[idx]) as a visualization unit
+   --color-list      [V_STR: ]           : [color_code]:[list_file] as a visualization unit
 
 == Output options ==
    --coord-per-pixel [FLT: 1000.00]      : Number of coordinate units per pixel

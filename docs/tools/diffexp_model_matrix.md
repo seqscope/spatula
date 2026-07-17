@@ -28,6 +28,9 @@ See below for a more detailed usage description.
 * `--pseudocount FLT [0.50]` : Pseudocount to add to the counts to avoid zero counts. Default is 0.50.
 * `--test-pairwise FLG [OFF]` : If set, perform pairwise test between all possible pairs of factors (only applicable when one TSV file is provided). Default is OFF.
 * `--ignore-mismatch FLG [OFF]` : If set, ignore mismatching factors between the two TSV files. Only overlapping factors will be used for the differential expression test. If not set, an error will be raised when mismatching factors are found. Default is OFF.
+* `--inflation-factor FLT [1.00]` : Inflation factor applied to the chi-square statistic to account for potential confounding factors. Default is 1.00 (no inflation).
+* `--output-fc-lb FLG [OFF]` : If set, output a lower bound of the fold change. Default is OFF.
+* `--alpha-fc-lb FLT [1.0e-03]` : Alpha level used for the lower bound of the fold change. Default is 1.0e-03.
 
 ## Expected Output
 
@@ -103,17 +106,20 @@ Detailed instructions of parameters are available. Ones with "[]" are in effect:
 Available Options:
 
 == Input/Output options ==
-   --tsv1            [STR: ]             : First tsv file containing the model or pseudobulk matrix
-   --tsv2            [STR: ]             : (Optional) Second tsv file containing the model or pseudobulk matrix
-   --out             [STR: ]             : Output file prefix
+   --tsv1             [STR: ]             : First tsv file containing the model or pseudobulk matrix
+   --tsv2             [STR: ]             : (Optional) Second tsv file containing the model or pseudobulk matrix
+   --out              [STR: ]             : Output file prefix
 
 == Settings ==
-   --max-pval        [FLT: 1.0e-03]      : Max p-value for the differential expression test
-   --min-fc          [FLT: 1.50]         : Min fold change for the differential expression test
-   --min-count       [FLT: 10.00]        : Minimum observed count for the feature to be considered
-   --pseudocount     [FLT: 0.50]         : Pseudocount to add to the counts
-   --test-pairwise   [FLG: OFF]          : Perform pairwise test (1 sample test only)
-   --ignore-mismatch [FLG: OFF]          : Ignore mismatching factors between tsv1 and tsv2. If set, only overlapping factors will be used for the test
+   --max-pval         [FLT: 1.0e-03]      : Max p-value for the differential expression test
+   --min-fc           [FLT: 1.50]         : Min fold change for the differential expression test
+   --min-count        [FLT: 10.00]        : Minimum observed count for the feature to be considered
+   --pseudocount      [FLT: 0.50]         : Pseudocount to add to the counts
+   --test-pairwise    [FLG: OFF]          : Perform pairwise test (1 sample test only)
+   --ignore-mismatch  [FLG: OFF]          : Ignore mismatching factors between tsv1 and tsv2. If set, only overlapping factors will be used for the test
+   --inflation-factor [FLT: 1.00]         : Inflation factor to inflate the chi-square statistic to account for potential confounding factors (default: 1, no inflation)
+   --output-fc-lb     [FLG: OFF]          : Output lower bound of fold change
+   --alpha-fc-lb      [FLT: 1.0e-03]      : Alpha level for the lower bound of fold change
 
 
 NOTES:

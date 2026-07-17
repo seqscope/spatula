@@ -48,6 +48,8 @@ int32_t cmdMergeSpTSV(int32_t argc, char **argv);
 int32_t cmdDrawPolygons(int32_t argc, char **argv);
 int32_t cmdPixels2Cells(int32_t argc, char **argv);
 int32_t cmdSplitMoleculeCounts(int32_t argc, char **argv);
+int32_t cmdAssignFeature2Bin(int32_t argc, char **argv);
+int32_t cmdSplitMol2Bin(int32_t argc, char **argv);
 int32_t cmdTsvAddCellId(int32_t argc, char **argv);
 
 int32_t main(int32_t argc, char **argv)
@@ -98,7 +100,9 @@ int32_t main(int32_t argc, char **argv)
   LONG_COMMAND("sptsv2model", &cmdSpTSV2Model, "Create model matrix from Sparse TSV format in FICTURE2 with cluster assignment")
   LONG_COMMAND("pixels2cells", &cmdPixels2Cells, "Assign pixels to cell IDs based on boundary polygons")
   LONG_COMMAND("tsv-add-cell-id", &cmdTsvAddCellId, "Annotate transcript TSV with cell IDs from boundary polygons (exact, multithreaded)")
-  LONG_COMMAND("split-molecule-counts", &cmdSplitMoleculeCounts, "Split molecule counts into pixel-level bins based on gene names")
+  LONG_COMMAND("assign-feature2bin", &cmdAssignFeature2Bin, "Assign features (genes) into ordered bins based on total counts, writing the bin assignment as JSON")
+  LONG_COMMAND("split-mol2bin", &cmdSplitMol2Bin, "Split a molecule TSV into per-bin files using a gene->bin assignment JSON (from assign-feature2bin)")
+  LONG_COMMAND("split-molecule-counts", &cmdSplitMoleculeCounts, "(Deprecated: use assign-feature2bin + split-mol2bin) Split molecule counts into pixel-level bins based on gene names")
 
   LONG_COMMAND_GROUP("FASTQ Tools", NULL)
   LONG_COMMAND("custom-demux-fastq", &cmdCustomDemuxFASTQ, "Demultiplex FASTQ files based in a customized manner")

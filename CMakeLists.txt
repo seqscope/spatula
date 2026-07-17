@@ -93,6 +93,8 @@ include_directories(${HTS_INCLUDE_DIRS} ${QGEN_INCLUDE_DIRS})
 
 set(SOURCE_FILES
     cmd_split_molecule_counts.cpp
+    cmd_assign_feature2bin.cpp
+    cmd_split_mol2bin.cpp
     cmd_tsv_add_cell_id.cpp
     cmd_pixels2cells.cpp
     cmd_draw_polygons.cpp
