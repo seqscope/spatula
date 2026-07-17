@@ -54,3 +54,5 @@ site/*
 .vscode/*
 bkup/
 bkup/*
+tmp/
+tmp/*

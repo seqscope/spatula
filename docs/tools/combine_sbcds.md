@@ -102,14 +102,14 @@ Available Options:
    --write-all           [FLG: OFF]          : Write all spatial barcodes to the output file, including duplicated and filtered reads
 
 == Options for coordinate conversion ==
-   --pixel-to-nm         [FLT: 34.78]        : Pixel to nm conversion factor (37.5 for Seq-Scope)
+   --pixel-to-nm         [FLT: 34.78]        : Pixel to nm conversion factor (37.5 for HiSeq2500, 34.78 for NovaSeq 6000)
    --rowgap              [FLT: 0.00]         : Additional gap between rows (proportional to the height of a tile)
    --colgap              [FLT: 0.00]         : Additional gap between columns (proportional to the width of a tile)
 
 == Options for duplicate filtering ==
    --match-len           [INT: 27]           : Length of HDMI spatial barcode to be considered for a match
    --max-dup             [INT: 1]            : Maximum number of duplicates allowed for each spatial barcode. If this is 1, duplicates are not allowed
-   --max-dup-dist-nm     [FLT: 10000.00]     : Maximum distance allowed for duplicates in nm scale
+   --max-dup-dist-nm     [FLT: 1000.00]      : Maximum distance allowed for duplicates in nm scale
 
 
 NOTES:

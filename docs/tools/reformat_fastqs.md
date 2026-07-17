@@ -46,6 +46,8 @@ See below for a more detailed usage description.
 * `--len-umi` : The length of the UMI sequence (randomer) to be copied from Read 2 (beginning) to Read 1 (after spatial barcode). The default is 9.
 * `--len-r2` : The length of Read 2 sequences to be trimmed. The default is 101.
 * `--skip-sbcd` : The number of bases to be skipped in the beginning of the read. This is useful when insufficient bases are sequenced in the 1st-seq spatial barcode, which is reverse complemented. The default is 1.
+* `--revcomp-r1` : Reverse complement Read 1 before writing. Default is OFF.
+* `--revcomp-r2` : Reverse complement Read 2 before writing. Default is OFF.
 
 ## Expected Output
 
@@ -68,20 +70,22 @@ Detailed instructions of parameters are available. Ones with "[]" are in effect:
 Available Options:
 
 == Input options ==
-   --fq1       [STR: ]             : FASTQ file for read 1
-   --fq2       [STR: ]             : FASTQ file for read 2
+   --fq1        [STR: ]             : FASTQ file for read 1
+   --fq2        [STR: ]             : FASTQ file for read 2
 
 == Filtering options ==
-   --match-tsv [V_STR: ]           : .matched.tsv.gz file(s) to filter FASTQ file based on spatial barcodes
-   --len-match [INT: 27]           : Length of perfect match required with 2nd-seq FASTQ (27 or less)
+   --match-tsv  [V_STR: ]           : .matched.tsv.gz file(s) to filter FASTQ file based on spatial barcodes
+   --len-match  [INT: 27]           : Length of perfect match required with 2nd-seq FASTQ (27 or less)
 
 == Output Options ==
-   --out1      [STR: ]             : Output FASTQ file for read1
-   --out2      [STR: ]             : Output FASTQ file for read2
-   --skip-sbcd [INT: 0]            : Skip first bases of spatial barcode (Read 1)
-   --len-sbcd  [INT: 30]           : Length of spatial barcode (Read 1)
-   --len-umi   [INT: 9]            : Length of UMI or randomer (Read 2)
-   --len-r2    [INT: 101]          : Length of Read 2 to trim (including randomers)
+   --out1       [STR: ]             : Output FASTQ file for read1
+   --out2       [STR: ]             : Output FASTQ file for read2
+   --skip-sbcd  [INT: 0]            : Skip first bases of spatial barcode (Read 1)
+   --len-sbcd   [INT: 30]           : Length of spatial barcode (Read 1)
+   --len-umi    [INT: 9]            : Length of UMI or randomer (Read 2)
+   --len-r2     [INT: 101]          : Length of Read 2 to trim (including randomers)
+   --revcomp-r1 [FLG: OFF]          : Reverse complement Read 1
+   --revcomp-r2 [FLG: OFF]          : Reverse complement Read 2
 
 
 NOTES:

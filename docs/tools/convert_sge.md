@@ -228,8 +228,13 @@ You may sort the output file by the spatial coordinates using the `sort` command
 * `--icol-bcd-y` : 1-based column index of Y coordinate in the `barcodes.tsv.gz` file (when `--pos` is not provided).
 * `--icol-ftr-id` : 1-based column index of the feature (gene) ID in the `features.tsv.gz` file.
 * `--icol-ftr-name` : 1-based column index of the feature name (gene symbol) in the `features.tsv.gz` file.
+* `--bcd-delim` : Delimiter used to split the barcode string in order to extract the X/Y coordinate (when the coordinates are embedded in the barcode itself). Empty by default.
 * `--pos` : The path to the barcode position file (typically used for Visium HD input in CSV format).
 * `--units-per-um` : The number of units (i.e. pixels) per micrometer for the spatial coordinates.
+
+### Thresholding options
+* `--icol-thres` : 1-based column index of a threshold value in the `matrix.mtx.gz` file. Default is -1 (disabled).
+* `--mtx-thres` : Threshold that a matrix entry must meet to be counted as a valid count. Default is 0.
 
 ### Gene filtering options
 * `--include-feature-list` ; A file containing a list of input genes to be included (feature name of IDs)
@@ -252,6 +257,8 @@ You may sort the output file by the spatial coordinates using the `sort` command
 * `--pos-colname-y` : The column name of the Y coordinate in the barcode position file.
 * `--pos-delim` : The delimiter used in the barcode position file. Default is `,`.
 * `--precision-um` : Output precision below the decimal point.
+* `--jitter-xy` : Jitter each output coordinate by a random value in `[-jitter_xy, jitter_xy]`. This only applies to the `--out-tsv` output. Default is 0 (no jittering).
+* `--random-seed` : Random seed used for jittering the coordinates. Default is 0.
 * `--print-feature-id` : Turn on to print feature ID in addition to feature name.
 * `--allow-duplicate-gene-names` : Turn on to allow duplicate gene names in the output file.
 * `--colname-feature-name` : Column name for feature/gene name in the ouput file (default is `gene`).
@@ -310,6 +317,11 @@ Available Options:
    --icol-bcd-y                 [INT: 7]            : 1-based column index of y coordinate in the barcode file
    --icol-ftr-id                [INT: 1]            : 1-based column index of feature ID in the barcode file
    --icol-ftr-name              [INT: 2]            : 1-based column index of feature name in the barcode file
+   --bcd-delim                  [STR: ]             : Delimiter for the barcode to extract X/Y coordinate
+
+== Thrsholding options ==
+   --icol-thres                 [INT: -1]           : 1-based column index of the threshold in the matrix file (default: -1)
+   --mtx-thres                  [INT: 0]            : Threshold for the matrix file to be considered as a valid count (default: 0)
 
 == Additional Barcode Position File ==
    --pos                        [STR: ]             : Position file name that contains separate X and Y coordinates
@@ -329,6 +341,8 @@ Available Options:
 == Key Output Options ==
    --units-per-um               [FLT: 1.00]         : Coordinate unit per um (conversion factor)
    --precision-um               [INT: 3]            : Output precision below the decimal point
+   --jitter-xy                  [FLT: 0.00]         : Jitter the coordinates by a random value between [-jitter_xy, jitter_xy]. This only applies to --out-tsv output (default: 0, no jittering)
+   --random-seed                [INT: 0]            : Random seed for jittering the coordinates (default: 0)
 
 == Auxilary Output Options for TSV output ==
    --print-feature-id           [FLG: OFF]          : Print feature ID in output file

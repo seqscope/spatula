@@ -34,6 +34,7 @@ See below for a more detailed usage description.
 
 ## Additional Options
 * `--sbcd` : Directory that contains the spatial barcode dictionary per tile. This can be used instead of `--match` option, if the list of matching barcodes are unavailable. 
+* `--n-mtx-cols` : Number of columns expected in the `matrix.mtx` files. If set, matrices with fewer count columns are zero-padded to this width so that all `--mtx` inputs share a consistent number of count columns. The default is 0 (no padding).
 
 ## Expected Output
 
@@ -66,7 +67,7 @@ The full usage of `spatula dge2sdge` can be viewed with the `--help` option:
 
 ```
 $  ./spatula dge2sge --help   
-[./spatula dge2sge] -- Convert DGE (from STARsolo) into SGE format
+[./spatula dge2sge] -- Convert DGE (from STARsolo) into SGE format (same as dge2sdge)
 
  Copyright (c) 2022-2024 by Hyun Min Kang
  Licensed under the Apache License v2.0 http://www.apache.org/licenses/
@@ -76,14 +77,15 @@ Detailed instructions of parameters are available. Ones with "[]" are in effect:
 Available Options:
 
 == Input options ==
-   --sbcd  [STR: ]             : Spatial barcode dictionary generated from 'build-sbcds' command
-   --match [V_STR: ]           : List of spatial barcode files that were used for whitelist generation
-   --bcd   [STR: ]             : Shared barcode file path (e.g. barcodes.tsv.gz)
-   --ftr   [STR: ]             : Shared feature file path (e.g. feature.tsv.gz)
-   --mtx   [V_STR: ]           : Shared matrix file path (e.g. matrix.mtx.gz)
+   --sbcd       [STR: ]             : Spatial barcode dictionary generated from 'build-sbcds' command
+   --match      [V_STR: ]           : List of spatial barcode files that were used for whitelist generation
+   --bcd        [STR: ]             : Shared barcode file path (e.g. barcodes.tsv.gz)
+   --ftr        [STR: ]             : Shared feature file path (e.g. features.tsv.gz)
+   --mtx        [V_STR: ]           : Shared matrix file path (e.g. matrix.mtx.gz)
+   --n-mtx-cols [INT: 0]            : Number of columns in the matrix.mtx files (if padding zero is needed)
 
 == Output Options ==
-   --out   [STR: ]             : Output directory
+   --out        [STR: ]             : Output directory
 
 
 NOTES:
