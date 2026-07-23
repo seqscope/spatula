@@ -41,13 +41,22 @@
 //   residual_{g} = sum_{u in obs(g)} ( |x_{g,u} - E_{g,u}| - E_{g,u} ) + marginal_{g}
 //
 // so a single streaming pass over the sparse TSV suffices.
+//
+// By default marginal_{g} is read from the feature stats file. With --pseudobulk it is
+// instead the row sum of a (gene x factor) matrix, which lets the null model be defined by
+// an externally supplied expression profile. Only the relative profile matters for the
+// per-unit residual, because the scale of marginal_{g} cancels in
+// sum_g expected_{g,u} = marginal_{u}. It does NOT cancel in the per-feature direction:
+// there sum_u expected_{g,u} = marginal_{g} * ( sum_u marginal_{u} ) / total, which is why
+// the per-feature closed form carries that ratio explicitly.
 //////////////////////////////////////////////////////////////////////////
 int32_t cmdSptsvNullResiduals(int32_t argc, char **argv)
 {
-    std::string in_sptsv;   // input sparse TSV prefix
-    std::string out_prefix; // output prefix for the residual files
+    std::string in_sptsv;      // input sparse TSV prefix
+    std::string in_pseudobulk; // optional (gene x factor) matrix to derive the feature marginals from
+    std::string out_prefix;    // output prefix for the residual files
     std::string colname_random_key("random_key");
-    int32_t min_feature_count = 0;  // minimum feature count to include in the output
+    double min_feature_count = 0;  // minimum feature marginal to include in the output
     std::string keyname_dictionary("dictionary");
     std::string keyname_header_info("header_info");
     std::string keyname_n_features("n_features");
@@ -65,7 +74,8 @@ int32_t cmdSptsvNullResiduals(int32_t argc, char **argv)
     LONG_PARAM_GROUP("Key Input/Output Options", NULL)
     LONG_STRING_PARAM("sptsv", &in_sptsv, "Input sparse TSV prefix")
     LONG_STRING_PARAM("out", &out_prefix, "Output prefix")
-    LONG_INT_PARAM("min-feature-count", &min_feature_count, "Minimum total count for a feature to be included in the null model")
+    LONG_STRING_PARAM("pseudobulk", &in_pseudobulk, "Input (gene x factor) pseudobulk matrix. If specified, the feature marginals are the row sums of this matrix instead of the counts in the feature stats file")
+    LONG_DOUBLE_PARAM("min-feature-count", &min_feature_count, "Minimum marginal for a feature to be included in the null model")
 
     LONG_PARAM_GROUP("Auxiliary Input/Output Options", NULL)
     LONG_STRING_PARAM("colname-random-key", &colname_random_key, "Column name for the random key in the output")
@@ -96,27 +106,44 @@ int32_t cmdSptsvNullResiduals(int32_t argc, char **argv)
     std::string in_meta = in_sptsv + suffix_sptsv_json;
     std::string in_tsv = in_sptsv + suffix_sptsv_tsv;
 
-    std::map<std::string, int64_t> feature_counts;
+    // the feature marginals come either from the row sums of a (gene x factor) pseudobulk
+    // matrix (--pseudobulk) or, by default, from the counts in the feature stats file
+    std::map<std::string, double> feature_counts;
+    bool use_pseudobulk = !in_pseudobulk.empty();
+    std::string ftr_marginal_src = use_pseudobulk ? in_pseudobulk : in_ftr_stats;
 
-    // read the feature stats mapping gene name to feature count
-    notice("Reading feature stats file %s", in_ftr_stats.c_str());
-    tsv_reader tr_ftr_stats(in_ftr_stats.c_str());
-    while ( tr_ftr_stats.read_line() > 0 ) {
-        if ( tr_ftr_stats.nfields < 2 ) {
-            error("Feature stats file %s has less than 2 columns", in_ftr_stats.c_str());
+    if ( use_pseudobulk ) {
+        // load the (gene x factor) matrix and use its row sums as the feature marginals
+        pseudobulk_matrix pbm(in_pseudobulk.c_str());
+        for(int32_t i = 0; i < (int32_t)pbm.features.size(); ++i) {
+            if ( feature_counts.find(pbm.features[i]) != feature_counts.end() ) {
+                error("Feature %s appears more than once in the pseudobulk matrix %s", pbm.features[i].c_str(), in_pseudobulk.c_str());
+            }
+            feature_counts[pbm.features[i]] = pbm.rowsums[i];
         }
-        const char* feature = tr_ftr_stats.str_field_at(0);
-        if ( feature[0] == '#' ) {
-            continue; // skip comment lines
-        }
-        const char* cnt_str = tr_ftr_stats.str_field_at(1);
-        if ( ( tr_ftr_stats.nlines == 1 ) && ( strspn(cnt_str, "0123456789") != strlen(cnt_str) ) ) {
-            continue; // skip the header line, if any
-        }
-        feature_counts[feature] = tr_ftr_stats.int64_field_at(1);
+        notice("Loaded row sums for %zu features (across %zu factors) from %s", feature_counts.size(), pbm.factors.size(), in_pseudobulk.c_str());
     }
-    tr_ftr_stats.close();
-    notice("Loaded counts for %zu features from %s", feature_counts.size(), in_ftr_stats.c_str());
+    else {
+        // read the feature stats mapping gene name to feature count
+        notice("Reading feature stats file %s", in_ftr_stats.c_str());
+        tsv_reader tr_ftr_stats(in_ftr_stats.c_str());
+        while ( tr_ftr_stats.read_line() > 0 ) {
+            if ( tr_ftr_stats.nfields < 2 ) {
+                error("Feature stats file %s has less than 2 columns", in_ftr_stats.c_str());
+            }
+            const char* feature = tr_ftr_stats.str_field_at(0);
+            if ( feature[0] == '#' ) {
+                continue; // skip comment lines
+            }
+            const char* cnt_str = tr_ftr_stats.str_field_at(1);
+            if ( ( tr_ftr_stats.nlines == 1 ) && ( strspn(cnt_str, "0123456789") != strlen(cnt_str) ) ) {
+                continue; // skip the header line, if any
+            }
+            feature_counts[feature] = (double)tr_ftr_stats.int64_field_at(1);
+        }
+        tr_ftr_stats.close();
+        notice("Loaded counts for %zu features from %s", feature_counts.size(), in_ftr_stats.c_str());
+    }
 
     // read the metadata
     notice("Reading metadata file %s", in_meta.c_str());
@@ -196,25 +223,25 @@ int32_t cmdSptsvNullResiduals(int32_t argc, char **argv)
     int32_t n_ftr_included = 0;
     int32_t n_ftr_missing = 0;
     for(int32_t i = 0; i < n_features; ++i) {
-        std::map<std::string, int64_t>::const_iterator it = feature_counts.find(feature_names[i]);
+        std::map<std::string, double>::const_iterator it = feature_counts.find(feature_names[i]);
         if ( it == feature_counts.end() ) {
             ++n_ftr_missing;
-            continue; // feature has no count in the feature stats file - always excluded
+            continue; // feature has no marginal available - always excluded
         }
-        ftr_marginals[i] = (double)it->second;
-        if ( ( it->second > 0 ) && ( it->second >= (int64_t)min_feature_count ) ) {
+        ftr_marginals[i] = it->second;
+        if ( ( it->second > 0 ) && ( it->second >= min_feature_count ) ) {
             ftr_included[i] = true;
             total += ftr_marginals[i];
             ++n_ftr_included;
         }
     }
     if ( n_ftr_missing > 0 ) {
-        warning("%d features in %s are missing from %s, and they will be ignored", n_ftr_missing, in_meta.c_str(), in_ftr_stats.c_str());
+        warning("%d features in %s are missing from %s, and they will be ignored", n_ftr_missing, in_meta.c_str(), ftr_marginal_src.c_str());
     }
     if ( total <= 0 ) {
-        error("Total count across the %d included features is zero. Check %s or lower --min-feature-count", n_ftr_included, in_ftr_stats.c_str());
+        error("Total marginal across the %d included features is zero. Check %s or lower --min-feature-count", n_ftr_included, ftr_marginal_src.c_str());
     }
-    notice("Using %d of %d features (total counts = %.0lf) to build the null model", n_ftr_included, n_features, total);
+    notice("Using %d of %d features (total marginal = %.1lf, from %s) to build the null model", n_ftr_included, n_features, total, ftr_marginal_src.c_str());
 
     // open the output files
     std::string out_unit_file = out_prefix + suffix_unit_stats;
@@ -325,7 +352,14 @@ int32_t cmdSptsvNullResiduals(int32_t argc, char **argv)
     if ( n_umi_mismatch > 0 ) {
         warning("The total count did not match the %dth column of %s for %d units", offset_data + 2, in_tsv.c_str(), n_umi_mismatch);
     }
-    if ( fabs(sum_unit_marginals - total) > 1e-6 * total ) {
+    if ( use_pseudobulk ) {
+        // the pseudobulk matrix only defines the relative expression profile of each gene.
+        // its scale cancels out of expected_{g,u} = marginal_{g} * marginal_{u} / total,
+        // so a different total is expected rather than a problem
+        notice("The sum of unit marginals is %.1lf and the total pseudobulk marginal is %.1lf (ratio %.4lf). Only the relative profile of %s is used",
+               sum_unit_marginals, total, sum_unit_marginals / total, in_pseudobulk.c_str());
+    }
+    else if ( fabs(sum_unit_marginals - total) > 1e-6 * total ) {
         warning("The sum of unit marginals (%.0lf) does not match the sum of feature marginals (%.0lf). The null expectation may be inconsistent with %s",
                 sum_unit_marginals, total, in_ftr_stats.c_str());
     }
@@ -336,24 +370,33 @@ int32_t cmdSptsvNullResiduals(int32_t argc, char **argv)
     if ( wf_ftr == NULL ) {
         error("Cannot open output per-feature residual file %s for writing", out_ftr_file.c_str());
     }
-    hprintf(wf_ftr, "feature\tfeature_idx\tn_units\tn_umis\tl1_residual\tfrac_residual\n");
+    hprintf(wf_ftr, "feature\tfeature_idx\tn_units\tn_umis\texpected_umis\tl1_residual\tfrac_residual\n");
     int32_t n_ftr_mismatch = 0;
     for(int32_t i = 0; i < n_features; ++i) {
         if ( !ftr_included[i] ) {
             continue;
         }
-        if ( fabs(ftr_sum_obs[i] - ftr_marginals[i]) > 1e-6 * ftr_marginals[i] ) {
+        // when the marginals come from the feature stats file they must agree with the data.
+        // with --pseudobulk the marginals are on an arbitrary scale, so this check does not apply
+        if ( !use_pseudobulk && ( fabs(ftr_sum_obs[i] - ftr_marginals[i]) > 1e-6 * ftr_marginals[i] ) ) {
             ++n_ftr_mismatch;
             if ( n_ftr_mismatch <= 10 ) {
                 warning("The observed count of feature %s (%.0lf) does not match its count in %s (%.0lf)",
                         feature_names[i].c_str(), ftr_sum_obs[i], in_ftr_stats.c_str(), ftr_marginals[i]);
             }
         }
-        // sum_u |x - E| = sum_{u in obs} ( |x - E| - E ) + sum_{all u} E, and sum_{all u} E = marginal_{gene}
-        double ftr_l1 = ftr_sum_abs[i] - ftr_sum_exp[i] + ftr_marginals[i];
+        // sum_u |x - E| = sum_{u in obs} ( |x - E| - E ) + sum_{all u} E, where
+        // sum_{all u} E_{g,u} = marginal_{gene} * ( sum_u marginal_{unit} ) / total.
+        // that equals marginal_{gene} only when the feature marginals are on the same scale as
+        // the data, which is not the case for an arbitrarily scaled --pseudobulk matrix
+        double ftr_expected = ftr_marginals[i] * sum_unit_marginals / total;
+        double ftr_l1 = ftr_sum_abs[i] - ftr_sum_exp[i] + ftr_expected;
         if ( ftr_l1 < 0 ) ftr_l1 = 0; // guard against numerical underflow
-        hprintf(wf_ftr, "%s\t%d\t%lld\t%.0lf\t%.3lf\t%.5lf\n", feature_names[i].c_str(), i,
-                (long long)ftr_n_units[i], ftr_marginals[i], ftr_l1, ftr_l1 / (2.0 * ftr_marginals[i]));
+        // the L1 residual is bounded by (observed total + expected total), so frac_residual is in [0, 1]
+        double ftr_denom = ftr_sum_obs[i] + ftr_expected;
+        hprintf(wf_ftr, "%s\t%d\t%lld\t%.0lf\t%.3lf\t%.3lf\t%.5lf\n", feature_names[i].c_str(), i,
+                (long long)ftr_n_units[i], ftr_sum_obs[i], ftr_expected, ftr_l1,
+                ftr_denom > 0 ? ftr_l1 / ftr_denom : 0.0);
     }
     hts_close(wf_ftr);
     if ( n_ftr_mismatch > 0 ) {
