@@ -107,6 +107,7 @@ nav:
       - pseudobulk-from-decode: tools/pseudobulk_from_decode.md
       - split-mol2bin: tools/split_mol2bin.md
       - split-molecule-counts: tools/split_molecule_counts.md
+      - sptsv-null-residuals: tools/sptsv_null_residuals.md
       - sptsv2mex: tools/sptsv2mex.md
       - sptsv2model: tools/sptsv2model.md
       - subset-mex: tools/subset_mex.md
