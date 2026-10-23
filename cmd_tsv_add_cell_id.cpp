@@ -28,12 +28,70 @@
 
 namespace {
 
-// A single boundary polygon (exterior ring only).
-struct CellPolygon {
+// ray-casting point-in-ring test
+inline bool ring_contains(const std::vector<double>& xs, const std::vector<double>& ys, double x, double y) {
+    bool in = false;
+    size_t n = xs.size();
+    for (size_t i = 0, j = n - 1; i < n; j = i++) {
+        if (((ys[i] > y) != (ys[j] > y)) &&
+            (x < (xs[j] - xs[i]) * (y - ys[i]) / (ys[j] - ys[i]) + xs[i]))
+            in = !in;
+    }
+    return in;
+}
+
+// squared distance from (px,py) to a line segment (ax,ay)-(bx,by)
+inline double seg_dist2(double px, double py, double ax, double ay, double bx, double by) {
+    double dx = bx - ax, dy = by - ay;
+    double len2 = dx * dx + dy * dy;
+    double t = len2 > 0.0 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0.0;
+    if (t < 0.0) t = 0.0; else if (t > 1.0) t = 1.0;
+    double ex = px - (ax + t * dx), ey = py - (ay + t * dy);
+    return ex * ex + ey * ey;
+}
+
+// squared distance from (x,y) to the nearest edge of a ring
+inline double ring_dist2(const std::vector<double>& xs, const std::vector<double>& ys, double x, double y) {
+    double best = DBL_MAX;
+    size_t n = xs.size();
+    for (size_t i = 0, j = n - 1; i < n; j = i++) {
+        double d = seg_dist2(x, y, xs[j], ys[j], xs[i], ys[i]);
+        if (d < best) best = d;
+    }
+    return best;
+}
+
+// An interior ring (hole) of a boundary polygon.
+struct HoleRing {
     std::vector<double> xs;
     std::vector<double> ys;
     double xmin, ymin, xmax, ymax;   // bounding box
-    double cx, cy;                    // centroid (mean of vertices)
+
+    void finalize() {
+        xmin = ymin = DBL_MAX;
+        xmax = ymax = -DBL_MAX;
+        for (size_t i = 0; i < xs.size(); ++i) {
+            if (xs[i] < xmin) xmin = xs[i];
+            if (xs[i] > xmax) xmax = xs[i];
+            if (ys[i] < ymin) ymin = ys[i];
+            if (ys[i] > ymax) ymax = ys[i];
+        }
+    }
+
+    // ray-casting test, guarded by the bounding box
+    inline bool contains(double x, double y) const {
+        if (x < xmin || x > xmax || y < ymin || y > ymax) return false;
+        return ring_contains(xs, ys, x, y);
+    }
+};
+
+// A single boundary polygon: exterior ring plus optional holes.
+struct CellPolygon {
+    std::vector<double> xs;           // exterior ring
+    std::vector<double> ys;
+    std::vector<HoleRing> holes;      // interior rings
+    double xmin, ymin, xmax, ymax;   // bounding box (of the exterior ring)
+    double cx, cy;                    // centroid (mean of exterior vertices)
     int32_t cell_id_idx;              // index into the global cell-id name table
 
     CellPolygon() : xmin(0), ymin(0), xmax(0), ymax(0), cx(0), cy(0), cell_id_idx(-1) {}
@@ -56,35 +114,22 @@ struct CellPolygon {
         if (n_centroid > 0) { cx = sx / n_centroid; cy = sy / n_centroid; }
     }
 
-    // ray-casting point-in-polygon test, guarded by the bounding box
+    // point-in-polygon test, guarded by the bounding box: inside the exterior
+    // ring and not inside any hole
     inline bool contains(double x, double y) const {
         if (x < xmin || x > xmax || y < ymin || y > ymax) return false;
-        bool in = false;
-        size_t n = xs.size();
-        for (size_t i = 0, j = n - 1; i < n; j = i++) {
-            if (((ys[i] > y) != (ys[j] > y)) &&
-                (x < (xs[j] - xs[i]) * (y - ys[i]) / (ys[j] - ys[i]) + xs[i]))
-                in = !in;
-        }
-        return in;
+        if (!ring_contains(xs, ys, x, y)) return false;
+        for (size_t h = 0; h < holes.size(); ++h)
+            if (holes[h].contains(x, y)) return false;
+        return true;
     }
 
-    // squared distance from (px,py) to a line segment (ax,ay)-(bx,by)
-    static inline double seg_dist2(double px, double py, double ax, double ay, double bx, double by) {
-        double dx = bx - ax, dy = by - ay;
-        double len2 = dx * dx + dy * dy;
-        double t = len2 > 0.0 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0.0;
-        if (t < 0.0) t = 0.0; else if (t > 1.0) t = 1.0;
-        double ex = px - (ax + t * dx), ey = py - (ay + t * dy);
-        return ex * ex + ey * ey;
-    }
-
-    // squared distance from (x,y) to the nearest polygon edge (used for expansion)
+    // squared distance from (x,y) to the nearest polygon edge, including hole
+    // edges (used for expansion)
     inline double dist2_to_boundary(double x, double y) const {
-        double best = DBL_MAX;
-        size_t n = xs.size();
-        for (size_t i = 0, j = n - 1; i < n; j = i++) {
-            double d = seg_dist2(x, y, xs[j], ys[j], xs[i], ys[i]);
+        double best = ring_dist2(xs, ys, x, y);
+        for (size_t h = 0; h < holes.size(); ++h) {
+            double d = ring_dist2(holes[h].xs, holes[h].ys, x, y);
             if (d < best) best = d;
         }
         return best;
@@ -236,19 +281,33 @@ std::string json_scalar_to_string(const nlohmann::json& v) {
     return v.dump();
 }
 
-// Append one polygon ring (array of [x,y]) as a CellPolygon.
-void add_ring(const nlohmann::json& ring, int32_t cell_id_idx, std::vector<CellPolygon>& polys) {
-    if (!ring.is_array() || ring.size() < 3) return;
-    CellPolygon poly;
-    poly.cell_id_idx = cell_id_idx;
-    poly.xs.reserve(ring.size());
-    poly.ys.reserve(ring.size());
+// Read one ring (array of [x,y]) into coordinate vectors.
+void read_ring(const nlohmann::json& ring, std::vector<double>& xs, std::vector<double>& ys) {
+    xs.reserve(ring.size());
+    ys.reserve(ring.size());
     for (size_t i = 0; i < ring.size(); ++i) {
         const nlohmann::json& pt = ring[i];
         if (!pt.is_array() || pt.size() < 2 || !pt[0].is_number() || !pt[1].is_number())
             error("Invalid GeoJSON position: expected [x, y] numbers");
-        poly.xs.push_back(pt[0].get<double>());
-        poly.ys.push_back(pt[1].get<double>());
+        xs.push_back(pt[0].get<double>());
+        ys.push_back(pt[1].get<double>());
+    }
+}
+
+// Append one polygon (array of rings; the first is the exterior ring and the
+// rest are holes) as a CellPolygon.
+void add_polygon(const nlohmann::json& rings, int32_t cell_id_idx, std::vector<CellPolygon>& polys) {
+    if (!rings.is_array() || rings.empty()) return;
+    const nlohmann::json& exterior = rings[0];
+    if (!exterior.is_array() || exterior.size() < 3) return;
+    CellPolygon poly;
+    poly.cell_id_idx = cell_id_idx;
+    read_ring(exterior, poly.xs, poly.ys);
+    for (size_t r = 1; r < rings.size(); ++r) {
+        if (!rings[r].is_array() || rings[r].size() < 3) continue;
+        poly.holes.push_back(HoleRing());
+        read_ring(rings[r], poly.holes.back().xs, poly.holes.back().ys);
+        poly.holes.back().finalize();
     }
     poly.finalize();
     polys.push_back(std::move(poly));
@@ -269,12 +328,10 @@ void add_feature(const nlohmann::json& feature, const std::string& cell_id_attr,
     const nlohmann::json& coords = geometry["coordinates"];
 
     if (type == "Polygon") {
-        if (coords.is_array() && !coords.empty())
-            add_ring(coords[0], cid, polys);   // exterior ring only; holes ignored
+        add_polygon(coords, cid, polys);
     } else if (type == "MultiPolygon") {
         for (size_t i = 0; i < coords.size(); ++i)
-            if (coords[i].is_array() && !coords[i].empty())
-                add_ring(coords[i][0], cid, polys);
+            add_polygon(coords[i], cid, polys);
     } else {
         error("Unsupported geometry type '%s' (expected Polygon or MultiPolygon)", type.c_str());
     }
@@ -307,7 +364,9 @@ void load_geojson(const std::string& fn, const std::string& cell_id_attr,
             error("Invalid GeoJSON %s: expected 'Feature' or 'FeatureCollection'", fn.c_str());
         }
     }
-    notice("Loaded %llu features, %zu polygons from %s", n_features, polys.size(), fn.c_str());
+    uint64_t n_holes = 0;
+    for (size_t i = 0; i < polys.size(); ++i) n_holes += polys[i].holes.size();
+    notice("Loaded %llu features, %zu polygons (%llu holes) from %s", n_features, polys.size(), n_holes, fn.c_str());
 }
 
 // Strip a single pair of surrounding double quotes, if present.

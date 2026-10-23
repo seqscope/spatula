@@ -102,6 +102,7 @@ set(SOURCE_FILES
     cmd_mex_subset.cpp
     cmd_sptsv2mex.cpp
     cmd_sptsv2model.cpp
+    cmd_sptsv_null_residuals.cpp
     cmd_mex2sptsv.cpp
     cmd_pixel2sptsv.cpp
     cmd_png_mono2rgba.cpp

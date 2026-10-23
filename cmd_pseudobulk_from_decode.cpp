@@ -25,6 +25,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     std::string outf;
     int32_t n_factors = 0; 
     bool write_cell_tsv = false;
+    bool count_always_one = false;
     std::string colname_cell("cell_id");
     std::string out_cell_tsvf;
     //double pseudocount = 1.0;
@@ -41,6 +42,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     LONG_STRING_PARAM("colname-P1", &colname_P1, "Column name for the P1 value")
     LONG_STRING_PARAM("colname-P2", &colname_P2, "Column name for the P2 value")
     LONG_STRING_PARAM("colname-P3", &colname_P3, "Column name for the P3 value")
+    LONG_PARAM("count-always-one", &count_always_one, "If set, the count column will be ignored and all counts will be treated as 1.0")
     
     LONG_PARAM_GROUP("Output Options", NULL)
     LONG_STRING_PARAM("out", &outf, "Output file name")
@@ -77,7 +79,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
     }
 
     int32_t icol_feature = find_idx_by_key(col2idx, colname_feature.c_str(), true);
-    int32_t icol_count = find_idx_by_key(col2idx, colname_count.c_str(), true);
+    int32_t icol_count = count_always_one ? -1 : find_idx_by_key(col2idx, colname_count.c_str(), true);
     int32_t icol_K1 = find_idx_by_key(col2idx, colname_K1.c_str(), true);
     int32_t icol_K2 = find_idx_by_key(col2idx, colname_K2.c_str(), false);
     int32_t icol_K3 = find_idx_by_key(col2idx, colname_K3.c_str(), false);
@@ -151,7 +153,7 @@ int32_t cmdPseudobulkFromDecode(int32_t argc, char **argv)
 
     while ( tf.read_line() ) {
         const char* ftr = tf.str_field_at(icol_feature);
-        int32_t cnt = tf.int_field_at(icol_count);
+        int32_t cnt = count_always_one ? 1 : tf.int_field_at(icol_count);
         const char* K1 = tf.str_field_at(icol_K1);
         if ( best_guess_mode ) {
             fac2ftr2cnt[K1][ftr] += cnt;

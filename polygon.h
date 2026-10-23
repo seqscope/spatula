@@ -54,7 +54,9 @@ public:
 class Polygon
 {
 public:
-    std::vector<point_t> vertices;
+    std::vector<point_t> vertices;            // exterior ring
+    std::vector<std::vector<point_t> > holes; // interior rings (holes)
+
     inline void add_offset(double x, double y)
     {
         for (size_t i = 0; i < vertices.size(); ++i)
@@ -62,20 +64,45 @@ public:
             vertices[i].x += x;
             vertices[i].y += y;
         }
+        for (auto &hole : holes)
+        {
+            for (auto &p : hole)
+            {
+                p.x += x;
+                p.y += y;
+            }
+        }
     }
-    inline bool contains_point(double x, double y)
+
+    // ray-casting test against a single ring
+    static inline bool ring_contains_point(const std::vector<point_t> &ring, double x, double y)
     {
+        if (ring.empty())
+            return false;
         size_t i, j;
         bool result = false;
-        for (i = 0, j = vertices.size() - 1; i < vertices.size(); j = i++)
+        for (i = 0, j = ring.size() - 1; i < ring.size(); j = i++)
         {
-            if ((vertices[i].y > y) != (vertices[j].y > y) &&
-                (x < (vertices[j].x - vertices[i].x) * (y - vertices[i].y) / (vertices[j].y - vertices[i].y) + vertices[i].x))
+            if ((ring[i].y > y) != (ring[j].y > y) &&
+                (x < (ring[j].x - ring[i].x) * (y - ring[i].y) / (ring[j].y - ring[i].y) + ring[i].x))
             {
                 result = !result;
             }
         }
         return result;
+    }
+
+    // a point is contained if it is inside the exterior ring but not inside any hole
+    inline bool contains_point(double x, double y)
+    {
+        if (!ring_contains_point(vertices, x, y))
+            return false;
+        for (const auto &hole : holes)
+        {
+            if (ring_contains_point(hole, x, y))
+                return false;
+        }
+        return true;
     }
 
     inline bool contains_point(const point_t &p)
