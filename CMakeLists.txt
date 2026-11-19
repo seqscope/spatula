@@ -45,7 +45,9 @@ endif()
 
 message(STATUS ${HTS_INCLUDE_DIRS})
 
-find_library(HTS_LIBRARIES hts
+# Prefer the static library: a locally built (not installed) libhts.dylib embeds
+# its install prefix (e.g. /usr/local/lib) and fails to load at runtime.
+find_library(HTS_LIBRARIES NAMES libhts.a hts
   HINTS
     submodules/htslib/
     ../htslib/
